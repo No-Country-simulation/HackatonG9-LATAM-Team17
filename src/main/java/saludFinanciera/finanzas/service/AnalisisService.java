@@ -1,13 +1,13 @@
-package SaludFinanciera.finazas.services;
+package saludFinanciera.finanzas.service;
 //christian importante!!! esta regla de negocios si o si se cambia para un formato mas
 //simple mientras definimos las variables.
 
-import SaludFinanciera.finazas.DTOs.AnalisisInputDTO;
-import SaludFinanciera.finazas.DTOs.AnalisisOutputDTO;
-import SaludFinanciera.finazas.DTOs.TransaccionDTO;
-import SaludFinanciera.finazas.models.AnalisisFinanciero;
-import SaludFinanciera.finazas.models.Transaccion;
-import SaludFinanciera.finazas.repositories.AnalisisRepository;
+import saludFinanciera.finanzas.dto.AnalisisInputDTO;
+import saludFinanciera.finanzas.dto.AnalisisOutputDTO;
+import saludFinanciera.finanzas.dto.TransaccionDTO;
+import saludFinanciera.finanzas.model.AnalisisFinanciero;
+import saludFinanciera.finanzas.model.Transaccion;
+import saludFinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import org.springframework.stereotype.Service;
 
 
@@ -19,9 +19,9 @@ import java.util.Map;
 @Service
 public class AnalisisService {
 
-    private final AnalisisRepository analisisRepository;
+    private final AnalisisFinancieroRepository analisisRepository;
 
-    public AnalisisService(AnalisisRepository analisisRepository) {
+    public AnalisisService(AnalisisFinancieroRepository analisisRepository) {
         this.analisisRepository = analisisRepository;
     }
 
@@ -31,24 +31,25 @@ public class AnalisisService {
         double totalGastos = 0;
 
         // Cambiado a .getTransacciones() por Lombok
-        for (TransaccionDTO tDto : input.getTransacciones()) {
+        for (TransaccionDTO tDto : input.transacciones()) {
             String categoriaCalculada = "Otros";
 
             // Cambiado a .getDescripcion() y .getValor() por Lombok
-            String descripcionLower = tDto.getDescripcion().toLowerCase();
+            String descripcionLower = tDto.descripcion().toLowerCase();
             if (descripcionLower.contains("arriendo") || descripcionLower.contains("servicio")) {
                 categoriaCalculada = "Vivienda";
             } else if (descripcionLower.contains("cine") || descripcionLower.contains("restaurante")) {
                 categoriaCalculada = "Ocio";
             }
 
-            resumenGastos.put(categoriaCalculada, resumenGastos.getOrDefault(categoriaCalculada, 0.0) + tDto.getValor());
-            totalGastos += tDto.getValor();
+            resumenGastos.put(categoriaCalculada, resumenGastos.getOrDefault(categoriaCalculada, 0.0) + tDto.valor());
+            totalGastos += tDto.valor();
 
+            // Mapeo a la entidad de Base de Datos (Setters con CamelCase)
             Transaccion transaccionDb = new Transaccion();
-            transaccionDb.setDescripcion(tDto.getDescripcion());
-            transaccionDb.setValor(tDto.getValor());
-            transaccionDb.setCategoria_asignada(categoriaCalculada);
+            transaccionDb.setDescripcion(tDto.descripcion());
+            transaccionDb.setValor(tDto.valor());
+            transaccionDb.setCategoriaAsignada(categoriaCalculada);
             entidadesTransacciones.add(transaccionDb);
         }
 
@@ -56,8 +57,8 @@ public class AnalisisService {
         double probabilidad = 0.85;
         List<String> recomendaciones = new ArrayList<>();
 
-        // Cambiado a .getNivel_endeudamiento() e .getIngreso_mensual() por Lombok
-        if (input.getNivel_endeudamiento() > 50 || totalGastos > input.getIngreso_mensual()) {
+        // 2. Regla de negocio usando los métodos del Record input en camelCase
+        if (input.nivelEndeudamiento() > 50 || totalGastos > input.ingresoMensual()) {
             perfil = "Riesgo Alto";
             probabilidad = 0.92;
             recomendaciones.add("Alerta: Tus gastos u obligaciones superan el límite saludable de tus ingresos mensuales.");
@@ -68,23 +69,21 @@ public class AnalisisService {
         }
 
         AnalisisFinanciero analisisDb = new AnalisisFinanciero();
-        analisisDb.setIngreso_mensual(input.getIngreso_mensual());
-        analisisDb.setNivel_endeudamiento(input.getNivel_endeudamiento());
-        analisisDb.setFrecuencia_ahorro(input.getFrecuencia_ahorro());
-        analisisDb.setPerfil_financiero(perfil);
-        analisisDb.setProbabilidad_ia(probabilidad);
+        analisisDb.setIngresoMensual(input.ingresoMensual());
+        analisisDb.setNivelEndeudamiento(input.nivelEndeudamiento());
+        analisisDb.setFrecuenciaAhorro(input.frecuenciaAhorro());
+        analisisDb.setPerfilFinanciero(perfil);
+        analisisDb.setProbabilidadIa(probabilidad);
         analisisDb.setTransacciones(entidadesTransacciones);
         analisisDb.setRecomendaciones(recomendaciones);
 
         analisisRepository.save(analisisDb);
 
-        // Crear el DTO de salida usando el constructor tradicional de Lombok
-        AnalisisOutputDTO output = new AnalisisOutputDTO();
-        output.setPerfil_financiero(perfil);
-        output.setProbabilidad(probabilidad);
-        output.setResumen_gastos(resumenGastos);
-        output.setRecomendaciones(recomendaciones);
-
-        return output;
+        return new AnalisisOutputDTO(
+                perfil,
+                probabilidad,
+                resumenGastos,
+                recomendaciones
+        );
     }
 }

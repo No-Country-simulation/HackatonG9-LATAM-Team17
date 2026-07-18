@@ -1,23 +1,31 @@
-package SaludFinanciera.finazas.models;
+package saludFinanciera.finanzas.model;
 //Esta entidad representará la tabla donde se guardará de forma desagregada
 // cada gasto individual enviado, incluyendo el campo especial de categoria_assigned
 // que más adelante resolverá la Inteligencia Artificial.
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "transacciones")
-@Data
+@Getter
+@Setter
+@ToString
 public class Transaccion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String descripcion;
+
+    @Column(nullable = false)
     private double valor;
 
-    // Campo donde guardaremos la categoría identificada ('vivienda', 'ocio', etc.)
-    private String categoria_asignada;
+    // Ajustado a camelCase en Java y mapeado a snake_case para la base de datos
+    @Column(name = "categoria_asignada")
+    private String categoriaAsignada;
 }
