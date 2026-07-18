@@ -1,9 +1,9 @@
-package SaludFinanciera.finazas.controllers;
+package saludFinanciera.finanzas.controller;
 
 
-import SaludFinanciera.finazas.DTOs.AnalisisInputDTO;
-import SaludFinanciera.finazas.DTOs.AnalisisOutputDTO;
-import SaludFinanciera.finazas.services.AnalisisService;
+import saludFinanciera.finanzas.dto.AnalisisInputDTO;
+import saludFinanciera.finanzas.dto.AnalisisOutputDTO;
+import saludFinanciera.finanzas.service.AnalisisService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
