@@ -34,3 +34,27 @@ Este documento detalla las modificaciones críticas realizadas en la arquitectur
 * **[Sprint 1: Infraestructura Base]** ➡️ Mover a ✅ Hecho
  
 * **[Configuración de POM y Dependencias]** ➡️ Mover a ✅ Hecho
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+
+# 🛠️ Reestructuración del Proyecto Backend
+
+En esta etapa del desarrollo se ha realizado un refactorizado en la organización del repositorio para optimizar la arquitectura del código y facilitar la colaboración en equipo.
+
+## 📌 Cambios Principales
+
+1. **Creación de la rama `feature/back-estructura-capas`:**
+   * Se migró todo el código funcional del proyecto desde la rama `main` hacia la rama dedicada `feature/back-estructura-capas`.
+   * La rama `main` fue limpiada para servir como punto neutro e inicial para la integración del repositorio general.
+
+2. **Organización en subcarpeta `backend/`:**
+   * Se agruparon todos los módulos y configuraciones del proyecto Spring Boot (`src/`, `pom.xml`, `.mvn/`, `mvnw`, etc.) dentro de una nueva subcarpeta llamada `backend/`.
+   * Esta estructura permite un manejo de arquitectura más limpio (monorepo), facilitando la convivencia con otras áreas del proyecto (como `frontend` o microservicios de `data-science`).
+
+3. **Estructuración por Capas:**
+   * Se definieron los paquetes base dentro de `backend/src/main/java/...`:
+     * `controller`: Endpoints y exposición de la API REST.
+     * `service`: Lógica de negocio y cálculo de salud financiera.
+     * `dto`: Transferencia de datos request/response.
+     * `repository`: Persistencia e interacción con la base de datos PostgreSQL.
+     * `model`: Entidades JPA.
