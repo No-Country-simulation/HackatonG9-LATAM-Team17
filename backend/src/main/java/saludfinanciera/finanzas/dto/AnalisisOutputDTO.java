@@ -1,4 +1,4 @@
-package saludFinanciera.finanzas.dto;
+package saludfinanciera.finanzas.dto;
 
 import java.util.List;
 import java.util.Map;

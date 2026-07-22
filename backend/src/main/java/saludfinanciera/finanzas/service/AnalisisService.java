@@ -1,13 +1,13 @@
-package saludFinanciera.finanzas.service;
+package saludfinanciera.finanzas.service;
 //christian importante!!! esta regla de negocios si o si se cambia para un formato mas
 //simple mientras definimos las variables.
 
-import saludFinanciera.finanzas.dto.AnalisisInputDTO;
-import saludFinanciera.finanzas.dto.AnalisisOutputDTO;
-import saludFinanciera.finanzas.dto.TransaccionDTO;
-import saludFinanciera.finanzas.model.AnalisisFinanciero;
-import saludFinanciera.finanzas.model.Transaccion;
-import saludFinanciera.finanzas.repository.AnalisisFinancieroRepository;
+import saludfinanciera.finanzas.dto.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.AnalisisOutputDTO;
+import saludfinanciera.finanzas.dto.TransaccionDTO;
+import saludfinanciera.finanzas.model.AnalisisFinanciero;
+import saludfinanciera.finanzas.model.Transaccion;
+import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import org.springframework.stereotype.Service;
 
 

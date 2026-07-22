@@ -1,4 +1,4 @@
-package saludFinanciera.finanzas.model; // 1. Paquetes en minúsculas por convención
+package saludfinanciera.finanzas.model; // 1. Paquetes en minúsculas por convención
 //Esta entidad representará la tabla principal
 // que guardará la cabecera de cada análisis que realice un usuario.
 

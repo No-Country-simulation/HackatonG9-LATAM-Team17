@@ -1,7 +1,7 @@
-package saludFinanciera.finanzas.repository;
+package saludfinanciera.finanzas.repository;
 
 
-import saludFinanciera.finanzas.model.AnalisisFinanciero;
+import saludfinanciera.finanzas.model.AnalisisFinanciero;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

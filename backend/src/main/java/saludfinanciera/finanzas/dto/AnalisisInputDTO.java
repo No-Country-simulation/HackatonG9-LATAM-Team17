@@ -1,4 +1,4 @@
-package saludFinanciera.finanzas.dto;
+package saludfinanciera.finanzas.dto;
 
 /**
  * Molde exacto para el JSON de Entrada que el Frontend enviará al presionar "Analizar".

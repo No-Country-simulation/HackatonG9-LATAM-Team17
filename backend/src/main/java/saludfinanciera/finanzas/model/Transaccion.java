@@ -1,4 +1,4 @@
-package saludFinanciera.finanzas.model;
+package saludfinanciera.finanzas.model;
 //Esta entidad representará la tabla donde se guardará de forma desagregada
 // cada gasto individual enviado, incluyendo el campo especial de categoria_assigned
 // que más adelante resolverá la Inteligencia Artificial.
