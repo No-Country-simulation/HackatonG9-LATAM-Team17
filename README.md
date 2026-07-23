@@ -21,8 +21,8 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
 * **Método**: `POST`
 * **Descripción**: Endpoint principal expuesto al cliente para procesar la salud financiera.
 * **Payload de entrada (Request)**:
-  ```
-  json
+  
+* ```json
   {
     "usuarioId": "USR-12345",
     "transacciones": [
@@ -44,8 +44,7 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
   * Respuesta exitosa (Response 200 OK):
    
   
-  ```
-  JSON
+  ```JSON
 {
 "estadoFinanciero": "SALUDABLE",
 "diagnostico": "Tus ingresos superan holgadamente tus egresos operativos.",
@@ -62,8 +61,7 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
 * Descripción: Microservicio interno consumido mediante **RestClient** por el backend de Java.
 * Payload de entrada (Request desde Java):
 
-```
-JSON
+```JSON
 {
   "usuarioId": "USR-12345",
   "transacciones": [
@@ -78,8 +76,7 @@ JSON
 ```
 * Respuesta del Microservicio (Response a Java):
 
-```
-JSON
+```JSON
 {
   "estadoFinanciero": "SALUDABLE",
   "diagnostico": "Análisis completado por el modelo NLP.",
@@ -101,15 +98,16 @@ de datos **salud_financiera** en el puerto **5432** y consultar directamente la 
 * Si Python consulta a través de Java: Podés crear un endpoint simple en tu controller de Spring Boot    
 (**GET /api/v1/transacciones/usuario/{usuarioId}**) para que Python obtenga los registros mockeados por HTTP.
 
-```
-Python
+```Python 
 import requests
 
 # Python lee los datos cargados desde Java:
 response = requests.get("http://localhost:8080/api/v1/analisis/transacciones/USR-1001")
 transacciones = response.json()
 ``` 
+
 ## Imagenes DB
+
 
 ![Dashboard Pg Admin](assets/dashboard-1.png)
 
