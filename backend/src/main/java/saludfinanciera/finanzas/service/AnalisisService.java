@@ -1,89 +1,59 @@
 package saludfinanciera.finanzas.service;
-//christian importante!!! esta regla de negocios si o si se cambia para un formato mas
-//simple mientras definimos las variables.
 
-import saludfinanciera.finanzas.dto.AnalisisInputDTO;
-import saludfinanciera.finanzas.dto.AnalisisOutputDTO;
-import saludfinanciera.finanzas.dto.TransaccionDTO;
+import org.springframework.transaction.annotation.Transactional;
+import saludfinanciera.finanzas.client.NlpDataClient;
+import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.model.AnalisisFinanciero;
 import saludfinanciera.finanzas.model.Transaccion;
-import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import org.springframework.stereotype.Service;
+import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
+import saludfinanciera.finanzas.repository.TransaccionRepository;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AnalisisService {
 
+    private final TransaccionRepository transaccionRepository;
     private final AnalisisFinancieroRepository analisisRepository;
+    private final NlpDataClient nlpDataClient;
 
-    public AnalisisService(AnalisisFinancieroRepository analisisRepository) {
+    public AnalisisService(TransaccionRepository transaccionRepository, AnalisisFinancieroRepository analisisRepository, NlpDataClient nlpDataClient) {
+        this.transaccionRepository = transaccionRepository;
         this.analisisRepository = analisisRepository;
+        this.nlpDataClient = nlpDataClient;
     }
 
-    public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO input) {
-        Map<String, Double> resumenGastos = new HashMap<>();
-        List<Transaccion> entidadesTransacciones = new ArrayList<>();
-        double totalGastos = 0;
 
-        // Cambiado a .getTransacciones() por Lombok
-        for (TransaccionDTO tDto : input.transacciones()) {
-            String categoriaCalculada = "Otros";
+    @Transactional
+    public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO inputDTO) {
+        // 1. Mapear y guardar transacciones crudas
+        List<Transaccion> entidades = inputDTO.getTransacciones().stream().map(dto -> {
+            Transaccion t = new Transaccion();
+            t.setUsuarioId(inputDTO.getUsuarioId());
+            t.setDescripcion(dto.getDescripcion());
+            t.setMonto(dto.getMonto());
+            t.setTipo(dto.getTipo());
+            t.setCategoria(dto.getCategoria());
+            return t;
+        }).toList();
 
-            // Cambiado a .getDescripcion() y .getValor() por Lombok
-            String descripcionLower = tDto.descripcion().toLowerCase();
-            if (descripcionLower.contains("arriendo") || descripcionLower.contains("servicio")) {
-                categoriaCalculada = "Vivienda";
-            } else if (descripcionLower.contains("cine") || descripcionLower.contains("restaurante")) {
-                categoriaCalculada = "Ocio";
-            }
+        transaccionRepository.saveAll(entidades);
 
-            resumenGastos.put(categoriaCalculada, resumenGastos.getOrDefault(categoriaCalculada, 0.0) + tDto.valor());
-            totalGastos += tDto.valor();
+        // 2. Invocar al microservicio de Python NLP
+        AnalisisOutputDTO respuestaNlp = nlpDataClient.analizarPerfil(inputDTO);
 
-            // Mapeo a la entidad de Base de Datos (Setters con CamelCase)
-            Transaccion transaccionDb = new Transaccion();
-            transaccionDb.setDescripcion(tDto.descripcion());
-            transaccionDb.setValor(tDto.valor());
-            transaccionDb.setCategoriaAsignada(categoriaCalculada);
-            entidadesTransacciones.add(transaccionDb);
-        }
+        // 3. Persistir el resultado consolidado
+        AnalisisFinanciero analisis = new AnalisisFinanciero();
+        analisis.setUsuarioId(inputDTO.getUsuarioId());
+        analisis.setEstadoFinanciero(respuestaNlp.getEstadoFinanciero());
+        analisis.setDiagnostico(respuestaNlp.getDiagnostico());
 
-        String perfil = "Estable";
-        double probabilidad = 0.85;
-        List<String> recomendaciones = new ArrayList<>();
+        analisisRepository.save(analisis);
 
-        // 2. Regla de negocio usando los métodos del Record input en camelCase
-        if (input.nivelEndeudamiento() > 50 || totalGastos > input.ingresoMensual()) {
-            perfil = "Riesgo Alto";
-            probabilidad = 0.92;
-            recomendaciones.add("Alerta: Tus gastos u obligaciones superan el límite saludable de tus ingresos mensuales.");
-            recomendaciones.add("Recomendación: Reestructura tus deudas de inmediato y recorta suscripciones de ocio.");
-        } else {
-            recomendaciones.add("Vas por buen camino. Sigue manteniendo tu nivel de endeudamiento controlado.");
-            recomendaciones.add("Considera automatizar un porcentaje de ahorro al inicio del mes.");
-        }
-
-        AnalisisFinanciero analisisDb = new AnalisisFinanciero();
-        analisisDb.setIngresoMensual(input.ingresoMensual());
-        analisisDb.setNivelEndeudamiento(input.nivelEndeudamiento());
-        analisisDb.setFrecuenciaAhorro(input.frecuenciaAhorro());
-        analisisDb.setPerfilFinanciero(perfil);
-        analisisDb.setProbabilidadIa(probabilidad);
-        analisisDb.setTransacciones(entidadesTransacciones);
-        analisisDb.setRecomendaciones(recomendaciones);
-
-        analisisRepository.save(analisisDb);
-
-        return new AnalisisOutputDTO(
-                perfil,
-                probabilidad,
-                resumenGastos,
-                recomendaciones
-        );
+        // 4. Retornar respuesta al Frontend
+        return respuestaNlp;
     }
 }
