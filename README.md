@@ -17,12 +17,12 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
 ### 🔌 Especificación de Endpoints
 
 #### 1. Frontend ↔ Java Backend (Spring Boot)
-* **URL**: `http://localhost:8080/api/v1/analisis/procesar`
+* **URL**: `http://localhost:8008/api/v1/analisis/procesar`
 * **Método**: `POST`
 * **Descripción**: Endpoint principal expuesto al cliente para procesar la salud financiera.
 * **Payload de entrada (Request)**:
   
-* ```json
+ ```json
   {
     "usuarioId": "USR-12345",
     "transacciones": [
@@ -41,6 +41,7 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
     ]
   }
   ```
+
   * Respuesta exitosa (Response 200 OK):
    
   
@@ -55,13 +56,14 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
 }  
   ```
 
+
 2. Java Backend ↔ Servicio Data (Python NLP)
 * URL: http://localhost:8008/api/v1/analizar-perfil
 * Método: **POST**
 * Descripción: Microservicio interno consumido mediante **RestClient** por el backend de Java.
 * Payload de entrada (Request desde Java):
 
-```JSON
+```json
 {
   "usuarioId": "USR-12345",
   "transacciones": [
@@ -74,9 +76,10 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
   ]
 }
 ```
+ 
 * Respuesta del Microservicio (Response a Java):
 
-```JSON
+```json
 {
   "estadoFinanciero": "SALUDABLE",
   "diagnostico": "Análisis completado por el modelo NLP.",
@@ -91,7 +94,8 @@ Este módulo backend actúa como **orquestador principal** del sistema. Se encar
 * Java Spring Boot: 8008
 
 * Python Microservice: 8000
-## Pruebas con Python
+ 
+## 🧪 Pruebas con Python
 * Si Python lee la DB directamente: Puede conectarse con **SQLAlchemy** o **psycopg2** apuntando a la misma base    
 de datos **salud_financiera** en el puerto **5432** y consultar directamente la tabla **transacciones**.
 
