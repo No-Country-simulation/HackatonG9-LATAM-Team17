@@ -116,3 +116,102 @@ transacciones = response.json()
 ![Dashboard Pg Admin](assets/dashboard-1.png)
 
 ![Dashboard Pg Admin](assets/dashboard-2.png)
+___
+```mermaid
+
+sequenceDiagram
+    autonumber
+    actor User as Client / Frontend
+    participant SB as Spring Boot Backend<br/>(:8008)
+    participant DB as PostgreSQL DB<br/>(:5432)
+    participant Py as Python NLP Service<br/>(:8000)
+
+%% Estilos de contraste
+    rect rgb(240, 244, 248)
+        Note over User, Py: Flujo Principal de Procesamiento y Análisis
+    end
+
+    User->>SB: POST /api/v1/analisis/procesar<br/>(Payload con Usuario y Transacciones)
+
+    activate SB
+    Note over SB: 1. Valida payload<br/>2. Aplica @PrePersist (TIMESTAMP(0))
+
+    SB->>DB: INSERT transacciones / analisis
+    activate DB
+    DB-->>SB: Confirmación de Persistencia
+    deactivate DB
+
+    SB->>Py: POST /api/v1/analizar-perfil<br/>(Vía RestClient de Spring)
+    activate Py
+
+    Note over Py: Procesamiento NLP,<br/>evaluación de perfil y tips
+
+    Py-->>SB: Responde Diagnóstico y Tips
+    deactivate Py
+
+    SB->>DB: UPDATE / SAVE Resultados consolidados
+    activate DB
+    DB-->>SB: OK
+    deactivate DB
+
+    SB-->>User: 200 OK (Estado financiero, Diagnóstico y Tips)
+    deactivate SB
+```
+___
+
+```mermaid
+   graph TD
+    Client[Client / Frontend] -->|HTTP POST :8008| Controller[Spring Boot REST Controller]
+    
+    subgraph Spring Boot Backend
+        Controller --> Service[Análisis Service]
+        Service --> Repository[Spring Data JPA / Hibernate]
+        Service --> RestClient[RestClient HTTP Config]
+    end
+
+    Repository -->|Persiste con TIMESTAMP 0| Postgres[(PostgreSQL DB :5432)]
+    RestClient -->|HTTP POST :8000| FastApi[Python FastAPI / NLP Service]
+```
+
+## 🐍 1. Equipo de Data Science / Python
+Una vez que el endpoint mock de Python responde correctamente a Spring Boot, el objetivo de Data es darle valor a los modelos de análisis:
+
+1- Implementar la lógica real de NLP/Machine Learning:
+
+* Reemplazar la respuesta mock del endpoint **/api/v1/analizar-perfil** por el modelo real (clasificación de gastos, detección de patrones de consumo o generación de diagnósticos con IA).
+
+2- Definir el manejo de errores/fallbacks:
+
+* Configurar respuestas de contingencia (ej. si una categoría no es reconocida o si el volumen de datos es insuficiente para el modelo) para que devuelva una estructura JSON válida sin romper el flujo.
+
+3- Optimizar tiempos de respuesta:
+
+* Asegurar que la inferencia del modelo responda de manera ágil (idealmente < 1.5s) ya que Spring Boot realiza una llamada síncrona mientras el usuario espera en la app.
+
+## 🎨 2. Equipo de Frontend (React / Web / Mobile)
+El Frontend ya tiene las especificaciones del backend plasmadas en el **README.md** para empezar a consumir la API:
+
+1- Consumo del Endpoint Principal:
+
+* Conectarse a **POST http://localhost:8008/api/v1/analisis/procesar** enviando el payload con **usuarioId** y la lista de **transacciones**.
+
+2- Diseño del Dashboard Financiero:
+
+* Pantalla de carga (Loading State): Implementar spinners/skeletons interactivos mientras Spring Orchestrator procesa la persistencia y consulta a Python.
+
+* Visualización de Resultados: Renderizar el badge con el **estadoFinanciero** (ej. SALUDABLE en verde, CRÍTICO en rojo), la caja de **diagnostico** y la lista de **tips** sugeridos.
+
+3- Validación de Formularios:
+
+* Asegurar que no se envíen montos negativos o campos vacíos desde la UI antes de gatillar la petición HTTP.
+
+## ☕ 3. Backend (Spring Boot) - Tareas de Apoyo y Resiliencia
+Desde el lado Java, para dejar el sistema "a prueba de balas":
+
+1- Manejo de Errores e Integración (Resilience):
+
+* Implementar un **@RestControllerAdvice** para capturar la **ResourceAccessException** si el microservicio de Python llegara a caerse y responder un **503 Service Unavailable** limpio o un diagnóstico por defecto al Frontend.
+
+2- CORS (Cross-Origin Resource Sharing):
+
+* Habilitar **@CrossOrigin(origins = "*")** (o la URL del Frontend) en el controlador para que React/Angular pueda hacer peticiones sin ser bloqueado por el navegador.
