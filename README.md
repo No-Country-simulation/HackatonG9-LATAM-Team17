@@ -1,18 +1,47 @@
-﻿## 🚀 Backend & Integración de Capas (Spring Boot + Python NLP)
+﻿## 🚀 Backend e Integración de Capas (Spring Boot + Python NLP)
+Este módulo backend actúa como orquestador principal del sistema. Se encarga de recibir las peticiones del frontend, gestionar la persistencia en PostgreSQL y consumir de forma síncrona el microservicio de Data Science (Python) mediante **RestClient** para obtener el análisis con Inteligencia Artificial/NLP.
 
-Este módulo backend actúa como **orquestador principal** del sistema. Se encarga de recibir las peticiones del Frontend, gestionar la persistencia en PostgreSQL y consumir sincrónicamente el microservicio de Data Science (Python) para obtener el análisis con Inteligencia Artificial/NLP.
+## 🔄 Flujo de Funcionamiento
+
+1- Recepción y Validación: El controlador de Spring Boot recibe el JSON del frontend y valida la estructura de los datos (transacciones, montos positivos, campos obligatorios) utilizando Java 21 Records como DTOs.
+
+2- Persistencia Inicial: Se guardan los registros crudos de las transacciones en la base de datos PostgreSQL.
+
+3- Invocación al Microservicio Data: Se realiza una petición HTTP POST desde Spring Boot hacia la API de Python (**http://localhost:8008**) enviando el perfil de gastos.
+
+4- Procesamiento NLP: El microservicio de Python clasifica y evalúa las métricas mediante Inteligencia Artificial, determinando el estado financiero y generando recomendaciones/diagnósticos.
+
+5- Persistencia Consolidada: Spring Boot recibe el análisis de Python, guarda el resultado consolidado (**AnalisisFinanciero**) en PostgreSQL y devuelve la respuesta unificada al frontend.
 
 ---
 
-### 🔄 Flujo de Funcionamiento
+### 📊 Modelo Entidad-Relación: Análisis Financiero y Transacciones
 
-1. **Recepción & Validación**: El controlador de Spring Boot recibe el JSON del Frontend y valida la estructura de datos (transacciones, montos positivos, campos obligatorios).
-2. **Persistencia Inicial**: Se guardan los registros crudos de las transacciones en la base de datos PostgreSQL.
-3. **Invocación al Microservicio Data**: Se realiza una petición HTTP POST desde Spring Boot hacia la API de Python (`http://localhost:8008`) enviando el perfil de gastos.
-4. **Procesamiento NLP**: El microservicio de Python clasifica/evalúa las métricas e Inteligencia Artificial, determinando el perfil financiero y generando recomendaciones/tips.
-5. **Persistencia Consolidada**: Spring Boot recibe la respuesta de Python, guarda el perfil financiero resultante en PostgreSQL y devuelve la respuesta unificada al Frontend.
+El siguiente diagrama ilustra la relación **1:N** entre el análisis consolidado y sus transacciones asociadas:
 
----
+```mermaid
+
+erDiagram
+    ANALISIS_FINANCIERO ||--o{ TRANSACCION : "posee / contiene"
+
+    ANALISIS_FINANCIERO {
+        Long id PK
+        String usuarioId
+        String estadoFinanciero
+        String diagnostico
+        LocalDateTime fechaCreacion
+    }
+
+    TRANSACCION {
+        Long id PK
+        String usuarioId
+        String descripcion
+        BigDecimal monto
+        String tipo
+        String categoria
+        Long analisis_id FK
+    }
+```
 
 ### 🔌 Especificación de Endpoints
 
