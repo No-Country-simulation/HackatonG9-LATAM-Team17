@@ -1,0 +1,32 @@
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: salud_financiera
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+    ports:
+      - "5432:5432"
+
+  # Comentado temporalmente hasta que esté la carpeta python-nlp-service
+  #python-nlp:
+  #  build: ./python-nlp-service
+  #  container_name: python_nlp_api
+  #  ports:
+  #    - "8000:8000"
+
+  backend-spring:
+    build: ./backend
+    container_name: spring_backend
+    ports:
+      - "8008:8008"  # Tu máquina (8008) -> Contenedor (8008)
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/salud_financiera
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: secretpassword
+      # OJO: Entre contenedores se usa el nombre del servicio de Docker y el puerto INTERNO (8000)
+#      PYTHON_SERVICE_URL: http://python-nlp:8008
+    depends_on:
+      - postgres-db
+#      - python-nlp
