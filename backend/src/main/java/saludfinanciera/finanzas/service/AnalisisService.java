@@ -30,13 +30,13 @@ public class AnalisisService {
     @Transactional
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO inputDTO) {
         // 1. Mapear y guardar transacciones crudas
-        List<Transaccion> entidades = inputDTO.getTransacciones().stream().map(dto -> {
+        List<Transaccion> entidades = inputDTO.transacciones().stream().map(dto -> {
             Transaccion t = new Transaccion();
-            t.setUsuarioId(inputDTO.getUsuarioId());
-            t.setDescripcion(dto.getDescripcion());
-            t.setMonto(dto.getMonto());
-            t.setTipo(dto.getTipo());
-            t.setCategoria(dto.getCategoria());
+            t.setUsuarioId(inputDTO.usuarioId());
+            t.setDescripcion(dto.descripcion());
+            t.setMonto(dto.monto());
+            t.setTipo(dto.tipo());
+            t.setCategoria(dto.categoria());
             return t;
         }).toList();
 
@@ -47,9 +47,9 @@ public class AnalisisService {
 
         // 3. Persistir el resultado consolidado
         AnalisisFinanciero analisis = new AnalisisFinanciero();
-        analisis.setUsuarioId(inputDTO.getUsuarioId());
-        analisis.setEstadoFinanciero(respuestaNlp.getEstadoFinanciero());
-        analisis.setDiagnostico(respuestaNlp.getDiagnostico());
+        analisis.setUsuarioId(inputDTO.usuarioId());
+        analisis.setEstadoFinanciero(respuestaNlp.estadoFinanciero());
+        analisis.setDiagnostico(respuestaNlp.diagnostico());
 
         analisisRepository.save(analisis);
 

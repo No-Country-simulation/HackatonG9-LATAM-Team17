@@ -15,5 +15,5 @@ INSERT INTO transacciones (usuario_id, descripcion, monto, tipo, categoria)
 VALUES ('USR-1002', 'Cena restaurante Palermo', 32000.00, 'EGRESO', 'SALIDAS');
 
 -- Insertar análisis previos de prueba
-INSERT INTO analisis_financieros (usuario_id, estado_financiero, diagnostico, fecha_creacion)
-VALUES ('USR-1001', 'SALUDABLE', 'El balance mensual muestra un margen positivo adecuado.', NOW());
+INSERT INTO analisis_financiero (usuario_id, estado_financiero, diagnostico, fecha_creacion)
+VALUES ('USR-1001', 'SALUDABLE', 'El balance mensual muestra un margen positivo adecuado.', CURRENT_TIMESTAMP(0));

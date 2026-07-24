@@ -6,16 +6,22 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
+@Entity
+@Table(name = "analisis_financiero")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "analisis_financieros")
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalisisFinanciero {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include // Solo compara por el ID
     private Long id;
 
     private String usuarioId;
@@ -27,6 +33,11 @@ public class AnalisisFinanciero {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaCreacion;
+
+
+    @OneToMany(mappedBy = "analisis", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Transaccion> transacciones = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
