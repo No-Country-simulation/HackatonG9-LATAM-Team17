@@ -106,7 +106,7 @@ de datos **salud_financiera** en el puerto **5432** y consultar directamente la 
 import requests
 
 # Python lee los datos cargados desde Java:
-response = requests.get("http://localhost:8080/api/v1/analisis/transacciones/USR-1001")
+response = requests.get("http://localhost:8008/api/v1/analisis/transacciones/USR-1001")
 transacciones = response.json()
 ``` 
 
