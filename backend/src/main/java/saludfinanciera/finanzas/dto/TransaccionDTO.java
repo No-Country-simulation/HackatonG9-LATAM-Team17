@@ -4,7 +4,9 @@ package saludfinanciera.finanzas.dto;
  */
 
 public record TransaccionDTO(
+
         String descripcion,
+
         double valor
 ) {
 }

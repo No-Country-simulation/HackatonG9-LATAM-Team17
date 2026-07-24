@@ -50,6 +50,7 @@
 			<optional>true</optional>
 		</dependency>
 
+
 		<!-- Starter de Testing Único (Reemplaza a data-jpa-test y webmvc-test) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

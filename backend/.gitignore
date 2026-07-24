@@ -1,10 +1,17 @@
+# Archivos de entorno y credenciales locales
+.env
+.env.local
+*.env
+!.env.example
+
+# Archivos de compilación y temporales
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+### STS / Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -14,7 +21,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -31,6 +38,4 @@ build/
 
 ### VS Code ###
 .vscode/
-.idea/
-*.iml
 out/
