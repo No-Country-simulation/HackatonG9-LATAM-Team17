@@ -1,13 +1,16 @@
 package saludfinanciera.finanzas.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public record AnalisisOutputDTO(
 
-        String estadoFinanciero, // Ej: "SALUDABLE", "CRÍTICO"
+        List<String> categoria,
 
-        String diagnostico,     // El texto generado por la IA de Python
+        @JsonProperty("perfil_financiero")
+        String perfilFinanciero,
 
-        List<String> tips       // Lista de recomendaciones
+        Double probabilidad
 ){
 }

@@ -17,33 +17,31 @@ import java.util.List;
 public class AnalisisController {
 
     private final AnalisisService analisisService;
+    //    private final TransaccionRepository transaccionRepository;
 
-    private final TransaccionRepository transaccionRepository;
-
-    public AnalisisController(AnalisisService analisisService, TransaccionRepository transaccionRepository) {
+    public AnalisisController(AnalisisService analisisService) {
         this.analisisService = analisisService;
-        this.transaccionRepository = transaccionRepository;
     }
-
+    // Endpoint principal de análisis con IA
     @PostMapping("/procesar")
     public ResponseEntity<AnalisisOutputDTO> procesarAnalisis(@Valid @RequestBody AnalisisInputDTO inputDTO) {
         AnalisisOutputDTO resultado = analisisService.procesarAnalisis(inputDTO);
         return ResponseEntity.ok(resultado);
     }
 
-    // --- NUEVOS ENDPOINTS (GET para Python/Data) ---
+    // --- ENDPOINTS GET (Delegados al Service) ---
 
-    // 1. Obtener transacciones por ID de Usuario (ej: GET /api/v1/analisis/transacciones/USR-1001)
+    // 1. Obtener transacciones por ID de Usuario
     @GetMapping("/transacciones/{usuarioId}")
     public ResponseEntity<List<Transaccion>> obtenerTransaccionesPorUsuario(@PathVariable String usuarioId) {
-        List<Transaccion> transacciones = transaccionRepository.findByUsuarioId(usuarioId);
+        List<Transaccion> transacciones = analisisService.obtenerTransaccionesPorUsuario(usuarioId);
         return ResponseEntity.ok(transacciones);
     }
 
-    // 2. Obtener TODAS las transacciones cargadas (ej: GET /api/v1/analisis/transacciones)
+    // 2. Obtener TODAS las transacciones cargadas
     @GetMapping("/transacciones")
     public ResponseEntity<List<Transaccion>> obtenerTodasLasTransacciones() {
-        List<Transaccion> transacciones = transaccionRepository.findAll();
+        List<Transaccion> transacciones = analisisService.obtenerTodasLasTransacciones();
         return ResponseEntity.ok(transacciones);
     }
 }

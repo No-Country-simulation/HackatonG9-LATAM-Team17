@@ -5,13 +5,13 @@ import saludfinanciera.finanzas.client.NlpDataClient;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.model.AnalisisFinanciero;
-import saludfinanciera.finanzas.model.Transaccion;
 import org.springframework.stereotype.Service;
+import saludfinanciera.finanzas.model.Transaccion;
 import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import saludfinanciera.finanzas.repository.TransaccionRepository;
 
-
 import java.util.List;
+
 
 @Service
 public class AnalisisService {
@@ -29,31 +29,36 @@ public class AnalisisService {
 
     @Transactional
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO inputDTO) {
-        // 1. Mapear y guardar transacciones crudas
-        List<Transaccion> entidades = inputDTO.transacciones().stream().map(dto -> {
-            Transaccion t = new Transaccion();
-            t.setUsuarioId(inputDTO.usuarioId());
-            t.setDescripcion(dto.descripcion());
-            t.setMonto(dto.monto());
-            t.setTipo(dto.tipo());
-            t.setCategoria(dto.categoria());
-            return t;
-        }).toList();
 
-        transaccionRepository.saveAll(entidades);
-
-        // 2. Invocar al microservicio de Python NLP
+        // 1. Invocar al microservicio de Python NLP
         AnalisisOutputDTO respuestaNlp = nlpDataClient.analizarPerfil(inputDTO);
 
-        // 3. Persistir el resultado consolidado
-        AnalisisFinanciero analisis = new AnalisisFinanciero();
-        analisis.setUsuarioId(inputDTO.usuarioId());
-        analisis.setEstadoFinanciero(respuestaNlp.estadoFinanciero());
-        analisis.setDiagnostico(respuestaNlp.diagnostico());
+        // 2. Mapear y persistir el resultado consolidado
+        AnalisisFinanciero analisis = AnalisisFinanciero.builder()
+                .ingresoMensual(inputDTO.ingresoMensual())
+                .nivelEndeudamiento(inputDTO.nivelEndeudamiento())
+                .frecuenciaAhorro(inputDTO.frecuenciaAhorro())
+                .descripcion(inputDTO.descripcion())
+                .valor(inputDTO.valor())
+                .perfilFinanciero(respuestaNlp.perfilFinanciero())
+                .probabilidad(respuestaNlp.probabilidad())
+                .categoria(respuestaNlp.categoria())
+                .build();
 
         analisisRepository.save(analisis);
 
-        // 4. Retornar respuesta al Frontend
+        // 3. Retornar respuesta al Frontend
         return respuestaNlp;
     }
+
+    @Transactional(readOnly = true)
+    public List<Transaccion> obtenerTransaccionesPorUsuario(String usuarioId) {
+        return transaccionRepository.findByUsuarioId(usuarioId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Transaccion> obtenerTodasLasTransacciones() {
+        return transaccionRepository.findAll();
+    }
+
 }

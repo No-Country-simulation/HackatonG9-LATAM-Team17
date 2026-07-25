@@ -24,16 +24,20 @@ public class Transaccion {
     @Column(name = "usuario_id", nullable = false)
     private String usuarioId;
 
+    @Column(name = "descripcion")
     private String descripcion;
 
+    @Column(name = "monto")
     private BigDecimal monto;
 
+    @Column(name = "tipo")
     private String tipo; // EGRESO / INGRESO
 
+    @Column(name = "categoria")
     private String categoria;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "analisis_id")
-    @ToString.Exclude // Previene recursión infinita si usás @ToString
-    private AnalisisFinanciero analisis;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "analisis_id")
+//    @ToString.Exclude // Previene recursión infinita si usás @ToString
+//    private AnalisisFinanciero analisis;
 }

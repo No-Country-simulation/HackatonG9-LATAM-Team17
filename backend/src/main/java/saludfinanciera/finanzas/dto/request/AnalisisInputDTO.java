@@ -1,19 +1,38 @@
 package saludfinanciera.finanzas.dto.request;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record AnalisisInputDTO(
 
-        @NotBlank(message = "El ID del usuario es obligatorio")
-        String usuarioId,
+        @NotNull(message = "El ingreso mensual es obligatorio")
+        @Positive(message = "El ingreso mensual debe ser un valor positivo")
+        @JsonProperty("ingreso_mensual")
+        Double ingresoMensual,
 
-        @NotEmpty(message = "La lista de transacciones no puede estar vacía")
-        @Valid // ¡Súper importante para que valide los @NotBlank y @Positive dentro de TransaccionDTO!
-        List<TransaccionDTO> transacciones
+        @NotNull(message = "El nivel de endeudamiento es obligatorio")
+        @JsonProperty("nivel_endeudamiento")
+        Integer nivelEndeudamiento,
+
+        @NotNull(message = "La frecuencia de ahorro es obligatoria")
+        @JsonProperty("frecuencia_ahorro")
+        String frecuenciaAhorro,
+
+        @NotNull
+        @JsonProperty("descripcion")
+        String descripcion,
+
+        @NotNull(message = "El valor es obligatorio")
+        @Positive
+        @JsonProperty("valor")
+        Double valor
 ){
 }
