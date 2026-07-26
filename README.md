@@ -58,3 +58,40 @@ En esta etapa del desarrollo se ha realizado un refactorizado en la organizació
      * `dto`: Transferencia de datos request/response.
      * `repository`: Persistencia e interacción con la base de datos PostgreSQL.
      * `model`: Entidades JPA.
+
+ //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+ # 🚀 Integración de Cliente HTTP y Refactorización de DTOs (Python AI Service)
+
+## 📌 Resumen de Cambios
+Se implementó la infraestructura necesaria en el backend de Spring Boot para comunicar el sistema con el microservicio de Análisis Financiero / IA en Python. Además, se organizaron las capas de configuración y cliente HTTP, y se refactorizó el DTO de respuesta.
+
+---
+
+## 🛠️ Detalle de Archivos Modificados y Creados
+
+### 1. ⚙️ Configuración y Cliente HTTP (Nuevos)
+* **`PythonClientConfig.java`**: Se añade la clase de configuración para instanciar y personalizar el cliente HTTP (RestClient/WebClient) que consumirá la API de Python.
+* **`PythonDataScienceClient.java`**: Componente encargando de empaquetar el `AnalisisInputDTO`, realizar la petición POST al microservicio de Python y deserializar la respuesta.
+
+### 2. 📦 DTOs (Refactorización)
+* **`RespuestaPython.java` ➡️ `RespuestaPythonDTO.java`**: 
+  * Se renombró la clase para mantener la convención de nomenclatura del proyecto (`*DTO`).
+  * Se ajustaron los campos y anotaciones `@JsonProperty` para asegurar compatibilidad exacta con el JSON devuelto por Python (`probabilidad`, `perfil_financiero`, `categoria`).
+
+### 3. 🔄 Capa de Servicio y Persistencia (Modificados)
+* **`AnalisisService.java`**: Se actualizó la lógica de negocio para inyectar `PythonDataScienceClient` y procesar el nuevo `RespuestaPythonDTO`.
+* **`AnalisisFinancieroRepository.java`**: Ajustes menores/refactorización para la gestión de datos persistentes.
+
+### 4. 📄 Configuración de Entorno (Modificado)
+* **`application.properties`**: Se agregaron las propiedades de conexión hacia el microservicio de Python (URL base, endpoints y timeouts).
+
+---
+
+## 🧪 Pasos para Probar los Cambios
+
+1. Asegurarse de tener configurada la URL del servicio de Python en `application.properties`:
+   ```properties
+   python.service.url=http://localhost:8000
+
+2. Esto se dara cuando tengamos la URL proporcionado por los dee DATA SCIENCE.
+   
