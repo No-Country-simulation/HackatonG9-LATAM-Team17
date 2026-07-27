@@ -1,4 +1,4 @@
-package saludfinanciera.finanzas.dto;
+package saludfinanciera.finanzas.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

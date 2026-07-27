@@ -1,8 +1,8 @@
 package saludfinanciera.finanzas.service;
 
 import saludfinanciera.finanzas.client.PythonDataScienceClient;
-import saludfinanciera.finanzas.dto.AnalisisInputDTO;
-import saludfinanciera.finanzas.dto.AnalisisOutputDTO;
+import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.dto.RespuestaPythonDTO;
 import saludfinanciera.finanzas.model.AnalisisFinanciero;
 import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;

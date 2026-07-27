@@ -3,7 +3,7 @@ package saludfinanciera.finanzas.client;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import saludfinanciera.finanzas.dto.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.RespuestaPythonDTO;
 
 // @Component registra esta clase como un Bean gestionado por el contenedor de Spring.
