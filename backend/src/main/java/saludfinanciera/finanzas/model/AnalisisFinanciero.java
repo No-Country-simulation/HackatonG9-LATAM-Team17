@@ -65,7 +65,7 @@ public class AnalisisFinanciero {
 //    private List<Transaccion> transacciones = new ArrayList<>();
 
     @PrePersist
-    public void prePersist() {
+    protected void prePersist() {
         this.fechaCreacion = LocalDateTime.now()
                 .truncatedTo(ChronoUnit.SECONDS);
     }
