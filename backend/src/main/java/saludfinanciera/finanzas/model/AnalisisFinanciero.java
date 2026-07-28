@@ -1,9 +1,11 @@
 package saludfinanciera.finanzas.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,8 @@ public class AnalisisFinanciero {
     private double probabilidadIa;
 
     @Column(name = "fecha_analisis", nullable = false, updatable = false)
-    private LocalDateTime fechaAnalisis = LocalDateTime.now();
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime fechaAnalisis;
 
     // Relación de Uno a Muchos: Un análisis contiene múltiples transacciones detalladas
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -60,7 +63,8 @@ public class AnalisisFinanciero {
 
     // 5. Ciclo de vida de JPA para inicializar la fecha antes de persistir
     @PrePersist
-    protected void onCreate() {
-        this.fechaAnalisis = LocalDateTime.now();
+    protected void prePersist() {
+        this.fechaAnalisis = LocalDateTime.now()
+                .truncatedTo(ChronoUnit.SECONDS);
     }
 }
