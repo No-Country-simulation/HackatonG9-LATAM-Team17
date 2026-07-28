@@ -37,6 +37,7 @@ public class AnalisisService {
         // Asignación de los datos retornados por Data Science
         analisisDb.setPerfilFinanciero(dsResponse.perfilFinanciero());
         analisisDb.setProbabilidadIa(dsResponse.probabilidad());
+        analisisDb.setCategoria(dsResponse.categoria());
 
         analisisRepository.save(analisisDb);
 
@@ -48,8 +49,9 @@ public class AnalisisService {
         return new AnalisisOutputDTO(
                 dsResponse.perfilFinanciero(),
                 dsResponse.probabilidad(),
-                resumenGastos,
-                recomendaciones
+               // resumenGastos,
+               //  recomendaciones,
+                dsResponse.categoria()
         );
     }
 }

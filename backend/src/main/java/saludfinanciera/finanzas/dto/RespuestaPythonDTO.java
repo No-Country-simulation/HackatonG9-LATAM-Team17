@@ -12,6 +12,6 @@ public record RespuestaPythonDTO(
         String perfilFinanciero,
 
         @JsonProperty("categoria") // Asegúrate de que coincida con el nombre exacto que enviará Python
-        List<String> categorias
+        List<String> categoria
 ) {
 }

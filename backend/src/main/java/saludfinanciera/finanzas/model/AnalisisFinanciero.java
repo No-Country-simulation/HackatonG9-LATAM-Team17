@@ -1,18 +1,21 @@
 package saludfinanciera.finanzas.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "analisis_financiero")
 @Getter // 2. Usamos Getter y Setter explícitos en vez de @Data
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(exclude = {"transacciones", "recomendaciones"}) // 3. Excluimos las colecciones del toString
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalisisFinanciero {
 
     @Id
@@ -42,6 +45,12 @@ public class AnalisisFinanciero {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "analisis_id")
     private List<Transaccion> transacciones;
+
+    @ElementCollection
+    @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
+    @Column(name = "categoria")
+    @Builder.Default
+    private List<String> categoria = new ArrayList<>();
 
     // Guarda la lista de textos de recomendaciones en una tabla secundaria automática
     @ElementCollection
