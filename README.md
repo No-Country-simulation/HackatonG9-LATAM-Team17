@@ -94,4 +94,32 @@ Se implementó la infraestructura necesaria en el backend de Spring Boot para co
    python.service.url=http://localhost:8000
 
 2. Esto se dara cuando tengamos la URL proporcionado por los dee DATA SCIENCE.
-   
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+🛠️ Resumen de Modificaciones en el Proyecto
+1. Configuración y Propiedades
+pom.xml: Actualización de dependencias necesarias para el funcionamiento del proyecto (como validadores, conectores o librerías de mapeo).
+
+src/main/resources/application.properties: Ajuste de las propiedades de configuración de Spring Boot (puerto del servidor, conexión a base de datos y parámetros de comunicación con el servicio de Python).
+
+2. Configuración Principal
+FinanzasApplication.java: Ajustes iniciales en la clase principal para arrancar el contexto de Spring Boot sin inconvenientes.
+
+3. Capa Controller (Controladores)
+AnalisisController.java: Modificación del endpoint REST para recibir las peticiones HTTP (POST), asegurando que las validaciones de entrada (@Valid) actúen correctamente antes de procesar los datos financieros.
+
+4. Capa Client (Comunicación con Python)
+PythonDataScienceClient.java: Actualización de la lógica para enviar y recibir datos hacia el script/microservicio de Python, garantizando la compatibilidad de los formatos de envío (como snake_case con guiones bajos).
+
+5. Objetos de Transferencia de Datos (DTOs y Modelos)
+AnalisisInputDTO.java: Inclusión de las anotaciones @JsonProperty (para mapear ingreso_mensual, nivel_endeudamiento, etc.) y validaciones estrictas (@NotNull, @Positive, @Valid) para asegurar que el frontend envíe datos limpios.
+
+TransaccionDTO.java: Ajuste del DTO que encapsula cada gasto individual para que la lista de transacciones sea validada correctamente por Spring Boot.
+
+RespuestaPythonDTO.java & AnalisisOutputDTO.java: Modificación de las estructuras de salida para capturar y estructurar la respuesta generada por la IA/Python y enviarla de regreso al frontend.
+
+AnalisisFinanciero.java & Transaccion.java: Actualización de las entidades JPA (modelos de base de datos) para reflejar correctamente la relación entre el análisis financiero y sus respectivas transacciones.
+
+6. Capa Repository y Service (Persistencia y Lógica de Negocio)
+AnalisisFinancieroRepository.java: Ajustes en la interfaz de repositorio para el manejo y guardado de los análisis en la base de datos.
+
+AnalisisService.java: Modificación de la lógica de negocio central que coordina la recepción de datos, la llamada al cliente de Python y la persistencia del resultado final.
