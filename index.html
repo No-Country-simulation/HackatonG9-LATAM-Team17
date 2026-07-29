@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Configuración básica de codificación para aceptar acentos y caracteres 'ñ' -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Salud Financiera</title>
+    
+    <!-- Enlazamos la hoja de estilos CSS que le dará diseño visual a nuestro HTML -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Contenedor principal para centrar la tarjeta de la aplicación en la pantalla -->
+    <div class="form-container">
+        
+        <!-- Encabezado y texto introductorio de la aplicación -->
+        <h2>Análisis de Salud Financiera</h2>
+        <p class="subtitle">Ingresa tus datos e historial de gastos para evaluar tu perfil con IA.</p>
+
+        <!-- Formulario Principal: Agrupa todos los inputs que se evaluarán -->
+        <form id="finanzasForm">
+            
+            <!-- CAMPO 1: Ingreso Mensual -->
+            <div class="form-group">
+                <label for="ingresoMensual">Ingreso Mensual ($)</label>
+                <!-- Usamos type="number" para obligar a que sea valor numérico -->
+                <input type="number" id="ingresoMensual" placeholder="Ej. 3000000" min="1" step="any" required>
+                <small class="help-text">Ingresa un valor numérico positivo mayor a cero.</small>
+            </div>
+
+            <!-- CAMPO 2: Valor Total de Deudas -->
+            <!-- NOTA: Este campo se usa en JS para calcular el "nivelEndeudamiento" internamente antes de enviar a Java -->
+            <div class="form-group">
+                <label for="valorDeuda">Valor Total de Deudas ($)</label>
+                <input type="number" id="valorDeuda" placeholder="Ej. 900000" min="0" step="any" required>
+                <small class="help-text">Este dato se usará para calcular en silencio tu % de endeudamiento.</small>
+            </div>
+
+            <!-- CAMPO 3: Frecuencia de Ahorro (Menú desplegable) -->
+            <div class="form-group">
+                <label for="frecuenciaAhorro">Frecuencia de Ahorro</label>
+                <select id="frecuenciaAhorro" required>
+                    <option value="" disabled selected>Selecciona una opción...</option>
+                    <option value="Bajo">Bajo</option>
+                    <option value="Medio">Medio</option>
+                    <option value="Alto">Alto</option>
+                </select>
+                
+                <!-- Cuadro guía para ayudar al usuario a elegir su frecuencia -->
+                <div class="info-box">
+                    <p><strong>Guía para elegir tu frecuencia:</strong></p>
+                    <ul>
+                        <li><strong>Bajo:</strong> Ahorras de forma ocasional o casi nunca (1-2 veces al año).</li>
+                        <li><strong>Medio:</strong> Ahorras constantemente (cada 2 o 3 meses).</li>
+                        <li><strong>Alto:</strong> Ahorras con disciplina todos los meses.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Línea divisoria visual -->
+            <hr class="divider">
+            <h3>Registro de Gastos / Transacciones</h3>
+
+            <!-- SECCIÓN: Cajas de texto temporales para ingresar gastos a la lista -->
+            <div class="gasto-inputs-container">
+                
+                <!-- CAMPO 4: Descripción del Gasto -->
+                <div class="form-group">
+                    <label for="descripcionGasto">Descripción del Gasto</label>
+                    <!-- maxlength="25" restringe a nivel HTML la longitud máxima requerida -->
+                    <input type="text" id="descripcionGasto" maxlength="25" placeholder="Ej. Mercado, Arriendo, Luz">
+                    <small class="help-text warning-text">⚠️ Máximo 25 caracteres.</small>
+                </div>
+
+                <!-- CAMPO 5: Valor del Gasto -->
+                <div class="form-group">
+                    <label for="valorGasto">Valor ($)</label>
+                    <input type="number" id="valorGasto" placeholder="Ej. 150000" min="1" step="any">
+                    <small class="help-text">Los valores deben ser positivos.</small>
+                </div>
+
+                <!-- Botón Secundario: Al pulsarlo se activa JS para guardar en memoria el gasto sin enviar todo el formulario -->
+                <button type="button" id="btnAgregarGasto" class="btn-secundario">＋ Agregar Gasto</button>
+            </div>
+
+            <!-- TABLA INTERACTIVA: Aquí JS creará filas <tr> por cada gasto agregado -->
+            <div class="tabla-container">
+                <table id="tablaGastos">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Valor ($)</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <!-- El <tbody> se vaciará o llenará dinámicamente mediante JavaScript -->
+                    <tbody id="cuerpoTablaGastos">
+                        <tr id="filaVacia">
+                            <td colspan="3" class="texto-centrado">No has agregado ningún gasto aún.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- BOTÓN PRINCIPAL: Envía la petición HTTP POST completa a Spring Boot -->
+            <button type="submit" id="btnEnviar" class="btn-principal">Analizar Mi Perfil</button>
+        </form>
+
+        <!-- SECCIÓN DE RESULTADO: Oculta por defecto (clase 'hidden'). JS la hace visible al recibir respuesta de Java -->
+        <div id="resultadoContainer" class="result-card hidden">
+            <h3>Resultado del Análisis</h3>
+            
+            <p><strong>Perfil Financiero:</strong> <span id="resPerfil">-</span></p>
+            <p><strong>Probabilidad:</strong> <span id="resProbabilidad">-</span>%</p>
+            
+            <!-- CONTENEDORES NUEVOS PARA RESUMEN Y RECOMENDACIONES -->
+            <div style="margin-top: 15px;">
+                <h4 style="margin-bottom: 5px;">Resumen de Gastos:</h4>
+                <div id="resCategorias">-</div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <h4 style="margin-bottom: 5px;">Recomendaciones:</h4>
+                <div id="resRecomendaciones">-</div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE ERROR: Oculta por defecto. Muestra avisos si falla una validación o si no hay backend -->
+        <div id="errorContainer" class="error-card hidden"></div>
+    </div>
+
+    <!-- Carga del archivo JavaScript. Se coloca al final del <body> para asegurar que el HTML se haya dibujado primero -->
+    <script src="app.js"></script>
+</body>
+</html>

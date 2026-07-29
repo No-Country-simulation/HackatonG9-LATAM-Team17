@@ -1,0 +1,222 @@
+/* ==========================================
+   1. CONFIGURACIÓN GENERAL Y RESETEO
+   ========================================== */
+* {
+    /* Mantiene los anchos exactos incluyendo padding y borders dentro del tamaño del elemento */
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f4f7f6; /* Color de fondo gris suave para descansar la vista */
+    display: flex;
+    justify-content: center;   /* Centra la tarjeta horizontalmente */
+    padding: 40px 20px;        /* Espaciado superior e inferior para evitar pegar al borde */
+}
+
+/* ==========================================
+   2. CONTENEDOR PRINCIPAL (TARJETA)
+   ========================================== */
+.form-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    /* Sombreado elegante alrededor de la tarjeta */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    max-width: 550px;
+    width: 100%;
+}
+
+h2, h3 {
+    color: #2c3e50; /* Azul oscuro elegante para encabezados */
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    margin-bottom: 24px;
+}
+
+/* ==========================================
+   3. CAMPOS DE ENTRADA (INPUTS Y SELECTS)
+   ========================================== */
+.form-group {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #34495e;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    /* Animación suave al hacer clic en el input */
+    transition: border-color 0.2s;
+}
+
+/* Cuando el usuario hace clic o escribe dentro del campo */
+input:focus, select:focus {
+    border-color: #3498db; /* Cambia a borde azul */
+    outline: none;
+}
+
+.help-text {
+    font-size: 0.8em;
+    color: #7f8c8d;
+    margin-top: 4px;
+    display: block;
+}
+
+.warning-text {
+    color: #e67e22; /* Color naranja para destacar advertencias */
+}
+
+/* Caja gris descriptiva con el tutorial de Frecuencia de Ahorro */
+.info-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #3498db; /* Borde izquierdo azul */
+    padding: 10px 12px;
+    margin-top: 8px;
+    border-radius: 4px;
+    font-size: 0.82em;
+    color: #555;
+}
+
+.info-box ul {
+    margin-left: 16px;
+    margin-top: 4px;
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 25px 0 20px 0;
+}
+
+/* ==========================================
+   4. SECCIÓN INTERACTIVA DE GASTOS Y TABLA
+   ========================================== */
+.gasto-inputs-container {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1; /* Borde punteado para indicar zona de agregación */
+    margin-bottom: 15px;
+}
+
+.btn-secundario {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secundario:hover {
+    background-color: #2980b9; /* Color más oscuro al pasar el cursor */
+}
+
+/* Tabla de gastos */
+.tabla-container {
+    margin-bottom: 20px;
+    max-height: 200px;
+    /* Si sobrepasa 200px de alto, habilita la barra de desplazamiento vertical */
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+th {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.texto-centrado {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.btn-eliminar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+}
+
+.btn-eliminar:hover {
+    background-color: #c0392b;
+}
+
+/* ==========================================
+   5. BOTÓN PRINCIPAL Y TARJETAS DE ESTADO
+   ========================================== */
+.btn-principal {
+    width: 100%;
+    padding: 12px;
+    background-color: #2ecc71; /* Verde éxito */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-principal:hover {
+    background-color: #27ae60;
+}
+
+/* Clase utilitaria fundamental en JS para ocultar/mostrar elementos */
+.hidden {
+    display: none;
+}
+
+/* Tarjeta verde de resultados */
+.result-card {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #e8f8f5;
+    border: 1px solid #a3e4d7;
+    border-radius: 6px;
+    color: #117a65;
+}
+
+/* Tarjeta roja de errores */
+.error-card {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #fadbd8;
+    border: 1px solid #f5b7b1;
+    border-radius: 6px;
+    color: #78281f;
+}
