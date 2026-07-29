@@ -11,20 +11,20 @@ import java.util.List;
 
 @Entity
 @Table(name = "analisis_financiero")
-@Getter // 2. Usamos Getter y Setter explícitos en vez de @Data
+@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"transacciones", "recomendaciones"}) // 3. Excluimos las colecciones del toString
+@ToString(exclude = {"transacciones", "recomendaciones"}) // Excluimos relaciones para evitar loops infinitos en toString().
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalisisFinanciero {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    // 4. Convención CamelCase para atributos de Java
     @Column(name = "ingreso_mensual")
     private double ingresoMensual;
 
@@ -44,27 +44,31 @@ public class AnalisisFinanciero {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaAnalisis;
 
-    // Relación de Uno a Muchos: Un análisis contiene múltiples transacciones detalladas
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "analisis_id")
-    private List<Transaccion> transacciones;
+    // Relación Uno a Muchos: Un análisis tiene muchas transacciones.
+    // CascadeType.ALL: Si guardamos o eliminamos el Análisis, sus Transacciones asociadas se guardan/eliminan automáticamente.
+    // orphanRemoval = true: Si quitamos una transacción de la lista, Hibernate la borra físicamente de la BD.
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "analisis_id") // Crea una clave foránea (FK) 'analisis_id' en la tabla transacciones.
+    @Builder.Default
+    private List<Transaccion> transacciones = new ArrayList<>();
 
+    // ElementCollection guarda una lista de elementos simples (String) en una tabla auxiliar.
     @ElementCollection
     @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
     @Column(name = "categoria")
     @Builder.Default
     private List<String> categoria = new ArrayList<>();
 
-    // Guarda la lista de textos de recomendaciones en una tabla secundaria automática
     @ElementCollection
     @CollectionTable(name = "recomendaciones_analisis", joinColumns = @JoinColumn(name = "analisis_id"))
     @Column(name = "texto_recomendacion")
-    private List<String> recomendaciones;
+    @Builder.Default
+    private List<String> recomendaciones = new ArrayList<>();
 
-    // 5. Ciclo de vida de JPA para inicializar la fecha antes de persistir
+    // Callback de JPA que se ejecuta automáticamente JUSTO ANTES de hacer el INSERT en la BD.
     @PrePersist
     protected void prePersist() {
-        this.fechaAnalisis = LocalDateTime.now()
-                .truncatedTo(ChronoUnit.SECONDS);
+        // Asigna la fecha y hora actual sin milisegundos.
+        this.fechaAnalisis = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 }
