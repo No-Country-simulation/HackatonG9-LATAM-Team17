@@ -1,0 +1,13 @@
+schema: spec-driven
+context: |
+  Tech stack: Next.js (Frontend), React.
+  Design System: FinanceAI ("The Encouraging Expert").
+  UI Philosophy: Card-First approach, avoiding dense tables.
+  Typography: Plus Jakarta Sans (Titles), Inter (Body), STRICTLY JetBrains Mono for all financial values, numbers, and inputs.
+  State Management: Form state and business logic calculations (like nivelEndeudamiento) must be handled before sending the JSON payload to the backend.
+
+rules:
+  proposal:
+    - Always define the strict JSON payload contracts between Front-end and Back-end.
+    - Specify UI validations (e.g., max characters, positive numbers) in the architecture.
+    - Emphasize the color palette logic (Primary Indigo, Warm Coral for actions).
