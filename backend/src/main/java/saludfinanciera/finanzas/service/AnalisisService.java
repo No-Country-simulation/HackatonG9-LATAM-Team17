@@ -78,6 +78,34 @@ public class AnalisisService {
 
     @Transactional(readOnly = true)
     public List<Transaccion> obtenerTodasLasTransacciones() {
+
         return transaccionRepository.findAll();
+    }
+
+    @Transactional
+    public TransaccionResponseDTO registrarTransaccion(TransaccionDTO dto) {
+        // 1. Mapear DTO de entrada a Entidad JPA
+        Transaccion entidad = Transaccion.builder()
+                .descripcion(dto.descripcion())
+                .monto(dto.monto())
+                .tipo(dto.tipo())
+                .categoria(dto.categoria())
+                // Nota: usuarioId puedes asignarlo desde un contexto de seguridad o un default si aplica
+                .usuarioId("USR-DEFAULT")
+                .build();
+
+        // 2. Guardar en PostgreSQL (@PrePersist asignará fechaTransaccion)
+        Transaccion guardada = transaccionRepository.save(entidad);
+
+        // 3. Retornar DTO de respuesta
+        return new TransaccionResponseDTO(
+                guardada.getId(),
+                guardada.getUsuarioId(),
+                guardada.getMonto(),
+                guardada.getTipo(),
+                guardada.getDescripcion(),
+                guardada.getCategoria(),
+                guardada.getFechaTransaccion()
+        );
     }
 }

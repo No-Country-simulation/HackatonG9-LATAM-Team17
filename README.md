@@ -1,38 +1,366 @@
-﻿## 🔌 Contrato de API (Endpoints)
+﻿## 📡 Endpoints del **AnalisisController**
 
-### 1. Procesar Análisis Financiero (NLP / IA)
+**Base Path:** `/api/v1/analisis`
 
-* **URL:** `/api/v1/analisis/procesar`
-* **Método:** `POST`
-* **Descripción:** Recibe los datos financieros básicos de un movimiento/usuario y devuelve el perfil predicho por el microservicio de Inteligencia Artificial (Python NLP).
+***
 
-#### 📥 Body de la Petición (`Request JSON`)
+### 1. Procesar Análisis Financiero con IA
+
+Envía los datos financieros del usuario para que el microservicio en Python genere el perfil y análisis correspondiente.
+
+- **URL:** `/api/v1/analisis/procesar`
+- **Método:** `POST`
+- **Headers:** `Content-Type: application/json`
+- **Códigos de Éxito:** `201 Created`
+
+#### Cuerpo de la Petición (`AnalisisInputDTO`)
 
 ```json
 {
-  "ingreso_mensual": 650000.00,
-  "nivel_endeudamiento": 2,
-  "frecuencia_ahorro": "MENSUAL",
-  "descripcion": "Supermercado Coto compras semana",
-  "valor": 42500.00
+  "usuarioId": "USR-1001",
+  "transacciones": [
+    {
+      "descripcion": "Supermercado compras de la semana",
+      "monto": 42500.00,
+      "tipo": "EGRESO",
+      "categoria": "Alimentación"
+    },
+    {
+      "descripcion": "Cobro de sueldo",
+      "monto": 650000.00,
+      "tipo": "INGRESO",
+      "categoria": "Salario"
+    }
+  ]
 }
 ```
-## 📤 Respuesta Exitosa (Response JSON - 200 OK)
+
+#### Respuesta Exitosa (`AnalisisOutputDTO` - HTTP 201 Created)
 
 ```json
 {
-  "categoria": [
-    "ALIMENTACION"
+  "id": 1,
+  "usuarioId": "USR-1001",
+  "perfilFinanciero": "CONSERVADOR",
+  "nivelRiesgo": "BAJO",
+  "recomendaciones": [
+    "Mantener un fondo de emergencia equivalente a 3 meses de gastos.",
+    "Considerar instrumentos de bajo riesgo como Plazo Fijo o FCI."
   ],
-  "perfil_financiero": "Moderado",
-  "probabilidad": 0.85
+  "fechaAnalisis": "2026-07-31T10:39:00"
 }
 ```
-2. Historial de Transacciones (Opcional / Backend Internal)
 
-* **GET /api/v1/analisis/transacciones**: Obtiene el listado general de transacciones registradas.
+#### Posibles Errores
 
-* **GET /api/v1/analisis/transacciones/{usuarioId}**: Obtiene las transacciones filtradas por el identificador del usuario.
+| Código HTTP | Excepción | DTO Devuelto | Descripción | Ejemplo |
+|-------------|-----------|--------------|-------------|---------|
+| `400 BAD REQUEST` | `MethodArgumentNotValidException` | `ErrorResponseDTO` | Errores de validación en campos requeridos o reglas de negocio. | ```json { "timestamp": "2026-07-31T11:00:00", "status": 400, "error": "Bad Request", "message": "Errores de validación", "details": { "transacciones": "La lista no puede estar vacía", "monto": "El monto no puede ser negativo" } } ``` |
+| `502 BAD GATEWAY` | `HttpStatusCodeException` | `PythonServiceErrorDTO` | El microservicio de Python retornó un error 4xx/5xx. | ```json { "timestamp": "2026-07-31T11:15:00", "status": 502, "error": "Bad Gateway", "message": "El servicio de Python retornó un error", "pythonError": { "code": "INVALID_INPUT", "detail": "El campo 'transacciones' es requerido" } } ``` |
+| `503 SERVICE UNAVAILABLE` | `ResourceAccessException` | `PythonServiceErrorDTO` | No se pudo establecer conexión con el servicio de Python. | ```json { "timestamp": "2026-07-31T11:20:00", "status": 503, "error": "Service Unavailable", "message": "No se pudo conectar con el servicio de análisis", "retryAfter": 30 } ``` |
+| `504 GATEWAY TIMEOUT` | `TimeoutException`, `SocketTimeoutException` | `AIServiceErrorDTO` | El servicio de IA tardó demasiado en responder (timeout de inferencia). | ```json { "timestamp": "2026-07-31T11:25:00", "status": 504, "error": "Gateway Timeout", "message": "El servicio de IA tardó demasiado en responder", "isTimeout": true, "suggestion": "Reintentar en 60 segundos" } ``` |
+| `503 SERVICE UNAVAILABLE` | `AIServiceUnavailableException` | `AIServiceErrorDTO` | Error interno del motor de IA (Out of Memory, falta de GPU, etc.). | ```json { "timestamp": "2026-07-31T11:30:00", "status": 503, "error": "Service Unavailable", "message": "El motor de IA no está disponible temporalmente", "isTimeout": false, "suggestion": "Contactar soporte si persiste" } ``` |
+| `500 INTERNAL ERROR` | `Exception` | `ErrorResponseDTO` | Error interno no controlado del servidor. | ```json { "timestamp": "2026-07-31T11:35:00", "status": 500, "error": "Internal Server Error", "message": "Error interno del servidor. Contactar soporte." } ``` |
+
+***
+
+### 2. Registrar Transacción Individual
+
+Permite la carga puntual de una transacción en la base de datos.
+
+- **URL:** `/api/v1/analisis/transacciones`
+- **Método:** `POST`
+- **Headers:** `Content-Type: application/json`
+- **Códigos de Éxito:** `201 Created`
+
+#### Payload de Entrada (`TransaccionDTO` - Request Body)
+
+```json
+{
+  "descripcion": "Pago de servicio de luz",
+  "monto": 24500.00,
+  "tipo": "EGRESO",
+  "categoria": "Servicios"
+}
+```
+
+#### Respuesta Exitosa (`TransaccionResponseDTO` - HTTP 201 Created)
+
+```json
+{
+  "id": 3,
+  "usuarioId": "USR-DEFAULT",
+  "monto": 24500.00,
+  "tipo": "EGRESO",
+  "descripcion": "Pago de servicio de luz",
+  "categoria": "Servicios",
+  "fechaTransaccion": "2026-07-31T10:52:00"
+}
+```
+
+#### Posibles Errores
+
+| Código HTTP | Excepción | DTO Devuelto | Descripción | Ejemplo |
+|-------------|-----------|--------------|-------------|---------|
+| `400 BAD REQUEST` | `MethodArgumentNotValidException` | `ErrorResponseDTO` | Errores de validación en campos requeridos o reglas de negocio. | ```json { "timestamp": "2026-07-31T11:00:00", "status": 400, "error": "Bad Request", "message": "Errores de validación", "details": { "monto": "El monto no puede ser negativo", "tipo": "El tipo debe ser INGRESO o EGRESO" } } ``` |
+| `409 CONFLICT` | `DataIntegrityViolationException` | `DataErrorResponseDTO` | Violación de restricciones de base de datos (ej. llave única duplicada). | ```json { "timestamp": "2026-07-31T11:10:00", "status": 409, "error": "Conflict", "message": "Ya existe una transacción con el mismo identificador externo" } ``` |
+| `500 INTERNAL ERROR` | `Exception` | `ErrorResponseDTO` | Error interno no controlado del servidor. | ```json { "timestamp": "2026-07-31T11:35:00", "status": 500, "error": "Internal Server Error", "message": "Error interno del servidor. Contactar soporte." } ``` |
+
+***
+
+### 3. Obtener Todas las Transacciones
+
+Devuelve la lista global de todas las transacciones almacenadas en la base de datos (entidades puras).
+
+- **URL:** `/api/v1/analisis/transacciones`
+- **Método:** `GET`
+- **Códigos de Éxito:** `200 OK`
+
+#### Respuesta Exitosa (`List<Transaccion>` - HTTP 200 OK)
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": "USR-1001",
+    "descripcion": "Supermercado compras de la semana",
+    "monto": 42500.00,
+    "tipo": "EGRESO",
+    "categoria": "Alimentación",
+    "fechaTransaccion": "2026-07-31T10:15:30",
+    "analisis": null
+  },
+  {
+    "id": 2,
+    "usuarioId": "USR-1002",
+    "descripcion": "Pago de alquiler",
+    "monto": 180000.00,
+    "tipo": "EGRESO",
+    "categoria": "Vivienda",
+    "fechaTransaccion": "2026-07-31T10:20:00",
+    "analisis": null
+  }
+]
+```
+
+#### Posibles Errores
+
+| Código HTTP | Excepción | DTO Devuelto | Descripción | Ejemplo |
+|-------------|-----------|--------------|-------------|---------|
+| `500 INTERNAL ERROR` | `Exception` | `ErrorResponseDTO` | Error interno no controlado del servidor (ej. falla de conexión a BD). | ```json { "timestamp": "2026-07-31T11:35:00", "status": 500, "error": "Internal Server Error", "message": "Error interno del servidor. Contactar soporte." } ``` |
+
+***
+
+### 4. Obtener Transacciones por Usuario
+
+Consulta el historial de transacciones asociadas a un identificador de usuario específico.
+
+- **URL:** `/api/v1/analisis/transacciones/usuario/{usuarioId}`
+- **Método:** `GET`
+- **Parámetros de Ruta (Path Variable):**
+    - `usuarioId` (String, requerido): Ej. `USR-1001`
+- **Códigos de Éxito:** `200 OK`, `204 No Content`
+
+#### Respuesta Exitosa (`List<TransaccionResponseDTO>` - HTTP 200 OK)
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": "USR-1001",
+    "monto": 42500.00,
+    "tipo": "EGRESO",
+    "descripcion": "Supermercado compras de la semana",
+    "categoria": "Alimentación",
+    "fechaTransaccion": "2026-07-31T10:15:30"
+  },
+  {
+    "id": 2,
+    "usuarioId": "USR-1001",
+    "monto": 650000.00,
+    "tipo": "INGRESO",
+    "descripcion": "Cobro de sueldo",
+    "categoria": "Salario",
+    "fechaTransaccion": "2026-07-31T10:18:00"
+  }
+]
+```
+
+#### Respuesta Exitosa - Sin Contenido (HTTP 204 No Content)
+
+Se devuelve cuando el usuario existe pero no tiene transacciones registradas.
+
+#### Posibles Errores
+
+| Código HTTP | Excepción | DTO Devuelto | Descripción | Ejemplo |
+|-------------|-----------|--------------|-------------|---------|
+| `404 NOT FOUND` | `ResourceNotFoundException` | `ErrorResponseDTO` | El usuario especificado no existe en el sistema. | ```json { "timestamp": "2026-07-31T11:05:00", "status": 404, "error": "Not Found", "message": "Usuario con ID USR-9999 no encontrado" } ``` |
+| `500 INTERNAL ERROR` | `Exception` | `ErrorResponseDTO` | Error interno no controlado del servidor (ej. falla de conexión a BD). | ```json { "timestamp": "2026-07-31T11:35:00", "status": 500, "error": "Internal Server Error", "message": "Error interno del servidor. Contactar soporte." } ``` |
+
+***
+
+## 📄 Resumen de Tabla para Referencia Rápida
+
+| Método | URL | Descripción | Request | Response | Status | Errores Comunes |
+|--------|-----|-------------|---------|----------|--------|-----------------|
+| POST | `/api/v1/analisis/procesar` | Procesar análisis con IA | `AnalisisInputDTO` | `AnalisisOutputDTO` | 201 Created | 400, 502, 503, 504, 500 |
+| POST | `/api/v1/analisis/transacciones` | Crear una transacción | `TransaccionDTO` | `TransaccionResponseDTO` | 201 Created | 400, 409, 500 |
+| GET | `/api/v1/analisis/transacciones` | Listar todas las transacciones | Ninguno | `List<Transaccion>` | 200 OK | 500 |
+| GET | `/api/v1/analisis/transacciones/usuario/{usuarioId}` | Listar transacciones de un usuario | Path Variable | `List<TransaccionResponseDTO>` | 200 OK / 204 | 404, 500 |
+
+***
+
+## 📦 Colección de JSONs (Ejemplos de Payload)
+
+### 1. Payload de Entrada (`POST` - Request Body)
+
+#### Ejemplo para enviar al endpoint `POST /api/v1/analisis/transacciones`:
+
+```json
+{
+  "descripcion": "Supermercado compras de la semana",
+  "monto": 42500.00,
+  "tipo": "EGRESO",
+  "categoria": "Alimentación"
+}
+```
+
+#### Ejemplo sin categoría (para que sea categorizado automáticamente por Python/AI):
+
+```json
+{
+  "descripcion": "Pago de servicios de internet",
+  "monto": 18500.50,
+  "tipo": "EGRESO",
+  "categoria": ""
+}
+```
+
+### 2. Respuesta de Salida (`GET` - Response Body)
+
+#### Ejemplo de respuesta devuelta por `GET /api/v1/analisis/transacciones/usuario/USR-1001` (HTTP 200 OK):
+
+```json
+[
+  {
+    "id": 1,
+    "usuario_id": "USR-1001",
+    "monto": 42500.00,
+    "tipo": "EGRESO",
+    "descripcion": "Supermercado compras de la semana",
+    "categoria": "Alimentación",
+    "fecha_transaccion": "2026-07-31T10:15:30"
+  },
+  {
+    "id": 2,
+    "usuario_id": "USR-1001",
+    "monto": 650000.00,
+    "tipo": "INGRESO",
+    "descripcion": "Pago de sueldo mensual",
+    "categoria": "Salario",
+    "fecha_transaccion": "2026-07-31T10:18:00"
+  }
+]
+```
+
+### 3. Ejemplos de Respuestas de Error
+
+#### Error de Validación (400 Bad Request)
+
+```json
+{
+  "timestamp": "2026-07-31T11:00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Errores de validación",
+  "details": {
+    "monto": "El monto no puede ser negativo",
+    "tipo": "El tipo debe ser INGRESO o EGRESO"
+  }
+}
+```
+
+#### Error de Servicio Python (502 Bad Gateway)
+
+```json
+{
+  "timestamp": "2026-07-31T11:15:00",
+  "status": 502,
+  "error": "Bad Gateway",
+  "message": "El servicio de Python retornó un error",
+  "pythonError": {
+    "code": "INVALID_INPUT",
+    "detail": "El campo 'transacciones' es requerido"
+  }
+}
+```
+
+#### Error de Timeout IA (504 Gateway Timeout)
+
+```json
+{
+  "timestamp": "2026-07-31T11:25:00",
+  "status": 504,
+  "error": "Gateway Timeout",
+  "message": "El servicio de IA tardó demasiado en responder",
+  "isTimeout": true,
+  "suggestion": "Reintentar en 60 segundos"
+}
+```
+
+#### Error de Recurso No Encontrado (404 Not Found)
+
+```json
+{
+  "timestamp": "2026-07-31T11:05:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Usuario con ID USR-9999 no encontrado"
+}
+```
+
+#### Error Interno del Servidor (500 Internal Server Error)
+
+```json
+{
+  "timestamp": "2026-07-31T11:35:00",
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Error interno del servidor. Contactar soporte."
+}
+```
+#### Error de Conflicto de Datos (409 Conflict)
+
+````json
+{
+  "timestamp": "2026-07-31T11:10:00",
+  "status": 409,
+  "error": "Conflict",
+  "message": "Ya existe una transacción con el mismo identificador externo"
+}
+````
+#### Error de Servicio No Disponible (503 Service Unavailable)
+````json
+{
+  "timestamp": "2026-07-31T11:20:00",
+  "status": 503,
+  "error": "Service Unavailable",
+  "message": "No se pudo conectar con el servicio de análisis",
+  "retryAfter": 30
+}
+````
+#### Error del Motor de IA (503 Service Unavailable)
+
+````json
+{
+  "timestamp": "2026-07-31T11:30:00",
+  "status": 503,
+  "error": "Service Unavailable",
+  "message": "El motor de IA no está disponible temporalmente",
+  "isTimeout": false,
+  "suggestion": "Contactar soporte si persiste"
+}
+````
 
 ___
 ## 🚀 Registro de Cambios: CORS & Arquitectura Global de Manejo de Errores
@@ -158,12 +486,8 @@ El Frontend ya tiene las especificaciones del backend plasmadas en el **README.m
 * Asegurar que no se envíen montos negativos o campos vacíos desde la UI antes de gatillar la petición HTTP.
 
 ## ☕ 3. Backend (Spring Boot) - Tareas de Apoyo y Resiliencia
-Desde el lado Java, para dejar el sistema "a prueba de balas":
+A Desarrollar:
 
-1- Manejo de Errores e Integración (Resilience):
+1- Capa de Seguridad **Security**
 
-* Implementar un **@RestControllerAdvice** para capturar la **ResourceAccessException** si el microservicio de Python llegara a caerse y responder un **503 Service Unavailable** limpio o un diagnóstico por defecto al Frontend.
-
-2- CORS (Cross-Origin Resource Sharing):
-
-* Habilitar **@CrossOrigin(origins = "*")** (o la URL del Frontend) en el controlador para que React/Angular pueda hacer peticiones sin ser bloqueado por el navegador.
+2- Crear Swagger para documentacion
