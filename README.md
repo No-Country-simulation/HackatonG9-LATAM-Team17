@@ -485,8 +485,7 @@ El Frontend ya tiene las especificaciones del backend plasmadas en el **README.m
 3- **Validación de Formularios:**
 * Asegurar que no se envíen montos negativos o campos vacíos desde la UI antes de gatillar la petición HTTP.
 
-## ☕ 3. Backend (Spring Boot) - Tareas de Apoyo y Resiliencia
-A Desarrollar:
+## ☕ 3. Backend (Spring Boot) - A Desarrollar -
 
 1- Capa de Seguridad **Security**
 

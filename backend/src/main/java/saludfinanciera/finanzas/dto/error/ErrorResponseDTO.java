@@ -1,4 +1,4 @@
-package saludfinanciera.finanzas.exception;
+package saludfinanciera.finanzas.dto.error;
 
 import java.time.LocalDateTime;
 import java.util.Map;

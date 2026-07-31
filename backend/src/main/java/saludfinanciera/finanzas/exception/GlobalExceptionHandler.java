@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
+import saludfinanciera.finanzas.dto.error.AIServiceErrorDTO;
+import saludfinanciera.finanzas.dto.error.DataErrorResponseDTO;
+import saludfinanciera.finanzas.dto.error.ErrorResponseDTO;
+import saludfinanciera.finanzas.dto.error.PythonServiceErrorDTO;
 
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
