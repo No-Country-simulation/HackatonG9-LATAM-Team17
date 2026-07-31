@@ -1,4 +1,4 @@
--- Insertar análisis previos de prueba con el nuevo esquema
+-- 1. Insertar el análisis principal
 INSERT INTO analisis_financiero (
     usuario_id,
     ingreso_mensual,
@@ -22,6 +22,19 @@ VALUES (
            CURRENT_TIMESTAMP(0)
        );
 
--- Si querés probar insertar categorías mock para ese análisis:
+-- 2. Insertar categorías
 INSERT INTO analisis_categorias (analisis_id, categoria)
-VALUES (1, 'ALIMENTACION');
+SELECT id, 'ALIMENTACION' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
+
+INSERT INTO analisis_categorias (analisis_id, categoria)
+SELECT id, 'GASTOS_GENERALES' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
+
+-- 3. Insertar recomendaciones
+INSERT INTO analisis_recomendaciones (analisis_id, recomendacion)
+SELECT id, 'Monitorear los gastos recurrentes de supermercado' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
+
+INSERT INTO analisis_recomendaciones (analisis_id, recomendacion)
+SELECT id, 'Aumentar el margen de ahorro mensual' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
+
+INSERT INTO transacciones (usuario_id, descripcion, monto, tipo, categoria, fecha_transaccion)
+VALUES ('USR-1001', 'Compra en Farmacia', 8500.50, 'EGRESO', 'Salud', CURRENT_TIMESTAMP);

@@ -27,7 +27,7 @@ public class AnalisisFinanciero {
     @Column(name = "usuario_id")
     private String usuarioId;
 
-    // --- NUEVOS CAMPOS DE ENTRADA / DATOS FINANCIEROS ---
+    // --- DATOS FINANCIEROS DE ENTRADA ---
     @Column(name = "ingreso_mensual")
     private Double ingresoMensual;
 
@@ -43,26 +43,38 @@ public class AnalisisFinanciero {
     @Column(name = "valor")
     private Double valor;
 
-    // --- NUEVOS CAMPOS DE RESPUESTA DE PYTHON / IA ---
+    // --- RESPUESTA DE PYTHON / IA ---
     @Column(name = "perfil_financiero")
     private String perfilFinanciero;
 
     @Column(name = "probabilidad")
     private Double probabilidad;
 
+    // 1. Mapeo de Categorías
     @ElementCollection
     @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
-    @Column(name = "categorias")
+    @Column(name = "categoria")
     @Builder.Default
-    private List<String> categoria = new ArrayList<>();
+    private List<String> categorias = new ArrayList<>();
+
+
+    // 2. Mapeo de Recomendaciones (¡NUEVO!)
+    @ElementCollection
+    @CollectionTable(
+            name = "analisis_recomendaciones",
+            joinColumns = @JoinColumn(name = "analisis_id")
+    )
+    @Column(name = "recomendacion")
+    @Builder.Default
+    private List<String> recomendaciones = new ArrayList<>();
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaCreacion;
 
-//    @OneToMany(mappedBy = "analisis", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @Builder.Default
-//    private List<Transaccion> transacciones = new ArrayList<>();
+    @OneToMany(mappedBy = "analisis", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Transaccion> transacciones = new ArrayList<>();
 
     @PrePersist
     protected void prePersist() {

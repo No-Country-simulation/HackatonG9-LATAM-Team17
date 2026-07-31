@@ -5,9 +5,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
+import saludfinanciera.finanzas.dto.response.TransaccionResponseDTO;
 import saludfinanciera.finanzas.model.Transaccion;
-import saludfinanciera.finanzas.repository.TransaccionRepository;
 import saludfinanciera.finanzas.service.AnalisisService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +40,8 @@ public class AnalisisController {
      * 1. Obtener transacciones por ID de Usuario
      */
     @GetMapping("/transacciones/usuario/{usuarioId}")
-    public ResponseEntity<List<Transaccion>> obtenerTransaccionesPorUsuario(@PathVariable String usuarioId) {
-        List<Transaccion> transacciones = analisisService.obtenerTransaccionesPorUsuario(usuarioId);
+    public ResponseEntity<List<TransaccionResponseDTO>> obtenerTransaccionesPorUsuario(@PathVariable String usuarioId) {
+        List<TransaccionResponseDTO> transacciones = analisisService.obtenerTransaccionesPorUsuario(usuarioId);
         if (transacciones.isEmpty()) {
             return ResponseEntity.noContent().build(); // HTTP 204 No Content si no tiene registros
         }

@@ -3,7 +3,9 @@ package saludfinanciera.finanzas.service;
 import org.springframework.transaction.annotation.Transactional;
 import saludfinanciera.finanzas.client.NlpDataClient;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
+import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
+import saludfinanciera.finanzas.dto.response.TransaccionResponseDTO;
 import saludfinanciera.finanzas.model.AnalisisFinanciero;
 import org.springframework.stereotype.Service;
 import saludfinanciera.finanzas.model.Transaccion;
@@ -11,6 +13,7 @@ import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import saludfinanciera.finanzas.repository.TransaccionRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,7 +36,9 @@ public class AnalisisService {
 
         // 2. Extraer solo los valores del Mapa (sin duplicados) para convertirlos a la List de la Entidad
         List<String> categoriasConsolidadas = respuestaNlp.categorias() != null
-                ? respuestaNlp.categorias().values().stream().distinct().toList()
+                ? respuestaNlp.categorias().keySet().stream()
+                  .distinct()
+                  .collect(Collectors.toList())
                 : List.of();
 
         // 3. Persistir en la BD (la Entidad recibe la List<String> limpia)
@@ -45,7 +50,7 @@ public class AnalisisService {
                 .valor(inputDTO.valor())
                 .perfilFinanciero(respuestaNlp.perfilFinanciero())
                 .probabilidad(respuestaNlp.probabilidad())
-                .categoria(categoriasConsolidadas) // Asignación limpia de List<String>
+                .categorias(categoriasConsolidadas) // Asignación limpia de List<String>
                 .build();
 
         analisisRepository.save(analisis);
@@ -55,8 +60,20 @@ public class AnalisisService {
     }
 
     @Transactional(readOnly = true)
-    public List<Transaccion> obtenerTransaccionesPorUsuario(String usuarioId) {
-        return transaccionRepository.findByUsuarioId(usuarioId);
+    public List<TransaccionResponseDTO> obtenerTransaccionesPorUsuario(String usuarioId) {
+        List<Transaccion> entidades = transaccionRepository.findByUsuarioId(usuarioId);
+
+        return entidades.stream()
+                .map(t -> new TransaccionResponseDTO(
+                        t.getId(),
+                        t.getUsuarioId(),
+                        t.getMonto(),
+                        t.getTipo(),
+                        t.getDescripcion(),
+                        t.getCategoria(),
+                        t.getFechaTransaccion()
+                ))
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -8,6 +8,7 @@ import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class NlpDataClient {
@@ -36,9 +37,10 @@ public class NlpDataClient {
             // FALLBACK TEMPORAL: Si Python no responde o no está disponible,
             // devolvemos un objeto Mock para no cortar el flujo de Spring Boot
             return new AnalisisOutputDTO(
-                    List.of("GASTOS_GENERALES"),
-                    "Moderado",
-                    0.75
+                    "En observación",                                     // 1. perfilFinanciero
+                    0.82,                                                              // 2. probabilidad
+                    Map.of("alimentacion", "420", "transporte", "300"),// 3. categorias (Map<String, Object>)
+                    List.of() // Recomendaciones vacías por el momento                 // 4. recomendaciones
             );
         }
     }
