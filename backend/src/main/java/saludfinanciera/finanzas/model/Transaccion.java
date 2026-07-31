@@ -33,11 +33,11 @@ public class Transaccion {
     @Column(name = "tipo")
     private String tipo; // EGRESO / INGRESO
 
-    @Column(name = "categoria")
+    @Column(name = "categorias")
     private String categoria;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "analisis_id")
-//    @ToString.Exclude // Previene recursión infinita si usás @ToString
-//    private AnalisisFinanciero analisis;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "analisis_id")
+    @ToString.Exclude // Previene recursión infinita si usás @ToString
+    private AnalisisFinanciero analisis;
 }

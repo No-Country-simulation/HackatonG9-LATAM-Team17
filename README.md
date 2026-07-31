@@ -35,7 +35,103 @@
 * **GET /api/v1/analisis/transacciones/{usuarioId}**: Obtiene las transacciones filtradas por el identificador del usuario.
 
 ___
+## 🚀 Registro de Cambios: CORS & Arquitectura Global de Manejo de Errores
+Este documento resume las actualizaciones aplicadas en la capa de infraestructura del backend en Spring Boot, centralizando el control de acceso de orígenes cruzados (CORS) y estableciendo una arquitectura robusta para la captura y respuesta unificada de excepciones.
 
+## 🛠️ 1. Configuración Centralizada de CORS (**CorsConfig**)
+
+Se eliminó la anotación **@CrossOrigin(origins = "*")** dispersa en los controladores para evitar inconsistencias y redundancia.
+
+* Ubicación: **saludfinanciera.finanzas.config.CorsConfig**
+
+* Implementación: Define un bean de **WebMvcConfigurer** que intercepta todas las peticiones entrantes (/**).
+
+* Soporte @NonNullApi: Se aplicó **@NonNull** en el parámetro **CorsRegistry** para mantener la conformidad con el contrato de nulidad definido en el paquete.
+
+````java
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                        .allowedHeaders("*");
+            }
+        };
+    }
+}
+```` 
+## 🛡️ 2. Arquitectura Global de Excepciones **(saludfinanciera.finanzas.exception)**
+Se creó el paquete **exception** para aislar la lógica de manejo de errores de los controladores, utilizando **@RestControllerAdvice** y DTOs estandarizados.
+
+📁 Estructura del Paquete
+
+````
+saludfinanciera/finanzas/exception/
+ ├── GlobalExceptionHandler.java          # Interceptor centralizado de excepciones
+ ├── ErrorResponseDTO.java               # DTO para errores de Front y validación
+ ├── DataErrorResponseDTO.java            # DTO para errores de Persistencia/BD
+ ├── PythonServiceErrorDTO.java          # DTO para fallas en microservicio Python
+ ├── AIServiceErrorDTO.java              # DTO para timeouts y fallas del LLM/IA
+ ├── ResourceNotFoundException.java       # Excepción personalizada (404)
+ └── AIServiceUnavailableException.java  # Excepción personalizada para el motor IA
+````
+## 📊 3. Matriz de Cobertura de Errores
+
+| Capa / Origen | Excepción Interceptada | Código HTTP | DTO Devuelto | Descripción |
+|---------------|------------------------|-------------|--------------|-------------|
+| Validación DTO (Front) | `MethodArgumentNotValidException` | `400 BAD REQUEST` | `ErrorResponseDTO` | Devuelve un mapa con el detalle de los campos que violaron las reglas (`@NotNull`, `@Valid`, etc.). |
+| Recursos Inexistentes | `ResourceNotFoundException` | `404 NOT FOUND` | `ErrorResponseDTO` | Entidades o registros no encontrados en el dominio. |
+| Persistencia / BD (data) | `DataIntegrityViolationException` | `409 CONFLICT` | `DataErrorResponseDTO` | Sanitiza el error técnico de SQL y devuelve un mensaje amigable al usuario sobre violaciones de restricción. |
+| Microservicio Python | `HttpStatusCodeException` | `502 BAD GATEWAY` | `PythonServiceErrorDTO` | Captura respuestas 4xx/5xx provenientes del cliente externo en Python. |
+| Red / Conexión Python | `ResourceAccessException` | `503 SERVICE UNAVAILABLE` | `PythonServiceErrorDTO` | Captura caídas o fallas de red al intentar alcanzar el servicio de Python. |
+| Demora / Timeout IA | `TimeoutException`, `SocketTimeoutException` | `504 GATEWAY TIMEOUT` | `AIServiceErrorDTO` | Notifica demoras en la inferencia del modelo (incluye flag `isTimeout: true` para reintentos). |
+| Falla del Motor IA | `AIServiceUnavailableException` | `503 SERVICE UNAVAILABLE` | `AIServiceErrorDTO` | Errores internos de ejecución del modelo (Out of Memory, falta de GPU, etc.). |
+| General / Inesperado | `Exception` | `500 INTERNAL ERROR` | `ErrorResponseDTO` | Captura no controlada para evitar exponer la traza de Java. |
+
+## 🧪 4. Ejemplos de Respuestas JSON para Frontend
+Validation Error **(400 Bad Request)**
+
+````json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Error de validación en los datos ingresados",
+  "validationErrors": {
+    "monto": "El monto debe ser mayor a cero",
+    "categoria": "La categoría no puede estar vacía"
+  },
+  "timestamp": "2026-07-30T10:15:00"
+}
+````
+Data Integrity Conflict **(409 Conflict)**
+
+````json
+{
+  "status": 409,
+  "error": "Conflict de datos",
+  "message": "La transacción no pudo ser completada",
+  "detail": "Uno de los campos obligatorios de la entidad no fue proporcionado.",
+  "timestamp": "2026-07-30T10:40:00"
+}
+````
+AI Timeout **(504 Gateway Timeout)**
+
+````json
+{
+  "status": 504,
+  "error": "AI Service Timeout",
+  "message": "El modelo de Inteligencia Artificial tardó demasiado en responder.",
+  "aiServiceDetail": "La generación de la respuesta superó el tiempo máximo de espera. Intenta nuevamente con una consulta más corta o en unos momentos.",
+  "isTimeout": true,
+  "timestamp": "2026-07-30T10:48:12"
+}
+````
 ## 🐍 1. Equipo de Data Science / Python
 Una vez que el endpoint mock de Python responde correctamente a Spring Boot, el objetivo de Data es darle valor a los modelos de análisis:
 

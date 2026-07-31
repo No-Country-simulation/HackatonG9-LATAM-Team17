@@ -25,15 +25,18 @@ public class AnalisisService {
         this.analisisRepository = analisisRepository;
         this.nlpDataClient = nlpDataClient;
     }
-
-
     @Transactional
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO inputDTO) {
 
-        // 1. Invocar al microservicio de Python NLP
+        // 1. Invocar al microservicio de Python NLP (devuelve Map<String, String> en .categoria())
         AnalisisOutputDTO respuestaNlp = nlpDataClient.analizarPerfil(inputDTO);
 
-        // 2. Mapear y persistir el resultado consolidado
+        // 2. Extraer solo los valores del Mapa (sin duplicados) para convertirlos a la List de la Entidad
+        List<String> categoriasConsolidadas = respuestaNlp.categorias() != null
+                ? respuestaNlp.categorias().values().stream().distinct().toList()
+                : List.of();
+
+        // 3. Persistir en la BD (la Entidad recibe la List<String> limpia)
         AnalisisFinanciero analisis = AnalisisFinanciero.builder()
                 .ingresoMensual(inputDTO.ingresoMensual())
                 .nivelEndeudamiento(inputDTO.nivelEndeudamiento())
@@ -42,12 +45,12 @@ public class AnalisisService {
                 .valor(inputDTO.valor())
                 .perfilFinanciero(respuestaNlp.perfilFinanciero())
                 .probabilidad(respuestaNlp.probabilidad())
-                .categoria(respuestaNlp.categoria())
+                .categoria(categoriasConsolidadas) // Asignación limpia de List<String>
                 .build();
 
         analisisRepository.save(analisis);
 
-        // 3. Retornar respuesta al Frontend
+        // 4. Retornar DTO de respuesta al Controller / Frontend
         return respuestaNlp;
     }
 
@@ -60,5 +63,4 @@ public class AnalisisService {
     public List<Transaccion> obtenerTodasLasTransacciones() {
         return transaccionRepository.findAll();
     }
-
 }

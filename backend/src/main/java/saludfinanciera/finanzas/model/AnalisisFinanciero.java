@@ -52,7 +52,7 @@ public class AnalisisFinanciero {
 
     @ElementCollection
     @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
-    @Column(name = "categoria")
+    @Column(name = "categorias")
     @Builder.Default
     private List<String> categoria = new ArrayList<>();
 
