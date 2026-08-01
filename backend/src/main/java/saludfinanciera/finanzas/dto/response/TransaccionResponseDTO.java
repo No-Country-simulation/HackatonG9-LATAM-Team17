@@ -17,6 +17,9 @@ public record TransaccionResponseDTO(
         String categoria,
 
         @JsonProperty("fecha_transaccion")
-        LocalDateTime fechaTransaccion
+        LocalDateTime fechaTransaccion,
+
+        @JsonProperty("analisis_id")
+        Long analisisId // Agregamos el ID del Análisis o un DTO liviano
 ) {
 }

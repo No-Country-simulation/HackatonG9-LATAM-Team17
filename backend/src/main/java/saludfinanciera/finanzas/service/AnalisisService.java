@@ -35,8 +35,8 @@ public class AnalisisService {
         AnalisisOutputDTO respuestaNlp = nlpDataClient.analizarPerfil(inputDTO);
 
         // 2. Extraer solo los valores del Mapa (sin duplicados) para convertirlos a la List de la Entidad
-        List<String> categoriasConsolidadas = respuestaNlp.categorias() != null
-                ? respuestaNlp.categorias().keySet().stream()
+        List<String> categoriasConsolidadas = respuestaNlp.resumenGastos() != null
+                ? respuestaNlp.resumenGastos().keySet().stream()
                   .distinct()
                   .collect(Collectors.toList())
                 : List.of();
@@ -71,7 +71,8 @@ public class AnalisisService {
                         t.getTipo(),
                         t.getDescripcion(),
                         t.getCategoria(),
-                        t.getFechaTransaccion()
+                        t.getFechaTransaccion(),
+                        t.getAnalisis() != null ? t.getAnalisis().getId() : null // 8º argumento añadido
                 ))
                 .toList();
     }
@@ -84,20 +85,33 @@ public class AnalisisService {
 
     @Transactional
     public TransaccionResponseDTO registrarTransaccion(TransaccionDTO dto) {
-        // 1. Mapear DTO de entrada a Entidad JPA
+
+        // 1. Resolver la categoría (si no viene o está vacía, consultar a Python NLP)
+        String categoriaFinal = dto.categoria();
+
+        if (categoriaFinal == null || categoriaFinal.isBlank()) {
+            try {
+                // Invocación al microservicio de Python NLP pasándole la descripción
+                categoriaFinal = nlpDataClient.categorizarDescripcion(dto.descripcion());
+            } catch (Exception e) {
+                // Fallback de seguridad por si falla la llamada HTTP al microservicio
+                categoriaFinal = "Otros";
+            }
+        }
+
+        // 2. Mapear DTO de entrada a Entidad JPA con la categoría resuelta
         Transaccion entidad = Transaccion.builder()
                 .descripcion(dto.descripcion())
                 .monto(dto.monto())
                 .tipo(dto.tipo())
-                .categoria(dto.categoria())
-                // Nota: usuarioId puedes asignarlo desde un contexto de seguridad o un default si aplica
+                .categoria(categoriaFinal)
                 .usuarioId("USR-DEFAULT")
                 .build();
 
-        // 2. Guardar en PostgreSQL (@PrePersist asignará fechaTransaccion)
+        // 3. Guardar en PostgreSQL (@PrePersist asignará fechaTransaccion)
         Transaccion guardada = transaccionRepository.save(entidad);
 
-        // 3. Retornar DTO de respuesta
+        // 4. Retornar DTO de respuesta
         return new TransaccionResponseDTO(
                 guardada.getId(),
                 guardada.getUsuarioId(),
@@ -105,7 +119,8 @@ public class AnalisisService {
                 guardada.getTipo(),
                 guardada.getDescripcion(),
                 guardada.getCategoria(),
-                guardada.getFechaTransaccion()
+                guardada.getFechaTransaccion(),
+                guardada.getAnalisis() != null ? guardada.getAnalisis().getId() : null // O el DTO del análisis
         );
     }
 }

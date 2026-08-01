@@ -11,10 +11,11 @@ public record AnalisisOutputDTO(
         @JsonProperty("perfil_financiero")
         String perfilFinanciero,
 
+        @JsonProperty("probabilidad")
         Double probabilidad,
 
         @JsonProperty("resumen_gastos")
-        Map<String, Object> categorias,
+        Map<String, Object> resumenGastos,
 
         @JsonProperty("recomendaciones")
         List<String> recomendaciones
