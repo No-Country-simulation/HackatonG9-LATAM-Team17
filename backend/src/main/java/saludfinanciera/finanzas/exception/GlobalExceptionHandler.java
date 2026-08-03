@@ -145,4 +145,11 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
+    // Captura error CSV
+    @ExceptionHandler(CsvProcessingException.class)
+    public ResponseEntity<Map<String, String>> handleCsvException(CsvProcessingException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "CSV_INVALIDO", "mensaje", ex.getMessage()));
+    }
 }

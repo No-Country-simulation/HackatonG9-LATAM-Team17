@@ -64,7 +64,7 @@ public class AnalisisFinanciero {
             name = "analisis_recomendaciones",
             joinColumns = @JoinColumn(name = "analisis_id")
     )
-    @Column(name = "recomendacion")
+    @Column(name = "recomendacion", length = 1000)
     @Builder.Default
     private List<String> recomendaciones = new ArrayList<>();
 

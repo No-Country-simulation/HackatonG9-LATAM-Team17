@@ -3,7 +3,9 @@ package saludfinanciera.finanzas.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
+import org.springframework.web.multipart.MultipartFile;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
@@ -48,13 +50,25 @@ public class AnalisisController {
         TransaccionResponseDTO nuevaTransaccion = analisisService.registrarTransaccion(transaccionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTransaccion); // HTTP 201 Created
     }
+    /**
+     * 3. Procesar análisis completo adjuntando un archivo CSV opcional (Multipart)
+     * POST /api/v1/analisis/procesar-csv
+     */
+    @PostMapping(value = "/procesar-csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AnalisisOutputDTO> analizarFinanzasConCsv(
+            @RequestPart("datos") @Valid AnalisisInputDTO inputDTO,
+            @RequestPart(value = "archivo", required = false) MultipartFile archivoCsv
+    ) {
+        AnalisisOutputDTO resultado = analisisService.realizarAnalisisFinanciero(inputDTO, archivoCsv);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resultado); // HTTP 201 Created
+    }
 
     // ==========================================
     // 📌 ENDPOINTS GET (Consultas)
     // ==========================================
 
     /**
-     * 3. Obtener TODAS las transacciones cargadas en la DB
+     * 4. Obtener TODAS las transacciones cargadas en la DB
      * GET /api/v1/analisis/transacciones
      */
     @GetMapping("/transacciones")
@@ -67,7 +81,7 @@ public class AnalisisController {
     }
 
     /**
-     * 4. Obtener transacciones por ID de Usuario
+     * 5. Obtener transacciones por ID de Usuario
      * GET /api/v1/analisis/transacciones/usuario/{usuarioId}
      */
     @GetMapping("/transacciones/usuario/{usuarioId}")

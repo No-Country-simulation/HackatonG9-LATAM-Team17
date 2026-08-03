@@ -24,6 +24,9 @@ public class NlpDataClient {
                 .build();
     }
 
+    /**
+     * Envía la estructura completa (datos + historialTransacciones) hacia FastAPI
+     */
     public AnalisisOutputDTO analizarPerfil(AnalisisInputDTO inputDTO) {
         try {
             // Intenta llamar al microservicio de Python NLP
@@ -47,7 +50,9 @@ public class NlpDataClient {
             );
         }
     }
-    // ️ NUEVA funcion PARA CATEGORIZAR UNA TRANSACCIÓN ️
+    /**
+     * Funcion auxiliar para categorizar descripciones individuales
+     */
     public String categorizarDescripcion(String descripcion) {
         try {
             // Preparamos el payload en JSON: {"descripcion": "Pago de servicios..."}

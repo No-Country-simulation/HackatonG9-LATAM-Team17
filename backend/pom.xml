@@ -55,6 +55,13 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.10.0</version>
+		</dependency>
+
 		<!-- Starter de Testing Único (Reemplaza a data-jpa-test y webmvc-test) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -460,6 +460,20 @@ AI Timeout **(504 Gateway Timeout)**
   "timestamp": "2026-07-30T10:48:12"
 }
 ````
+````mermaid
+flowchart LR
+    subgraph SpringBoot ["SPRING BOOT"]
+        A["Parser CSV + Client"]
+    end
+
+    subgraph FastAPI ["FASTAPI / NLP"]
+        B["Pandas + LLM Profile"]
+    end
+
+    A <-->|JSON / DTOs| B
+
+````
+
 ## 🐍 1. Equipo de Data Science / Python
 Una vez que el endpoint mock de Python responde correctamente a Spring Boot, el objetivo de Data es darle valor a los modelos de análisis:
 

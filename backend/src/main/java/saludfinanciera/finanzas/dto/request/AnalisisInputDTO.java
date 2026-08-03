@@ -3,15 +3,14 @@ package saludfinanciera.finanzas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-import java.math.BigDecimal;
 import java.util.List;
 
+
 public record AnalisisInputDTO(
+
 
         @NotNull(message = "El ingreso mensual es obligatorio")
         @Positive(message = "El ingreso mensual debe ser un valor positivo")
@@ -33,6 +32,9 @@ public record AnalisisInputDTO(
         @NotNull(message = "El valor es obligatorio")
         @Positive
         @JsonProperty("valor")
-        Double valor
+        Double valor,
+
+        @JsonProperty("historial_transacciones")
+        List<@Valid TransaccionItemDTO>historialTransacciones
 ){
 }
