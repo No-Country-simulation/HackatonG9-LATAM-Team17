@@ -42,7 +42,9 @@ public class CsvParserService {
                 String fecha = obtenerCampoSeguro(record, "fecha");
                 String descripcion = obtenerCampoSeguro(record, "descripcion");
                 String montoStr = obtenerCampoSeguro(record, "monto");
-                String categoria = record.isMapped("categoria") ? record.get("categoria") : "Otros";
+
+                // Normalización de la categoría
+                String categoria = normalizarCategoria(record);
 
                 if (montoStr != null && !montoStr.isBlank()) {
                     // Sanitiza por si viene con formato de moneda o coma decimal
@@ -61,5 +63,15 @@ public class CsvParserService {
 
     private String obtenerCampoSeguro(CSVRecord record, String nombreColumna) {
         return record.isMapped(nombreColumna) ? record.get(nombreColumna).trim() : "";
+    }
+
+    // Nueva forma  helper para sanitizar la categoría
+    private String normalizarCategoria(CSVRecord record) {
+        if (!record.isMapped("categoria") || record.get("categoria") == null) {
+            return "OTROS";
+        }
+
+        String valor = record.get("categoria").trim();
+        return valor.isBlank() ? "OTROS" : valor.toUpperCase();
     }
 }
