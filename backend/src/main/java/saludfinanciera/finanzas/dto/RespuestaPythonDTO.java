@@ -15,7 +15,7 @@ public record RespuestaPythonDTO(
         String perfilFinanciero,
 
         // MAPA con la clasificación individual de cada gasto: {"almuerzo": "Alimentación", "gasolina": "Transporte"}
-        @JsonProperty("clasificacion_gastos")
+        @JsonProperty("categoria")
         Map<String, String> categoria,
 
         // Lista de sugerencias o consejos generados por la IA
