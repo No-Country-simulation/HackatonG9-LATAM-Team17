@@ -113,11 +113,18 @@ public class AnalisisService {
         if (categoriaFinal == null || categoriaFinal.isBlank()) {
             try {
                 // Invocación al microservicio de Python NLP pasándole la descripción
-                categoriaFinal = nlpDataClient.categorizarDescripcion(dto.descripcion());
+                String categoriaNlp = nlpDataClient.categorizarDescripcion(dto.descripcion());
+                // Normalizar a mayúsculas y limpiar espacios si la IA devuelve algo válido
+                categoriaFinal = (categoriaNlp != null && !categoriaNlp.isBlank())
+                        ? categoriaNlp.trim().toUpperCase()
+                        : "OTROS";
             } catch (Exception e) {
                 // Fallback de seguridad por si falla la llamada HTTP al microservicio
-                categoriaFinal = "Otros";
+                categoriaFinal = "OTROS";
             }
+        } else {
+            // Si el usuario envió una categoría manualmente, también se normaliza
+            categoriaFinal = categoriaFinal.trim().toUpperCase();
         }
 
         // 2. Mapear DTO de entrada a Entidad JPA con la categoría resuelta
