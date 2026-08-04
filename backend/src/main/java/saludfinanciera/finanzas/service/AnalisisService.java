@@ -50,7 +50,7 @@ public class AnalisisService {
         RespuestaPythonDTO dsResponse = pythonClient.obtenerAnalisisDesdePython(input);
 
         // Extraemos el mapa asignado por la IA en Python
-        Map<String, String> clasificacionPython = dsResponse.clasificacionGastos();
+        Map<String, String> clasificacionPython = dsResponse.categoria();
 
 
         // =========================================================================

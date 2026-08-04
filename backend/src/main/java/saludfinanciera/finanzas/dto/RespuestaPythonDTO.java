@@ -16,7 +16,7 @@ public record RespuestaPythonDTO(
 
         // MAPA con la clasificación individual de cada gasto: {"almuerzo": "Alimentación", "gasolina": "Transporte"}
         @JsonProperty("clasificacion_gastos")
-        Map<String, String> clasificacionGastos,
+        Map<String, String> categoria,
 
         // Lista de sugerencias o consejos generados por la IA
         @JsonProperty("recomendaciones")
