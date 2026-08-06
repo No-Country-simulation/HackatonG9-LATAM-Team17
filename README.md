@@ -503,4 +503,4 @@ El Frontend ya tiene las especificaciones del backend plasmadas en el **README.m
 
 1- Capa de Seguridad **Security**
 
-2- Crear Swagger para documentacion
+2- Subir a OCI
