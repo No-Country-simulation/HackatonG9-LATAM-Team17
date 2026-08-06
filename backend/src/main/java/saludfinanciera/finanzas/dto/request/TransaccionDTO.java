@@ -1,21 +1,35 @@
 package saludfinanciera.finanzas.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
+
+import java.time.LocalDateTime;
 
 // Usamos 'record' (característica de Java 14+) para crear objetos inmutables de transferencias de datos sin boilerplate (getters, equals, hashCode).
 public record TransaccionDTO(
 
-        // @NotNull valida que el campo no llegue nulo en el JSON de la petición HTTP.
-        @NotNull(message = "La descripción no puede ser nula")
-        // @JsonProperty mapea la clave JSON "descripcion" con este atributo en Java.
+        @NotBlank(message = "El ID de usuario es obligatorio")
+        @JsonProperty("usuario_id")
+        String usuarioId,
+
+        @NotNull(message = "El monto no puede ser nulo")
+        @Positive(message = "El monto debe ser un valor positivo mayor a cero")
+        @JsonProperty("monto")
+        Double monto,
+
+        @NotBlank(message = "El tipo de transacción es obligatorio")
+        @Pattern(regexp = "^(?i)(INGRESO|EGRESO)$", message = "El tipo debe ser INGRESO o EGRESO")
+        @JsonProperty("tipo")
+        String tipo,
+
+        @NotBlank(message = "La descripción no puede estar vacía")
         @JsonProperty("descripcion")
         String descripcion,
 
-        @NotNull(message = "El valor no puede ser nulo")
-        // @Positive asegura que el monto sea estrictamente mayor a 0 (no acepta ceros ni números negativos).
-        @Positive(message = "El valor debe ser mayor a cero")
-        @JsonProperty("valor")
-        double valor
+        @JsonProperty("categoria")
+        String categoria,
+
+        @PastOrPresent(message = "La fecha de la transacción no puede ser futura")
+        @JsonProperty("fecha_transaccion")
+        LocalDateTime fechaTransaccion
 ) {}
