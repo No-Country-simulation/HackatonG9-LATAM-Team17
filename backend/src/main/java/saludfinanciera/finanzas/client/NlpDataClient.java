@@ -1,5 +1,7 @@
 package saludfinanciera.finanzas.client;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,11 +15,12 @@ import java.util.Map;
 @Component
 public class NlpDataClient {
 
+    private static final Logger log = LoggerFactory.getLogger(NlpDataClient.class);
     private final RestClient nlpRestClient;
 
     public NlpDataClient(
             RestClient.Builder restClientBuilder,
-            @Value("${python.nlp.service.url}") String nlpServiceUrl
+            @Value("${python.nlp.service.url:http://localhost:8000}") String nlpServiceUrl
     ) {
         this.nlpRestClient = restClientBuilder
                 .baseUrl(nlpServiceUrl)
@@ -43,22 +46,25 @@ public class NlpDataClient {
             // FALLBACK TEMPORAL: Si Python no responde o no está disponible,
             // devolvemos un objeto Mock para no cortar el flujo de Spring Boot
             return new AnalisisOutputDTO(
-                    "En observación",                                     // 1. perfilFinanciero
-                    0.82,                                                              // 2. probabilidad
-                    Map.of("alimentacion", "420", "transporte", "300"),// 3. resumenGastos (Map<String, Object>)
-                    List.of() // Recomendaciones vacías por el momento                 // 4. recomendaciones
+                    "EN OBSERVACION",                                     // 1. String perfilFinanciero
+                    0.82,                                                 // 2. Double probabilidad
+                    Map.of("ALIMENTACION", 420.0, "TRANSPORTE", 300.0),   // 3. Map<String, Object> resumenGastos
+                    List.of("Servicio en modo degradado. Revisa tus gastos manualmente."), // 4. List<String> recomendaciones
+                    720.0,                                                // 5. Double totalGastado
+                    280.0,                                                // 6. Double capacidadAhorroMensual
+                    28.0,                                                 // 7. Double porcentajeTasaAhorro
+                    0.0,                                                  // 8. Double progresoMetaAhorro
+                    0.0                                                   // 9. Double mesesParaMeta
             );
         }
     }
     /**
-     * Funcion auxiliar para categorizar descripciones individuales
+     * Categoriza una descripción individual mediante el microservicio NLP
      */
     public String categorizarDescripcion(String descripcion) {
         try {
-            // Preparamos el payload en JSON: {"descripcion": "Pago de servicios..."}
             Map<String, String> requestBody = Map.of("descripcion", descripcion);
 
-            // Ajusta la URI según cómo esté definido el endpoint en Python (ej: /api/v1/categorizar)
             CategorizacionResponse response = nlpRestClient.post()
                     .uri("/api/v1/categorizar")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -66,16 +72,18 @@ public class NlpDataClient {
                     .retrieve()
                     .body(CategorizacionResponse.class);
 
-            return (response != null && response.categoria() != null)
-                    ? response.categoria()
-                    : "Otros";
+            return (response != null && response.categoria() != null && !response.categoria().isBlank())
+                    ? response.categoria().trim().toUpperCase()
+                    : "OTROS";
 
         } catch (Exception e) {
-            // Fallback en caso de que el servicio de Python no responda o falle
-            return "Servicios"; // O "Otros" como categoría por defecto
+            log.warn("⚠️ Error al categorizar descripción con Python NLP ('{}'): {}", descripcion, e.getMessage());
+            return "OTROS";
         }
     }
 
-    // Record auxiliar para mapear la respuesta del endpoint de Python
+    /**
+     * Record auxiliar para deserializar la respuesta de categorización
+     */
     public record CategorizacionResponse(String categoria) {}
 }

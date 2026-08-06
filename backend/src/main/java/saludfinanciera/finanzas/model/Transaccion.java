@@ -28,7 +28,7 @@ public class Transaccion {
     @Column(name = "usuario_id", nullable = false)
     private String usuarioId;
 
-    @Column(name = "descripcion")
+    @Column(name = "descripcion",  nullable = false)
     private String descripcion;
 
     @Column(name = "monto",  nullable = false, precision = 12, scale = 2)
@@ -48,6 +48,10 @@ public class Transaccion {
     @JoinColumn(name = "analisis_id")
     @ToString.Exclude // Previene recursión infinita si usás @ToString
     private AnalisisFinanciero analisis;
+
+    @Builder.Default
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true; // Por defecto nace activa
 
     @PrePersist
     public void prePersist() {

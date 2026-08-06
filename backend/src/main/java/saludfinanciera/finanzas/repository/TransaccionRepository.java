@@ -5,8 +5,15 @@ import org.springframework.stereotype.Repository;
 import saludfinanciera.finanzas.model.Transaccion;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransaccionRepository extends JpaRepository<Transaccion, Long> {
     List<Transaccion> findByUsuarioId(String usuarioId);
+
+    // Buscar por ID solo si está activa
+    Optional<Transaccion> findByIdAndActivoTrue(Long id);
+
+    // Listar por usuario solo las transacciones activas
+    List<Transaccion> findByUsuarioIdAndActivoTrue(String usuarioId);
 }

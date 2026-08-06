@@ -1,4 +1,25 @@
--- 1. Insertar el análisis principal
+-- =================================================================
+-- 1. CORREGIR ESTRUCTURA DE TABLA Y REGISTROS PREVIOS
+-- (Se ejecuta primero para evitar fallos de restricción NOT NULL)
+-- =================================================================
+
+-- Actualizar registros existentes que quedaron en NULL
+UPDATE transacciones
+SET activo = true
+WHERE activo IS NULL;
+
+-- Asegurar restricción NOT NULL y DEFAULT true para transacciones
+ALTER TABLE transacciones
+    ALTER COLUMN activo SET DEFAULT true,
+ALTER COLUMN activo SET NOT NULL;
+
+
+-- =================================================================
+-- 2. INSERTAR ANÁLISIS CON SUS CATEGORÍAS Y RECOMENDACIONES
+-- (Usa CTE para capturar el ID de forma atómica y evitar problemas con MAX(id))
+-- =================================================================
+
+WITH nuevo_analisis AS (
 INSERT INTO analisis_financiero (
     usuario_id,
     ingreso_mensual,
@@ -9,32 +30,35 @@ INSERT INTO analisis_financiero (
     perfil_financiero,
     probabilidad,
     fecha_creacion
-)
-VALUES (
-           'USR-1001',
-           650000.00,
-           2,
-           'MENSUAL',
-           'Supermercado Coto compras semana',
-           42500.00,
-           'Moderado',
-           0.85,
-           CURRENT_TIMESTAMP(0)
-       );
-
--- 2. Insertar categorías
+) VALUES (
+    'USR-1001',
+    650000.00,
+    2,
+    'MENSUAL',
+    'Supermercado Coto compras semana',
+    42500.00,
+    'Moderado',
+    0.85,
+    CURRENT_TIMESTAMP
+    )
+    RETURNING id
+    ),
+    ins_categorias AS (
 INSERT INTO analisis_categorias (analisis_id, categoria)
-SELECT id, 'ALIMENTACION' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
-
-INSERT INTO analisis_categorias (analisis_id, categoria)
-SELECT id, 'GASTOS_GENERALES' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
-
--- 3. Insertar recomendaciones
+SELECT id, unnest(ARRAY['ALIMENTACION', 'GASTOS_GENERALES'])
+FROM nuevo_analisis
+    )
 INSERT INTO analisis_recomendaciones (analisis_id, recomendacion)
-SELECT id, 'Monitorear los gastos recurrentes de supermercado' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
+SELECT id, unnest(ARRAY[
+                      'Monitorear los gastos recurrentes de supermercado',
+                  'Aumentar el margen de ahorro mensual'
+                      ])
+FROM nuevo_analisis;
 
-INSERT INTO analisis_recomendaciones (analisis_id, recomendacion)
-SELECT id, 'Aumentar el margen de ahorro mensual' FROM analisis_financiero WHERE usuario_id = 'USR-1001' ORDER BY id DESC LIMIT 1;
 
-INSERT INTO transacciones (usuario_id, descripcion, monto, tipo, categoria, fecha_transaccion)
-VALUES ('USR-1001', 'Compra en Farmacia', 8500.50, 'EGRESO', 'Salud', CURRENT_TIMESTAMP);
+-- =================================================================
+-- 3. INSERTAR TRANSACCIÓN DE PRUEBA
+-- =================================================================
+
+INSERT INTO transacciones (usuario_id, descripcion, monto, tipo, categoria, activo, fecha_transaccion)
+VALUES ('USR-1001', 'Compra en Farmacia', 8500.50, 'EGRESO', 'Salud', true, CURRENT_TIMESTAMP);

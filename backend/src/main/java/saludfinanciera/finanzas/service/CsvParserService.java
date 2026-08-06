@@ -12,11 +12,20 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CsvParserService {
+
+    private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
+            DateTimeFormatter.ISO_LOCAL_DATE,                 // yyyy-MM-dd
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),        // dd/MM/yyyy
+            DateTimeFormatter.ofPattern("dd-MM-yyyy")         // dd-MM-yyyy
+    );
 
     public List<TransaccionItemDTO> parsearTransacciones(MultipartFile file) {
         List<TransaccionItemDTO> transacciones = new ArrayList<>();
@@ -39,39 +48,46 @@ public class CsvParserService {
             CSVParser csvParser = new CSVParser(reader, format);
 
             for (CSVRecord record : csvParser) {
-                String fecha = obtenerCampoSeguro(record, "fecha");
+                String fechaStr = obtenerCampoSeguro(record, "fecha");
                 String descripcion = obtenerCampoSeguro(record, "descripcion");
                 String montoStr = obtenerCampoSeguro(record, "monto");
+                String categoria = obtenerCampoSeguro(record, "categoria");
 
-                // Normalización de la categoría
-                String categoria = normalizarCategoria(record);
-
-                if (montoStr != null && !montoStr.isBlank()) {
-                    // Sanitiza por si viene con formato de moneda o coma decimal
+                if (!montoStr.isBlank() && !descripcion.isBlank()) {
+                    LocalDate fecha = parsearFecha(fechaStr);
                     BigDecimal monto = new BigDecimal(montoStr.replace("$", "").replace(",", ".").trim());
-                    transacciones.add(new TransaccionItemDTO(fecha, descripcion, monto, categoria));
+
+                    // Si la categoría viene vacía en el CSV, se envía null para que Python NLP la categorice
+                    String categoriaFinal = categoria.isBlank() ? null : categoria.trim().toUpperCase();
+
+                    transacciones.add(new TransaccionItemDTO(fecha, descripcion, monto, categoriaFinal));
                 }
             }
 
         } catch (Exception e) {
-            // Lanza excepción manejable por el ControllerAdvice
-            throw new CsvProcessingException("Error al procesar el archivo CSV. Verifica el formato de las columnas (fecha, descripcion, monto, categoria).", e);
+            throw new CsvProcessingException("Error al procesar el archivo CSV. Verifica las columnas (fecha, descripcion, monto, categoria).", e);
         }
 
         return transacciones;
     }
 
     private String obtenerCampoSeguro(CSVRecord record, String nombreColumna) {
-        return record.isMapped(nombreColumna) ? record.get(nombreColumna).trim() : "";
+        return record.isMapped(nombreColumna) && record.get(nombreColumna) != null
+                ? record.get(nombreColumna).trim()
+                : "";
     }
 
-    // Nueva forma  helper para sanitizar la categoría
-    private String normalizarCategoria(CSVRecord record) {
-        if (!record.isMapped("categoria") || record.get("categoria") == null) {
-            return "OTROS";
+    private LocalDate parsearFecha(String fechaStr) {
+        if (fechaStr.isBlank()) {
+            return LocalDate.now();
         }
-
-        String valor = record.get("categoria").trim();
-        return valor.isBlank() ? "OTROS" : valor.toUpperCase();
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                return LocalDate.parse(fechaStr, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Intenta con el siguiente formato
+            }
+        }
+        throw new IllegalArgumentException("Formato de fecha no soportado en CSV: " + fechaStr);
     }
 }

@@ -7,7 +7,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "analisis_financiero")
@@ -24,23 +26,23 @@ public class AnalisisFinanciero {
     @EqualsAndHashCode.Include // Solo compara por el ID
     private Long id;
 
-    @Column(name = "usuario_id")
+    @Column(name = "usuario_id", nullable = false)
     private String usuarioId;
 
     // --- DATOS FINANCIEROS DE ENTRADA ---
-    @Column(name = "ingreso_mensual")
+    @Column(name = "ingreso_mensual", nullable = false)
     private Double ingresoMensual;
 
-    @Column(name = "nivel_endeudamiento")
+    @Column(name = "nivel_endeudamiento", nullable = false)
     private Integer nivelEndeudamiento;
 
-    @Column(name = "frecuencia_ahorro")
+    @Column(name = "frecuencia_ahorro", nullable = false)
     private String frecuenciaAhorro;
 
-    @Column(name = "descripcion")
+    @Column(name = "descripcion", nullable = false)
     private String descripcion;
 
-    @Column(name = "valor")
+    @Column(name = "valor", nullable = false)
     private Double valor;
 
     // --- RESPUESTA DE PYTHON / IA ---
@@ -50,26 +52,37 @@ public class AnalisisFinanciero {
     @Column(name = "probabilidad")
     private Double probabilidad;
 
-    // 1. Mapeo de Categorías
+    @Column(name = "total_gastado")
+    private Double totalGastado;
+
+    @Column(name = "capacidad_ahorro_mensual")
+    private Double capacidadAhorroMensual;
+
+    @Column(name = "porcentaje_tasa_ahorro")
+    private Double porcentajeTasaAhorro;
+
+    @Column(name = "progreso_meta_ahorro")
+    private Double progresoMetaAhorro;
+
+    @Column(name = "meses_para_meta")
+    private Double mesesParaMeta;
+
+    // 1. Mapeo de Resumen de Gastos (Map<Categoria, Monto>)
     @ElementCollection
-    @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
-    @Column(name = "categoria")
+    @CollectionTable(name = "analisis_resumen_gastos", joinColumns = @JoinColumn(name = "analisis_id"))
+    @MapKeyColumn(name = "categoria")
+    @Column(name = "monto")
     @Builder.Default
-    private List<String> categorias = new ArrayList<>();
+    private Map<String, Double> resumenGastos = new HashMap<>();
 
-
-    // 2. Mapeo de Recomendaciones (¡NUEVO!)
+    // 2. Mapeo de Recomendaciones
     @ElementCollection
-    @CollectionTable(
-            name = "analisis_recomendaciones",
-            joinColumns = @JoinColumn(name = "analisis_id")
-    )
+    @CollectionTable(name = "analisis_recomendaciones", joinColumns = @JoinColumn(name = "analisis_id"))
     @Column(name = "recomendacion", length = 1000)
     @Builder.Default
     private List<String> recomendaciones = new ArrayList<>();
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "analisis", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -78,7 +91,17 @@ public class AnalisisFinanciero {
 
     @PrePersist
     protected void prePersist() {
-        this.fechaCreacion = LocalDateTime.now()
-                .truncatedTo(ChronoUnit.SECONDS);
+        this.fechaCreacion = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    // --- MÉTODOS HELPER PARA LA RELACIÓN BIDIRECCIONAL ---
+    public void addTransaccion(Transaccion transaccion) {
+        transacciones.add(transaccion);
+        transaccion.setAnalisis(this);
+    }
+
+    public void removeTransaccion(Transaccion transaccion) {
+        transacciones.remove(transaccion);
+        transaccion.setAnalisis(null);
     }
 }

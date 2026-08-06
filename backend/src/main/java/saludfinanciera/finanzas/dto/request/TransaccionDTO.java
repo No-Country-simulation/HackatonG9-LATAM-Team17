@@ -1,5 +1,6 @@
 package saludfinanciera.finanzas.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Schema(description = "Estructura para registrar una nueva transacción financiera")
 public record TransaccionDTO(
@@ -14,6 +16,16 @@ public record TransaccionDTO(
         @Schema(description = "Identificador único de la transacción en PostgreSQL", example = "3")
         @JsonProperty("id")
         Long id,
+
+
+        @Schema(
+                description = "Identificador del usuario propietario",
+                example = "USR-1001",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+
+        @JsonProperty("usuario_id")
+        String usuarioId, // <--- CAMPO AGREGADO
 
         @Schema(
                 description = "Descripción detallada del movimiento",
@@ -54,11 +66,24 @@ public record TransaccionDTO(
         )
         @JsonProperty("categoria")
         String categoria, // Opcional, puede venir nulo si lo categoriza Python
-        java.time.LocalDateTime fechaTransaccion){
+
+        @Schema(
+                description = "Fecha y hora exacta en la que se realizó la transacción",
+                example = "2026-08-05T19:00:00"
+        )
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonProperty("fecha_transaccion")
+        LocalDateTime fechaTransaccion
+){
         // Constructor compacto para normalizar datos de entrada
         public TransaccionDTO {
+                if (descripcion != null) {
+                        descripcion = descripcion.trim();
+                }
                 if (categoria != null && categoria.isBlank()) {
                         categoria = null; // Convierte "" o "   " a null para Python
+                } else if (categoria != null) {
+                        categoria = categoria.trim().toUpperCase();
                 }
                 // Sanitización opcional de tipo (remueve espacios accidentales y pasa a mayúsculas)
                 if (tipo != null) {

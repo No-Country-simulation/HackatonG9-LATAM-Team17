@@ -1,5 +1,6 @@
 package saludfinanciera.finanzas.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -33,7 +34,10 @@ public record TransaccionResponseDTO(
         @JsonProperty("categoria")
         String categoria,
 
-        @Schema(description = "Fecha y hora exacta del registro", example = "2026-08-04T12:08:32")
+        @Schema(description = "Fecha y hora exacta del registro",
+                example = "2026-08-04T12:08:32"
+        )
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         @JsonProperty("fecha_transaccion")
         LocalDateTime fechaTransaccion,
 

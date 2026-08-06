@@ -1,16 +1,12 @@
 package saludfinanciera.finanzas.exception;
 
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
@@ -24,137 +20,164 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 1. Captura recursos no encontrados (404 Not Found)
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(ResourceNotFoundException ex) {
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                Map.of()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
 
-    // 1. Captura errores de validación de DTOs (@Valid / @NotNull / @Positive / etc.)
+    // 2. Captura violaciones de integridad de datos en BD (409 Conflict)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<DataErrorResponseDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        DataErrorResponseDTO errorResponse = new DataErrorResponseDTO(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                "Error al procesar la información en la base de datos.",
+                "Asegúrate de que los datos obligatorios estén presentes y no haya registros duplicados."
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    // 3. Captura intentos de registro de entidades duplicadas (409 Conflict)
+    @ExceptionHandler(EntityAlreadyExistsException.class)
+    public ResponseEntity<DataErrorResponseDTO> handleEntityAlreadyExists(EntityAlreadyExistsException ex) {
+        DataErrorResponseDTO errorResponse = new DataErrorResponseDTO(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                "El recurso que intentas registrar ya existe en el sistema."
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    // 4. Captura errores de validación de Bean Validation con @Valid (400 Bad Request)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> fieldErrors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
 
-        // Extraemos cada campo que falló y su mensaje de error
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.put(error.getField(), error.getDefaultMessage());
-        }
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        log.warn("⚠️ Fallo de validación en los datos de entrada: {}", errors);
 
         ErrorResponseDTO errorResponse = new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                "Error de validación en los datos ingresados",
-                fieldErrors
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Error de validación en los datos enviados.",
+                errors
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    // 2. Captura recursos no encontrados (404)
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleNotFound(ResourceNotFoundException ex) {
-        ErrorResponseDTO error = new ErrorResponseDTO(
-                HttpStatus.NOT_FOUND.value(),
-                "Not Found",
-                ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
+    // 5. Captura errores en la lectura o parseo de archivos CSV (400 Bad Request)
+    @ExceptionHandler(CsvProcessingException.class)
+    public ResponseEntity<DataErrorResponseDTO> handleCsvException(CsvProcessingException ex) {
+        log.warn("⚠️ Error al procesar archivo CSV: {}", ex.getMessage());
 
-    // 3. Captura cualquier otro error no controlado (500)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGlobalException(Exception ex) {
-        ErrorResponseDTO error = new ErrorResponseDTO(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<DataErrorResponseDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String mensajeDetalle = (ex.getMessage() != null)
+                ? ex.getMessage()
+                : "El archivo CSV es inválido, está corrupto o no cumple con el formato esperado.";
 
         DataErrorResponseDTO errorResponse = new DataErrorResponseDTO(
-                HttpStatus.CONFLICT.value(),
-                "Data Conflict",
-                "Error al procesar la información en la base de datos.",
-                "Asegúrate de que los datos obligatorios estén presentes y no haya registros duplicados."
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Error en el formato del archivo CSV",
+                mensajeDetalle
         );
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    @ExceptionHandler(EntityAlreadyExistsException.class)
-    public ResponseEntity<DataErrorResponseDTO> handleEntityAlreadyExists(EntityAlreadyExistsException ex) {
-
-        DataErrorResponseDTO errorResponse = new DataErrorResponseDTO(
-                HttpStatus.CONFLICT.value(), // 409 Conflict
-                "Conflicto de entidad duplicada",
-                ex.getMessage(),
-                "El recurso que intentas registrar ya existe en la base de datos."
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }
-
-    // 1. Captura cuando el servicio de Python responde con un status 4xx o 5xx
+    // 6. Captura cuando el servicio de Python responde con un status HTTP 4xx/5xx (502 Bad Gateway)
     @ExceptionHandler(HttpStatusCodeException.class)
     public ResponseEntity<PythonServiceErrorDTO> handlePythonServiceException(HttpStatusCodeException ex) {
-
-        DataErrorResponseDTO response;
         PythonServiceErrorDTO errorResponse = new PythonServiceErrorDTO(
-                HttpStatus.BAD_GATEWAY.value(), // 502 Bad Gateway es el status correcto cuando un servicio aguas abajo falla
-                "Python Microservice Error",
-                "El servicio de procesamiento financiero no pudo completar la solicitud.",
-                "Detalle del servicio: " + ex.getStatusCode() + " - " + ex.getStatusText()
+                HttpStatus.BAD_GATEWAY.value(),
+                HttpStatus.BAD_GATEWAY.getReasonPhrase(),
+                "El servicio de procesamiento financiero (Python) no pudo completar la solicitud.",
+                "Detalle del servicio aguas abajo: " + ex.getStatusCode() + " - " + ex.getStatusText()
         );
-
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
     }
 
-    // 2. Captura cuando el servicio de Python está caído, inalcanzable o dio Timeout
+    // 7. Captura cuando el servicio de Python está caído o inalcanzable (503 Service Unavailable)
     @ExceptionHandler(ResourceAccessException.class)
     public ResponseEntity<PythonServiceErrorDTO> handlePythonConnectionException(ResourceAccessException ex) {
-
         PythonServiceErrorDTO errorResponse = new PythonServiceErrorDTO(
-                HttpStatus.SERVICE_UNAVAILABLE.value(), // 503 Service Unavailable
-                "Service Unavailable",
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
                 "No se pudo establecer conexión con el motor de análisis en Python.",
-                "El servicio externo no responde o no se encuentra disponible momentáneamente."
+                "El servicio externo está fuera de línea o no responde dentro del tiempo límite establecido."
         );
-
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
     }
 
-    // 1. Captura cuando la llamada a la IA excede el tiempo límite (Timeout)
+    // 8. Captura cuando la llamada al modelo de IA excede el tiempo límite (504 Gateway Timeout)
     @ExceptionHandler({TimeoutException.class, SocketTimeoutException.class})
     public ResponseEntity<AIServiceErrorDTO> handleAITimeoutException(Exception ex) {
         AIServiceErrorDTO error = new AIServiceErrorDTO(
-                HttpStatus.GATEWAY_TIMEOUT.value(), // 504 Gateway Timeout
-                "AI Service Timeout",
+                HttpStatus.GATEWAY_TIMEOUT.value(),
+                HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase(),
                 "El modelo de Inteligencia Artificial tardó demasiado en responder.",
-                "La generación de la respuesta superó el tiempo máximo de espera. Intenta nuevamente con una consulta más corta o en unos momentos.",
+                "La generación de la respuesta superó el tiempo máximo de espera. Intenta nuevamente en unos momentos.",
                 true
         );
         return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(error);
     }
 
-    // 2. Captura cuando la IA se cae o responde con un fallo interno de modelo
+    // 9. Captura cuando el motor de IA no está disponible o falla la inferencia (503 Service Unavailable)
     @ExceptionHandler(AIServiceUnavailableException.class)
     public ResponseEntity<AIServiceErrorDTO> handleAIServiceUnavailable(AIServiceUnavailableException ex) {
         AIServiceErrorDTO error = new AIServiceErrorDTO(
-                HttpStatus.SERVICE_UNAVAILABLE.value(), // 503
-                "AI Service Unavailable",
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
                 "El motor de Inteligencia Artificial no está disponible actualmente.",
                 ex.getMessage(),
                 ex.isTimeout()
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
-    // Captura error CSV
-    @ExceptionHandler(CsvProcessingException.class)
-    public ResponseEntity<Map<String, String>> handleCsvException(CsvProcessingException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "CSV_INVALIDO", "mensaje", ex.getMessage()));
+
+    // 10. Captura cualquier otro error no controlado (500 Internal Server Error)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleGlobalException(Exception ex) {
+        log.error("❌ Excepción no controlada interceptada: ", ex);
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Ocurrió un error interno e inesperado en el servidor.",
+                Map.of()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    // 11. Captura tipos de contenido (Content-Type) no soportados (415 Unsupported Media Type)
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        log.warn("⚠️ Content-Type no soportado: {}", ex.getContentType());
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE.getReasonPhrase(),
+                "El tipo de contenido enviado no es soportado. Si estás enviando 'datos' en multipart/form-data, asegúrate de establecer su Content-Type como 'application/json'.",
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(error);
     }
 }
