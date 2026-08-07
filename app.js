@@ -2,60 +2,50 @@
  * APP.JS - Lógica de control y comunicación con Spring Boot
  */
 
-// 1. Apuntamos a la dirección donde escucha la API REST en Spring Boot
 const API_URL = "http://localhost:8080/api/v1/finanzas/analizar";
-
-// 2. Arreglo en memoria (global): Guardará cada gasto que agreguemos con el botón "＋ Agregar Gasto"
 let listaGastos = [];
 
 // ==========================================
-// FLUJO 1: AGREGAR UN GASTO INDIVIDUAL
+// FLUJO 1: AGREGAR UN GASTO INDIVIDUAL CON FECHA AUTOMÁTICA
 // ==========================================
 document.getElementById("btnAgregarGasto").addEventListener("click", function () {
-    
-    // Obtenemos las referencias a las cajas de texto de la sección de gastos
     const inputDesc = document.getElementById("descripcionGasto");
     const inputValor = document.getElementById("valorGasto");
 
-    // Limpiamos espacios en blanco extremos y convertimos a número flotante
     const descripcion = inputDesc.value.trim();
     const valor = parseFloat(inputValor.value);
 
-    // --- Validación 1: Campo de descripción no vacío ---
     if (descripcion === "") {
         mostrarError("Debes escribir una descripción para el gasto.");
-        return; // Interrumpe la ejecución
+        return;
     }
 
-    // --- Validación 2: Máximo 25 caracteres en la descripción ---
     if (descripcion.length > 25) {
         mostrarError("La descripción del gasto no puede superar los 25 caracteres.");
         return;
     }
 
-    // --- Validación 3: El valor debe ser numérico y estrictamente positivo (> 0) ---
     if (isNaN(valor) || valor <= 0) {
         mostrarError("El valor del gasto debe ser un número positivo mayor a cero.");
         return;
     }
 
-    // Ocultamos posibles mensajes de error anteriores
     ocultarMensajes();
 
-    // Estructuramos el objeto JS exactamente como lo espera 'TransaccionDTO.java'
+    // Generación automática de la fecha actual en formato LocalDateTime de Java (ISO 8601)
+    const fechaAutomatica = new Date().toISOString().slice(0, 19);
+
+    // Objeto adaptado exactamente a TransaccionDTO de Java
     const nuevoGasto = {
         descripcion: descripcion,
-        valor: valor
+        valor: valor,
+        fecha_transaccion: fechaAutomatica
     };
 
-    // Añadimos el objeto a nuestra lista global
     listaGastos.push(nuevoGasto);
-
-    // Limpiamos los inputs
     inputDesc.value = "";
     inputValor.value = "";
 
-    // Repintamos la tabla HTML
     actualizarTablaGastos();
 });
 
@@ -64,10 +54,8 @@ document.getElementById("btnAgregarGasto").addEventListener("click", function ()
 // ==========================================
 function actualizarTablaGastos() {
     const cuerpoTabla = document.getElementById("cuerpoTablaGastos");
-    
     cuerpoTabla.innerHTML = "";
 
-    // Si no hay transacciones en la lista, mostramos el mensaje por defecto
     if (listaGastos.length === 0) {
         cuerpoTabla.innerHTML = `
             <tr id="filaVacia">
@@ -76,10 +64,8 @@ function actualizarTablaGastos() {
         return;
     }
 
-    // Iteramos sobre el arreglo de gastos
     listaGastos.forEach((gasto, index) => {
         const fila = document.createElement("tr");
-
         fila.innerHTML = `
             <td>${gasto.descripcion}</td>
             <td>$${gasto.valor.toLocaleString()}</td>
@@ -87,7 +73,6 @@ function actualizarTablaGastos() {
                 <button type="button" class="btn-eliminar" onclick="eliminarGasto(${index})">Eliminar</button>
             </td>
         `;
-
         cuerpoTabla.appendChild(fila);
     });
 }
@@ -104,27 +89,34 @@ window.eliminarGasto = function (index) {
 // FLUJO 4: ENVIAR FORMULARIO AL BACKEND (FETCH)
 // ==========================================
 document.getElementById("finanzasForm").addEventListener("submit", async function (event) {
-    
-    // 1. Evitamos que el formulario se envíe de la forma tradicional HTML
     event.preventDefault();
     ocultarMensajes();
 
-    // 2. Validar que exista al menos una transacción
     if (listaGastos.length === 0) {
         mostrarError("Debes agregar al menos un gasto a la lista antes de presionar 'Analizar'.");
         return;
     }
 
-    // 3. Captura directa de los valores de los inputs
+    // Captura de todos los campos generales y nuevas variables
     const ingresoMensualVal = document.getElementById("ingresoMensual").value;
-    const valorDeudaVal = document.getElementById("valorDeuda").value;
+    const deudaTotalVal = document.getElementById("deudaTotal").value;
     const frecuenciaAhorroVal = document.getElementById("frecuenciaAhorro").value;
+    
+    const montoInversionVal = document.getElementById("montoInversion").value;
+    const objetivoPresupuestoVal = document.getElementById("objetivoPresupuesto").value;
+    const pagoMensualDeudaVal = document.getElementById("pagoMensualDeuda").value;
+    const serviciosSuscripcionVal = document.getElementById("serviciosSuscripcion").value;
+    const fondoEmergenciaVal = document.getElementById("fondoEmergencia").value;
 
-    // 4. Conversiones numéricas seguras
+    // Conversiones numéricas seguras
     const ingresoMensual = ingresoMensualVal ? parseFloat(ingresoMensualVal) : 0;
-    const valorDeuda = valorDeudaVal ? parseFloat(valorDeudaVal) : 0;
+    const deudaTotal = deudaTotalVal ? parseFloat(deudaTotalVal) : 0;
+    const montoInversion = montoInversionVal ? parseFloat(montoInversionVal) : 0;
+    const objetivoPresupuesto = objetivoPresupuestoVal ? parseFloat(objetivoPresupuestoVal) : 0;
+    const pagoMensualDeuda = pagoMensualDeudaVal ? parseFloat(pagoMensualDeudaVal) : 0;
+    const serviciosSuscripcion = serviciosSuscripcionVal ? parseInt(serviciosSuscripcionVal, 10) : 0;
+    const fondoEmergencia = fondoEmergenciaVal ? parseFloat(fondoEmergenciaVal) : 0;
 
-    // 5. Validaciones básicas de seguridad
     if (isNaN(ingresoMensual) || ingresoMensual <= 0) {
         mostrarError("El ingreso mensual debe ser un número válido mayor a cero.");
         return;
@@ -135,14 +127,20 @@ document.getElementById("finanzasForm").addEventListener("submit", async functio
         return;
     }
 
-    // 6. Cálculo del nivel de endeudamiento en segundo plano
-    const nivelEndeudamiento = Math.round((valorDeuda / ingresoMensual) * 100);
+    // Cálculo del nivel de endeudamiento basado en deuda_total e ingreso_mensual
+    const nivelEndeudamiento = Math.round((deudaTotal / ingresoMensual) * 100);
 
-   // 7. Construcción estricta del objeto JSON adaptado para @JsonProperty
+    // Payload sincronizado perfectamente con los @JsonProperty del AnalisisInputDTO
     const payload = {
         ingreso_mensual: ingresoMensual,
         nivel_endeudamiento: nivelEndeudamiento,
         frecuencia_ahorro: frecuenciaAhorroVal,
+        monto_inversion: montoInversion,
+        deuda_total: deudaTotal,
+        objetivo_presupuesto: objetivoPresupuesto,
+        pago_mensual_deuda: pagoMensualDeuda,
+        servicios_suscripción: serviciosSuscripcion,
+        fondo_emergencia: fondoEmergencia,
         transacciones: listaGastos
     };
 
@@ -177,19 +175,13 @@ document.getElementById("finanzasForm").addEventListener("submit", async functio
 // ==========================================
 
 function mostrarResultado(data) {
-    
-    // 1. Perfil Financiero (soporta tanto camelCase 'perfilFinanciero' como 'perfil_financiero')
     const perfil = data.perfilFinanciero || data.perfil_financiero || "Sin evaluar";
     document.getElementById("resPerfil").textContent = perfil;
     
-    // 2. Certidumbre IA (ej. 0.82 -> 82%)
     const probabilidadPct = data.probabilidad ? (data.probabilidad * 100).toFixed(0) : "0";
     document.getElementById("resProbabilidad").textContent = probabilidadPct;
 
-    // 3. Resumen de Gastos por Categoría (Alimentación, Transporte, Salud, etc.)
     const contenedorGastos = document.getElementById("resCategorias"); 
-    
-    // Mapea 'resumenGastos' o 'resumen_gastos' según cómo lo entregue Jackson
     const resumen = data.resumenGastos || data.resumen_gastos;
 
     if (contenedorGastos) {
@@ -205,7 +197,6 @@ function mostrarResultado(data) {
         }
     }
 
-    // 4. Recomendaciones de la IA
     const contenedorRecomendaciones = document.getElementById("resRecomendaciones");
     if (contenedorRecomendaciones) {
         if (data.recomendaciones && data.recomendaciones.length > 0) {
@@ -220,7 +211,6 @@ function mostrarResultado(data) {
         }
     }
 
-    // Mostrar el contenedor de resultados
     document.getElementById("resultadoContainer").classList.remove("hidden");
 }
 

@@ -2,7 +2,6 @@
    1. CONFIGURACIÓN GENERAL Y RESETEO
    ========================================== */
 * {
-    /* Mantiene los anchos exactos incluyendo padding y borders dentro del tamaño del elemento */
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -10,10 +9,10 @@
 }
 
 body {
-    background-color: #f4f7f6; /* Color de fondo gris suave para descansar la vista */
+    background-color: #f4f7f6;
     display: flex;
-    justify-content: center;   /* Centra la tarjeta horizontalmente */
-    padding: 40px 20px;        /* Espaciado superior e inferior para evitar pegar al borde */
+    justify-content: center;
+    padding: 40px 20px;
 }
 
 /* ==========================================
@@ -23,14 +22,13 @@ body {
     background: #ffffff;
     padding: 30px;
     border-radius: 12px;
-    /* Sombreado elegante alrededor de la tarjeta */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     max-width: 550px;
     width: 100%;
 }
 
 h2, h3 {
-    color: #2c3e50; /* Azul oscuro elegante para encabezados */
+    color: #2c3e50;
     margin-bottom: 8px;
 }
 
@@ -60,13 +58,11 @@ input, select {
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 14px;
-    /* Animación suave al hacer clic en el input */
     transition: border-color 0.2s;
 }
 
-/* Cuando el usuario hace clic o escribe dentro del campo */
 input:focus, select:focus {
-    border-color: #3498db; /* Cambia a borde azul */
+    border-color: #3498db;
     outline: none;
 }
 
@@ -78,13 +74,12 @@ input:focus, select:focus {
 }
 
 .warning-text {
-    color: #e67e22; /* Color naranja para destacar advertencias */
+    color: #e67e22;
 }
 
-/* Caja gris descriptiva con el tutorial de Frecuencia de Ahorro */
 .info-box {
     background-color: #f8f9fa;
-    border-left: 4px solid #3498db; /* Borde izquierdo azul */
+    border-left: 4px solid #3498db;
     padding: 10px 12px;
     margin-top: 8px;
     border-radius: 4px;
@@ -111,7 +106,7 @@ input:focus, select:focus {
     background-color: #f9f9f9;
     padding: 15px;
     border-radius: 8px;
-    border: 1px dashed #cbd5e1; /* Borde punteado para indicar zona de agregación */
+    border: 1px dashed #cbd5e1;
     margin-bottom: 15px;
 }
 
@@ -128,14 +123,12 @@ input:focus, select:focus {
 }
 
 .btn-secundario:hover {
-    background-color: #2980b9; /* Color más oscuro al pasar el cursor */
+    background-color: #2980b9;
 }
 
-/* Tabla de gastos */
 .tabla-container {
     margin-bottom: 20px;
     max-height: 200px;
-    /* Si sobrepasa 200px de alto, habilita la barra de desplazamiento vertical */
     overflow-y: auto;
 }
 
@@ -182,7 +175,7 @@ th {
 .btn-principal {
     width: 100%;
     padding: 12px;
-    background-color: #2ecc71; /* Verde éxito */
+    background-color: #2ecc71;
     color: white;
     border: none;
     border-radius: 6px;
@@ -196,12 +189,10 @@ th {
     background-color: #27ae60;
 }
 
-/* Clase utilitaria fundamental en JS para ocultar/mostrar elementos */
 .hidden {
     display: none;
 }
 
-/* Tarjeta verde de resultados */
 .result-card {
     margin-top: 25px;
     padding: 15px;
@@ -211,7 +202,6 @@ th {
     color: #117a65;
 }
 
-/* Tarjeta roja de errores */
 .error-card {
     margin-top: 25px;
     padding: 15px;
