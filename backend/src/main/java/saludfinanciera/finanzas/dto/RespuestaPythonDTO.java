@@ -7,8 +7,12 @@ import java.util.Map;
 public record RespuestaPythonDTO(
 
         // Probabilidad/Scoring devuelto por el modelo IA en Python (ej. 0.82)
-        @JsonProperty("probabilidad")
-        Double probabilidad,
+        @JsonProperty("probabilidad_categoria")
+        Double probabilidadCategoria,
+        @JsonProperty("probabilidad_perfil-financiero")
+        Double probabilidadPerfilFinanciero,
+        @JsonProperty("probabilidad_recomendaciones")
+        Double probabilidadRecommendaciones,
 
         // Perfil asignado (ej. "En observación", "SALUDABLE")
         @JsonProperty("perfil_financiero")
