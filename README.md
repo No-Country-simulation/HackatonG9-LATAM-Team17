@@ -118,6 +118,15 @@ TransaccionDTO.java: Ajuste del DTO que encapsula cada gasto individual para que
 RespuestaPythonDTO.java & AnalisisOutputDTO.java: Modificación de las estructuras de salida para capturar y estructurar la respuesta generada por la IA/Python y enviarla de regreso al frontend.
 
 AnalisisFinanciero.java & Transaccion.java: Actualización de las entidades JPA (modelos de base de datos) para reflejar correctamente la relación entre el análisis financiero y sus respectivas transacciones.
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+Resumen de Modificación: Estructura de Capas y DTOs de Backend
+Ampliación del contrato de entrada (AnalisisInputDTO): Se agregaron múltiples campos financieros obligatorios para enriquecer el análisis (como monto_inversion, deuda_total, objetivo_presupuesto, pago_mensual_deuda, servicios_suscripción y fondo_emergencia), todos debidamente validados.
+
+Actualización del DTO de respuesta (RespuestaPythonDTO): Se ajustaron los campos de probabilidad devueltos por el modelo de IA para ser más específicos (probabilidadCategoria, probabilidadPerfilFinanciero y probabilidadRecommendaciones).
+
+Simplificación en controladores (AnalisisController): Se eliminaron anotaciones duplicadas y se limpiaron los mensajes de depuración en consola (System.out.println) tanto en el endpoint de análisis como en el de clasificación.
+
+Limpieza de archivos locales: Se eliminaron configuraciones temporales de IntelliJ (compiler.xml, material_theme_project_new.xml, etc.) que venían afectando el directorio del proyecto.
 
 6. Capa Repository y Service (Persistencia y Lógica de Negocio)
 AnalisisFinancieroRepository.java: Ajustes en la interfaz de repositorio para el manejo y guardado de los análisis en la base de datos.
