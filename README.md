@@ -473,19 +473,78 @@ flowchart LR
     A <-->|JSON / DTOs| B
 
 ````
+___
 
+| Colección     | Nombre en Postman                          | Método | Ruta RESTful sugerida                     | Descripción / Responsable                          |
+| ------------- | ------------------------------------------ | ------ | ----------------------------------------- | -------------------------------------------------- |
+| Análisis      | [PYTHON IA] POST Analizar Perfil (Interno) | POST   | /api/v1/internal/analisis-perfil          | Microservicio Python (IA / NLP / Random Forest)    |
+| Análisis      | POST Generar Análisis Financiero           | POST   | /api/v1/analisis                          | Gateway Spring Boot (orquesta Python y persiste)   |
+| Análisis      | GET Obtener Historial de Análisis          | GET    | /api/v1/analisis/usuario/{usuarioId}      | Consulta el historial guardado en la base de datos |
+| Análisis      | POST Cargar y Analizar CSV                 | POST   | /api/v1/analisis/csv                      | Ingesta y lectura de archivos CSV                  |
+| Transacciones | POST Crear Transacción                     | POST   | /api/v1/transacciones                     | Registro individual de un movimiento               |
+| Transacciones | GET Listar Transacciones por Usuario       | GET    | /api/v1/transacciones/usuario/{usuarioId} | Consulta masiva de movimientos por usuario         |
+| Transacciones | GET Obtener Transacción por ID             | GET    | /api/v1/transacciones/{id}                | Consulta de un movimiento puntual                  |
+| Transacciones | PUT Actualizar Transacción                 | PUT    | /api/v1/transacciones/{id}                | Edición completa o parcial del movimiento          |
+| Transacciones | DELETE Eliminar Transacción (Soft Delete)  | DELETE | /api/v1/transacciones/{id}                | Borrado lógico en la base de datos                 |
+
+___
+# 📌 Integración con el Microservicio de IA (`/analizar-perfil`)
+
+El microservicio de **Data / Python** expone un **único endpoint** (`POST /analizar-perfil`). Su diseño sigue el *Principio de Responsabilidad Única*: no maneja archivos, no conoce la base de datos ni le importa el origen de la información. Su trabajo es exclusivamente recibir un JSON unificado, procesar los modelos analíticos y retornar los resultados.
+
+---
+
+## 🔄 ¿Cómo interactúa el Backend (Spring Boot) con Data?
+
+El backend de Java actúa como un **orquestador**. Independientemente de la acción que realice el usuario en el frontend, toda interacción con la IA converge en este único punto:
+
+````mermaid
+flowchart TD
+    A[Cliente HTTP / Postman]
+    B[Spring Boot<br/>Procesamiento y API]
+    C[Python - IA<br/>NLP y Random Forest]
+    D[Base de datos]
+    E[Respuesta al cliente]
+
+    A -->|1. Envía datos CSV| B
+    B -->|2. Guarda los datos| D
+    B -->|3. Envía JSON unificado<br/>POST /analizar-perfil| C
+    C -->|4. Devuelve métricas<br/>y recomendaciones| B
+    B -->|5. Vincula resultados| D
+    B -->|6. Responde al cliente| E
+````
+
+
+---
+
+## 🛠️ Flujos de Entrada en Spring Boot
+
+1. **Análisis Individual (Formulario):**
+  * Spring Boot toma el monto y la descripción del formulario.
+  * Arma el payload con `historialTransacciones` vacío o con un ítem.
+  * Llama a `POST /analizar-perfil`.
+
+2. **Análisis Masivo (Carga de CSV):**
+  * Spring Boot recibe el archivo `movimientos.csv` y los parámetros socioeconómicos.
+  * Parsea el CSV en memoria y persiste los registros en la base de datos.
+  * Convierte cada fila del CSV en la lista `historialTransacciones`.
+  * Llama a **mismo endpoint** `POST /analizar-perfil`.
+
+---
+
+## ⚙️ Procesamiento interno en Python
+
+Al recibir la petición, Python ejecuta de forma secuencial:
+
+1. **Categorización NLP:** Asigna categorías (e.g., `ALIMENTACION`, `SERVICIOS`) a cada transacción según su descripción.
+2. **Cálculo Financiero:** Determina el total gastado (excluyendo ingresos), capacidad de ahorro mensual, tasa de ahorro y proyección para la meta.
+3. **Inferencia ML (Random Forest):** Clasifica el perfil de riesgo (`En riesgo`, `Saludable`, etc.) y calcula la probabilidad del perfil.
+4. **Respuesta:** Retorna el diagnóstico estructurado para que Spring Boot lo vincule a las transacciones y lo devuelva al cliente.
+
+___
+___
 ## 🐍 1. Equipo de Data Science / Python
-Una vez que el endpoint mock de Python responde correctamente a Spring Boot, el objetivo de Data es darle valor a los modelos de análisis:
-
-1- **Implementar la lógica real de NLP/Machine Learning:**
-* Reemplazar la respuesta mock del microservicio por el modelo real (categorización de descripciones de consumo, cálculo del perfil financiero y score de probabilidad).
-
-2- **Definir el manejo de errores/fallbacks:**
-* Configurar respuestas de contingencia en Python (ej. si una categoría o término no es reconocido por la IA) para que siempre devuelva una estructura JSON válida sin romper el flujo.
-
-3- **Optimizar tiempos de respuesta:**
-* Asegurar que la inferencia del modelo responda de manera ágil (idealmente < 1.5s) ya que Spring Boot realiza una llamada síncrona mientras el usuario espera en la app.
-
+1- Verificar las variables necesarias.
 ## 🎨 2. Equipo de Frontend (React / Web / Mobile)
 El Frontend ya tiene las especificaciones del backend plasmadas en el **README.md** para empezar a consumir la API:
 
