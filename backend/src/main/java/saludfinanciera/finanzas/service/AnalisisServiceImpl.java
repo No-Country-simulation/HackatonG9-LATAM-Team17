@@ -162,10 +162,15 @@ public class AnalisisServiceImpl implements AnalisisService{
                     ));
         }
 
+        // Resguardo para evitar pasar null a la columna NOT NULL de la Base de Datos
+        Integer nivelEndeudamientoVal = (inputDTO.nivelEndeudamiento() != null)
+                ? inputDTO.nivelEndeudamiento()
+                : 0;
+
         AnalisisFinanciero analisis = AnalisisFinanciero.builder()
                 .usuarioId(usuarioId)
-                .ingresoMensual(inputDTO.ingresoMensual())
-                .nivelEndeudamiento(inputDTO.nivelEndeudamiento())
+                .ingresoMensual(inputDTO.ingresoMensual() != null ? inputDTO.ingresoMensual() : 0.0)
+                .nivelEndeudamiento(nivelEndeudamientoVal) // <-- CAMBIO AQUÍ (Garantiza nunca enviar null)
                 .frecuenciaAhorro(inputDTO.frecuenciaAhorro())
                 .descripcion(inputDTO.descripcion())
                 .valor(inputDTO.valor())

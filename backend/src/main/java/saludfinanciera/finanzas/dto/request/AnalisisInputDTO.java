@@ -32,7 +32,7 @@ public record AnalisisInputDTO(
                 example = "25",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
-        @NotNull(message = "El nivel de endeudamiento es obligatorio")
+       // @NotNull(message = "El nivel de endeudamiento es obligatorio")
         @Min(value = 0, message = "El nivel de endeudamiento no puede ser menor a 0")
         @Max(value = 100, message = "El nivel de endeudamiento no puede superar 100")
         @JsonProperty("nivel_endeudamiento")
