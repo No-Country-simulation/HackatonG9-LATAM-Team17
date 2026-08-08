@@ -10,10 +10,12 @@ import saludfinanciera.finanzas.dto.request.TransaccionItemDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.model.AnalisisFinanciero;
 import org.springframework.stereotype.Service;
+import saludfinanciera.finanzas.model.Transaccion;
 import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import saludfinanciera.finanzas.repository.TransaccionRepository;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,14 @@ public class AnalisisServiceImpl implements AnalisisService{
     // =========================================================================
     @Override
     @Transactional
-    public AnalisisOutputDTO procesarYAnalizarCsv(String usuarioId, MultipartFile file) {
+    public AnalisisOutputDTO procesarYAnalizarCsv(
+            String usuarioId,
+            MultipartFile file,
+            Double ingresoMensual,
+            Double ahorroActual,
+            Double metaAhorro,
+            Double nivelEndeudamiento
+    ) {
         if (usuarioId == null || usuarioId.isBlank()) {
             throw new IllegalArgumentException("El ID de usuario es obligatorio para procesar el archivo.");
         }
@@ -76,24 +85,48 @@ public class AnalisisServiceImpl implements AnalisisService{
 
         log.info("📄 Parseando archivo CSV y generando análisis para el usuario: {}", usuarioId);
 
+        // 1. Parsear el CSV a DTOs
         List<TransaccionItemDTO> transaccionesCsv = csvParserService.parsearTransacciones(file);
 
-        // Construcción de input con valores por defecto para evaluación masiva desde CSV
+        // 2. Persistir las transacciones en la BD
+        List<Transaccion> entidadesTransacciones = transaccionesCsv.stream()
+                .map(dto -> Transaccion.builder()
+                        .usuarioId(usuarioId.trim())
+                        .monto(dto.monto()) // Pasa directamente el BigDecimal del DTO
+                        .categoria(dto.categoria())
+                        .fechaTransaccion(dto.fecha() != null ? dto.fecha().atStartOfDay() : LocalDateTime.now())
+                        .descripcion(dto.descripcion())
+                        .tipo("EGRESO")
+                        .analisis(null)
+                        .build())
+                .toList();
+
+        transaccionRepository.saveAll(entidadesTransacciones);
+
+        // 3. Manejo de nulos e instanciación del DTO para Python
+        Double ingresoMensualVal = (ingresoMensual != null) ? ingresoMensual : 0.0;
+        Double ahorroActualVal = (ahorroActual != null) ? ahorroActual : 0.0;
+        Double metaAhorroVal = (metaAhorro != null) ? metaAhorro : 0.0;
+        Integer nivelEndeudamientoInt = (nivelEndeudamiento != null) ? nivelEndeudamiento.intValue() : 0;
+
         AnalisisInputDTO inputDTO = new AnalisisInputDTO(
-                0.0,
-                0,
+                ingresoMensualVal,
+                ahorroActualVal,
+                nivelEndeudamientoInt,
                 "MENSUAL",
                 "Análisis masivo de transacciones desde CSV",
-                0.0,
+                metaAhorroVal,
                 transaccionesCsv
         );
 
+        // 4. Invocar al servicio NLP
         AnalisisOutputDTO respuestaNlp = nlpDataClient.analizarPerfil(inputDTO);
 
         if (respuestaNlp == null) {
             throw new IllegalStateException("El servicio NLP no devolvió una respuesta válida al procesar el CSV.");
         }
 
+        // 5. Persistir el análisis y vincularlo
         persistirAnalisis(usuarioId.trim(), inputDTO, respuestaNlp);
 
         return respuestaNlp;
@@ -112,12 +145,12 @@ public class AnalisisServiceImpl implements AnalisisService{
         log.info("🔍 Consultando historial de análisis para el usuario: {}", usuarioId);
 
         return analisisRepository.findByUsuarioId(usuarioId.trim()).stream()
-                .map(this::mapToAnalisisOutputDTO)
+                .map(entidad -> mapToAnalisisOutputDTO(entidad))
                 .toList();
     }
 
     // =========================================================================
-    // Métodos Auxiliares Privados
+    // Métodos Auxiliares Privados carga de alnalisis_id
     // =========================================================================
     private void persistirAnalisis(String usuarioId, AnalisisInputDTO inputDTO, AnalisisOutputDTO respuestaNlp) {
         Map<String, Double> resumenGastosConvertido = Map.of();
@@ -147,19 +180,36 @@ public class AnalisisServiceImpl implements AnalisisService{
                 .recomendaciones(respuestaNlp.recomendaciones() != null ? respuestaNlp.recomendaciones() : List.of())
                 .build();
 
-        analisisRepository.save(analisis);
+        // 1. Guardar el análisis y capturar la entidad persistida con su ID generado
+        AnalisisFinanciero analisisGuardado = analisisRepository.save(analisis);
+
+        // 2. Buscar las transacciones del usuario que no tienen análisis asignado
+        List<Transaccion> transaccionesSinAnalisis = transaccionRepository.findByUsuarioIdAndAnalisisIsNull(usuarioId);
+
+        // 3. Vincular el análisis recién creado y guardar en lote
+        if (!transaccionesSinAnalisis.isEmpty()) {
+            transaccionesSinAnalisis.forEach(t -> t.setAnalisis(analisisGuardado));
+            transaccionRepository.saveAll(transaccionesSinAnalisis);
+        }
     }
 
-    private AnalisisOutputDTO mapToAnalisisOutputDTO(AnalisisFinanciero entidad) {
-        Map<String, Object> resumenObj = entidad.getResumenGastos() != null
-                ? new HashMap<>(entidad.getResumenGastos())
-                : Map.of();
+    // ================================================================================
+    // Métodos Auxiliares Privados para construir el mapa y la lista de recomendaciones
+    // ================================================================================
 
+    private AnalisisOutputDTO mapToAnalisisOutputDTO(AnalisisFinanciero entidad) {
+        // 1. Mapear de forma segura Map<String, Double> a Map<String, Object>
+        Map<String, Object> resumenObj = new HashMap<>();
+        if (entidad.getResumenGastos() != null) {
+            resumenObj.putAll(entidad.getResumenGastos());
+        }
+
+        // 2. Retornar el DTO asegurando que no haya colecciones nulas
         return new AnalisisOutputDTO(
                 entidad.getPerfilFinanciero(),
                 entidad.getProbabilidad(),
                 resumenObj,
-                entidad.getRecomendaciones(),
+                entidad.getRecomendaciones() != null ? entidad.getRecomendaciones() : List.of(),
                 entidad.getTotalGastado(),
                 entidad.getCapacidadAhorroMensual(),
                 entidad.getPorcentajeTasaAhorro(),

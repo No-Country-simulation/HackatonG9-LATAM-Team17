@@ -16,4 +16,7 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
 
     // Listar por usuario solo las transacciones activas
     List<Transaccion> findByUsuarioIdAndActivoTrue(String usuarioId);
+
+    // Devuelve todas las transacciones de un usuario que aún tienen analisis_id en null
+    List<Transaccion> findByUsuarioIdAndAnalisisIsNull(String usuarioId);
 }

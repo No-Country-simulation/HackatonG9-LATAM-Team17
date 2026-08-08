@@ -1,6 +1,5 @@
 -- =================================================================
 -- 1. CORREGIR ESTRUCTURA DE TABLA Y REGISTROS PREVIOS
--- (Se ejecuta primero para evitar fallos de restricción NOT NULL)
 -- =================================================================
 
 -- Actualizar registros existentes que quedaron en NULL
@@ -15,8 +14,8 @@ ALTER COLUMN activo SET NOT NULL;
 
 
 -- =================================================================
--- 2. INSERTAR ANÁLISIS CON SUS CATEGORÍAS Y RECOMENDACIONES
--- (Usa CTE para capturar el ID de forma atómica y evitar problemas con MAX(id))
+-- 2. INSERTAR ANÁLISIS CON SUS RECOMENDACIONES
+-- (Alineado estrictamente a AnalisisFinanciero.java)
 -- =================================================================
 
 WITH nuevo_analisis AS (
@@ -29,6 +28,11 @@ INSERT INTO analisis_financiero (
     valor,
     perfil_financiero,
     probabilidad,
+    total_gastado,
+    capacidad_ahorro_mensual,
+    porcentaje_tasa_ahorro,
+    progreso_meta_ahorro,
+    meses_para_meta,
     fecha_creacion
 ) VALUES (
     'USR-1001',
@@ -39,14 +43,13 @@ INSERT INTO analisis_financiero (
     42500.00,
     'Moderado',
     0.85,
+    42500.00,   -- total_gastado
+    150000.00,  -- capacidad_ahorro_mensual
+    23.07,      -- porcentaje_tasa_ahorro
+    50.00,      -- progreso_meta_ahorro
+    6.00,       -- meses_para_meta
     CURRENT_TIMESTAMP
-    )
-    RETURNING id
-    ),
-    ins_categorias AS (
-INSERT INTO analisis_categorias (analisis_id, categoria)
-SELECT id, unnest(ARRAY['ALIMENTACION', 'GASTOS_GENERALES'])
-FROM nuevo_analisis
+    ) RETURNING id
     )
 INSERT INTO analisis_recomendaciones (analisis_id, recomendacion)
 SELECT id, unnest(ARRAY[
@@ -57,7 +60,18 @@ FROM nuevo_analisis;
 
 
 -- =================================================================
--- 3. INSERTAR TRANSACCIÓN DE PRUEBA
+-- 3. INSERTAR RESUMEN DE GASTOS (Map<String, Double> en Java)
+-- =================================================================
+
+INSERT INTO analisis_resumen_gastos (analisis_id, categoria, monto)
+VALUES
+    (1, 'ALIMENTACION', 30000.00),
+    (1, 'GASTOS_GENERALES', 12500.00)
+    ON CONFLICT DO NOTHING;
+
+
+-- =================================================================
+-- 4. INSERTAR TRANSACCIÓN DE PRUEBA
 -- =================================================================
 
 INSERT INTO transacciones (usuario_id, descripcion, monto, tipo, categoria, activo, fecha_transaccion)

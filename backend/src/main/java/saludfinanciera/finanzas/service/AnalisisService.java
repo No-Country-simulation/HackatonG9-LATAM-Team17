@@ -10,8 +10,16 @@ public interface AnalisisService {
 
     AnalisisOutputDTO generarAnalisisPerfil(String usuarioId, AnalisisInputDTO inputDTO);
 
-    AnalisisOutputDTO procesarYAnalizarCsv(String usuarioId, MultipartFile file);
+  //  AnalisisOutputDTO procesarYAnalizarCsv(String usuarioId, MultipartFile file);
 
     List<AnalisisOutputDTO> obtenerAnalisisPorUsuario(String usuarioId);
 
+    AnalisisOutputDTO procesarYAnalizarCsv(
+            String usuarioId,
+            MultipartFile file,
+            Double ingresoMensual,
+            Double ahorroActual,
+            Double metaAhorro,
+            Double nivelEndeudamiento
+    );
 }

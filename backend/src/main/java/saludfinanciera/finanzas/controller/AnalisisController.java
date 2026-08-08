@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.web.multipart.MultipartFile;
+import saludfinanciera.finanzas.dto.request.AnalisisCsvParamsDTO;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.service.AnalisisService;
@@ -38,7 +39,7 @@ public class AnalisisController {
             @ApiResponse(responseCode = "201", description = "Análisis generado y almacenado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
     })
-    @PostMapping("/perfil/{usuarioId}")
+    @PostMapping("/perfil/{usuarioId}")                                         // ########### 1 #############
     public ResponseEntity<AnalisisOutputDTO> generarAnalisisPerfil(
             @Parameter(description = "Identificador del usuario", example = "USR-1001")
             @PathVariable String usuarioId,
@@ -58,15 +59,19 @@ public class AnalisisController {
             @ApiResponse(responseCode = "400", description = "El archivo CSV es inválido o está vacío")
     })
     @PostMapping(value = "/csv/{usuarioId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<AnalisisOutputDTO> analizarDesdeCsv(
-            @Parameter(description = "Identificador del usuario", example = "USR-1001")
+    public ResponseEntity<AnalisisOutputDTO> procesarCsv(
             @PathVariable String usuarioId,
-
-            @Parameter(description = "Archivo CSV con el historial de movimientos")
-            @RequestParam("file") MultipartFile file
+            @Valid @ModelAttribute AnalisisCsvParamsDTO params
     ) {
-        AnalisisOutputDTO respuesta = analisisService.procesarYAnalizarCsv(usuarioId, file);
-        return ResponseEntity.ok(respuesta);
+        AnalisisOutputDTO resultado = analisisService.procesarYAnalizarCsv(
+                usuarioId,
+                params.file(),
+                params.ingresoMensual(),
+                params.ahorroActual(),
+                params.metaAhorro(),
+                Double.valueOf(params.nivelEndeudamiento())
+        );
+        return ResponseEntity.ok(resultado);
     }
 
     @Operation(
@@ -77,7 +82,7 @@ public class AnalisisController {
             @ApiResponse(responseCode = "200", description = "Historial obtenido correctamente"),
             @ApiResponse(responseCode = "204", description = "El usuario no posee análisis registrados")
     })
-    @GetMapping("/usuario/{usuarioId}")
+    @GetMapping("/usuario/{usuarioId}")                                             // ########## 3 ###############
     public ResponseEntity<List<AnalisisOutputDTO>> obtenerAnalisisPorUsuario(
             @Parameter(description = "Identificador del usuario", example = "USR-1001")
             @PathVariable String usuarioId

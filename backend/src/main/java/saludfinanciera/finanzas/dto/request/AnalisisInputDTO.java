@@ -22,8 +22,11 @@ public record AnalisisInputDTO(
         @Positive(message = "El ingreso mensual debe ser un valor positivo")
         @JsonProperty("ingreso_mensual")
         Double ingresoMensual,
+// 1
 
-
+        @JsonProperty("ahorro_actual")
+        Double ahorroActual,
+// 2
         @Schema(
                 description = "Porcentaje o puntuación estimada del nivel de endeudamiento (0 a 100)",
                 example = "25",
@@ -34,7 +37,7 @@ public record AnalisisInputDTO(
         @Max(value = 100, message = "El nivel de endeudamiento no puede superar 100")
         @JsonProperty("nivel_endeudamiento")
         Integer nivelEndeudamiento,
-
+// 3
 
         @Schema(
                 description = "Frecuencia con la que el usuario realiza aportes a sus ahorros",
@@ -49,7 +52,7 @@ public record AnalisisInputDTO(
         )
         @JsonProperty("frecuencia_ahorro")
         String frecuenciaAhorro,
-
+// 4
 
         @Schema(
                 description = "Descripción o motivo del análisis financiero",
@@ -59,7 +62,7 @@ public record AnalisisInputDTO(
         @NotNull(message = "La descripción no puede estar vacía")
         @JsonProperty("descripcion")
         String descripcion,
-
+// 5
         @Schema(
                 description = "Monto objetivo o valor cuantitativo asociado a la meta del análisis",
                 example = "150000.00",
@@ -69,7 +72,7 @@ public record AnalisisInputDTO(
         @Positive(message = "El valor de la meta debe ser un monto positivo")
         @JsonProperty("valor")
         Double valor,
-
+// 6
         @Schema(
                 description = "Listado opcional de transacciones históricas enviadas directamente en la petición JSON",
                 nullable = true
@@ -77,6 +80,7 @@ public record AnalisisInputDTO(
         @Valid
         @JsonProperty("historial_transacciones")
         List<@Valid TransaccionItemDTO>historialTransacciones
+// 7
 ){
         // Constructor compacto para normalizar entradas y asegurar listas no nulas
         public AnalisisInputDTO {
