@@ -1,0 +1,2092 @@
+{
+  "predicciones": [
+    {
+      "descripcion": "ticket de supermercado por la compra familiar",
+      "categoria_real": "Alimentacion",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pedido de almuerzo criollo para dos personas",
+      "categoria_real": "Alimentacion",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9998,
+      "cobertura_lexica": 0.6,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "bolsa de frutas verduras y productos comestibles",
+      "categoria_real": "Alimentacion",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 0.9997,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9994,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.9997
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0003
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cena completa pagada en un restaurante",
+      "categoria_real": "Alimentacion",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "compra grande para llenar la despensa",
+      "categoria_real": "Alimentacion",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 0.9997,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9994,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.9997
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0003
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "delivery de pollo para comer en casa",
+      "categoria_real": "Alimentacion",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 0.9991,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9986,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.9991
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0005
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0002
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": false,
+      "correcta_modelo": false
+    },
+    {
+      "descripcion": "transferencia periodica a mi cartera de inversiones",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 0.9995,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9989,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.9995
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0005
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "compra bursatil de acciones latinoamericanas",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 0.9994,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9989,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.9994
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0006
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "aporte de ahorro al plan privado de retiro",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "orden para adquirir bonos del tesoro",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 0.994,
+      "confianza_porcentaje": 99.4,
+      "margen": 0.9881,
+      "cobertura_lexica": 0.25,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.994
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0059
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "capital depositado en la cuenta del broker",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "inversion recurrente en un fondo indexado",
+      "categoria_real": "Aporte Inversiones",
+      "categoria": "Aporte Inversiones",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago de la pension del centro educativo",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 0.8643,
+      "confianza_porcentaje": 86.4,
+      "margen": 0.8401,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.8643
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0242
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0194
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "inscripcion a clases virtuales de programacion",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 0.999,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9985,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.999
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0005
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0003
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cuota semestral de la universidad privada",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "libros y cuadernos solicitados por el colegio",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "profesor particular para preparar el examen",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 0.9997,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9995,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.9997
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0002
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0001
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "matricula del instituto para el siguiente ciclo",
+      "categoria_real": "Educacion",
+      "categoria": "Educacion",
+      "categoria_modelo": "Educacion",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Educacion",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "un cafecito comprado antes del trabajo",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "golosina pequeña elegida por impulso",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "monedas gastadas en la maquina expendedora",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "snack individual comprado en el kiosco",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "microcompra barata dentro de una aplicacion",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "antojo diario de chocolate y caramelos",
+      "categoria_real": "Gastos Hormiga",
+      "categoria": "Gastos Hormiga",
+      "categoria_modelo": "Gastos Hormiga",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "remuneracion de la empresa recibida en cuenta",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cobro acreditado por una asesoria profesional",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "abono entrante correspondiente a una venta",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "reembolso recibido por una compra devuelta",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago de honorarios enviado por el cliente",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "bono de productividad depositado por el empleador",
+      "categoria_real": "Ingresos",
+      "categoria": "Ingresos",
+      "categoria_modelo": "Ingresos",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "entradas de cine para el estreno del viernes",
+      "categoria_real": "Ocio",
+      "categoria": "Ocio",
+      "categoria_modelo": "Ocio",
+      "confianza": 0.9976,
+      "confianza_porcentaje": 99.8,
+      "margen": 0.9962,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.9976
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0014
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0007
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "boleto para asistir a un festival",
+      "categoria_real": "Ocio",
+      "categoria": "Ocio",
+      "categoria_modelo": "Ocio",
+      "confianza": 0.9972,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9957,
+      "cobertura_lexica": 0.6667,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.9972
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0016
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0009
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "compra de un juego nuevo para consola",
+      "categoria_real": "Ocio",
+      "categoria": "Otros",
+      "categoria_modelo": "Aporte Inversiones",
+      "confianza": 0.2106,
+      "confianza_porcentaje": 21.1,
+      "margen": 0.0825,
+      "cobertura_lexica": 0.75,
+      "aceptada": false,
+      "motivo": "confianza_baja",
+      "top_3": [
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.2106
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.1282
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.117
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": false,
+      "correcta_modelo": false
+    },
+    {
+      "descripcion": "paseo turistico durante el feriado",
+      "categoria_real": "Ocio",
+      "categoria": "Ocio",
+      "categoria_modelo": "Ocio",
+      "confianza": 0.8842,
+      "confianza_porcentaje": 88.4,
+      "margen": 0.846,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.8842
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0381
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0143
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "noche recreativa de karaoke y bowling",
+      "categoria_real": "Ocio",
+      "categoria": "Ocio",
+      "categoria_modelo": "Ocio",
+      "confianza": 0.9997,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9997,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.9997
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "ticket para una obra en el teatro municipal",
+      "categoria_real": "Ocio",
+      "categoria": "Ocio",
+      "categoria_modelo": "Ocio",
+      "confianza": 0.9998,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9996,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.9998
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0002
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "debito no reconocido en el estado de cuenta",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 0.9221,
+      "confianza_porcentaje": 92.2,
+      "margen": 0.8637,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.9221
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0584
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0041
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "retiro de billetes realizado en cajero",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 0.9994,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9989,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.9994
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0006
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago de una cuota de prestamo personal",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 0.9914,
+      "confianza_porcentaje": 99.1,
+      "margen": 0.9889,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.9914
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0025
+        },
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.0009
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "compra online de zapatos y ropa",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "comision bancaria por mantenimiento de tarjeta",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 0.9937,
+      "confianza_porcentaje": 99.4,
+      "margen": 0.9883,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.9937
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0054
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0002
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "tramite notarial sin categoria especifica",
+      "categoria_real": "Otros",
+      "categoria": "Otros",
+      "categoria_modelo": "Otros",
+      "confianza": 0.9992,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9988,
+      "cobertura_lexica": 0.2,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.9992
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0003
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0001
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "medicinas retiradas de la farmacia",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.6667,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "atencion de urgencia con un medico",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.6667,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "estudio de sangre procesado en laboratorio",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Educacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "sesion de rehabilitacion y terapia fisica",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "control dental realizado en la clinica",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 0.9997,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9994,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.9997
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0003
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "compra de lentes recetados por oftalmologo",
+      "categoria_real": "Salud",
+      "categoria": "Salud",
+      "categoria_modelo": "Salud",
+      "confianza": 0.9963,
+      "confianza_porcentaje": 99.6,
+      "margen": 0.9948,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Salud",
+          "probabilidad": 0.9963
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0015
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0004
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "factura de internet y telefonia del domicilio",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "recibo por consumo de energia electrica",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 0.8531,
+      "confianza_porcentaje": 85.3,
+      "margen": 0.8346,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.8531
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0185
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0184
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago a la empresa de agua potable",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 0.9992,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9991,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.9992
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0001
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "recarga del plan de datos moviles",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 0.9998,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9997,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.9998
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "renovacion del hosting y dominio web",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cuota mensual del servicio de gas natural",
+      "categoria_real": "Servicios",
+      "categoria": "Servicios",
+      "categoria_modelo": "Servicios",
+      "confianza": 0.9973,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9961,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.9973
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0012
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0005
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "renovacion automatica de la cuenta de netflix",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 0.9991,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9987,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.9991
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0005
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0004
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cargo mensual correspondiente a spotify premium",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "membresia activa de amazon prime video",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.8,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cuota recurrente para usar una app premium",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.8,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago anual de playstation plus",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 0.9815,
+      "confianza_porcentaje": 98.1,
+      "margen": 0.9639,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.9815
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0176
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0008
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "suscripcion a disney para ver series",
+      "categoria_real": "Suscripciones",
+      "categoria": "Suscripciones",
+      "categoria_modelo": "Suscripciones",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9999,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "carrera de taxi solicitada desde el trabajo",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 0.9999,
+      "confianza_porcentaje": 100.0,
+      "margen": 0.9998,
+      "cobertura_lexica": 0.8,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.9999
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0001
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pasaje de autobus hacia otra ciudad",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.4,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "recarga para la tarjeta de transporte urbano",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 0.9992,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9989,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.9992
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0003
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0001
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "combustible cargado al tanque del carro",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "estacionamiento y peaje durante el viaje",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "boleto de tren con destino al centro",
+      "categoria_real": "Transporte",
+      "categoria": "Transporte",
+      "categoria_modelo": "Transporte",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Transporte",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "pago mensual al dueño del apartamento",
+      "categoria_real": "Vivienda",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 0.9448,
+      "confianza_porcentaje": 94.5,
+      "margen": 0.9251,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.9448
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0197
+        },
+        {
+          "categoria": "Ingresos",
+          "probabilidad": 0.0105
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "cuota del prestamo hipotecario familiar",
+      "categoria_real": "Vivienda",
+      "categoria": "Alimentacion",
+      "categoria_modelo": "Alimentacion",
+      "confianza": 0.4716,
+      "confianza_porcentaje": 47.2,
+      "margen": 0.202,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.4716
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.2695
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.1681
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": false,
+      "correcta_modelo": false
+    },
+    {
+      "descripcion": "reparacion de tuberias hecha por el plomero",
+      "categoria_real": "Vivienda",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 0.5,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "mantenimiento de areas comunes del edificio",
+      "categoria_real": "Vivienda",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 0.9993,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9987,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.9993
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0006
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "servicio de mudanza para cambiar de domicilio",
+      "categoria_real": "Vivienda",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 0.9985,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9971,
+      "cobertura_lexica": 0.75,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.9985
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0015
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    },
+    {
+      "descripcion": "arreglo y pintura del techo de la casa",
+      "categoria_real": "Vivienda",
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 1.0,
+      "confianza_porcentaje": 100.0,
+      "margen": 1.0,
+      "cobertura_lexica": 1.0,
+      "aceptada": true,
+      "motivo": "aceptada",
+      "top_3": [
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 1.0
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0
+        },
+        {
+          "categoria": "Transporte",
+          "probabilidad": 0.0
+        }
+      ],
+      "version_modelo": "3.0.0",
+      "correcta_final": true,
+      "correcta_modelo": true
+    }
+  ]
+}

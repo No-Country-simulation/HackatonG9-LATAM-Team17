@@ -1,0 +1,46 @@
+{
+  "metodologia": {
+    "validacion": "StratifiedGroupKFold de 5 folds",
+    "muestras_de_seleccion": 2343,
+    "grupos_semanticos": 563,
+    "metrica_principal": "F1 macro",
+    "regla_de_decision": "Se prefiere regresion logistica si queda a menos de 1 punto de la mejor, porque entrega probabilidad nativa y un PKL mas simple."
+  },
+  "ranking": [
+    {
+      "modelo": "SVM lineal",
+      "f1_macro_promedio": 0.7503,
+      "f1_macro_desviacion": 0.0527,
+      "exactitud_promedio": 0.7474,
+      "segundos_fit_promedio": 0.863
+    },
+    {
+      "modelo": "Regresion logistica",
+      "f1_macro_promedio": 0.7487,
+      "f1_macro_desviacion": 0.0448,
+      "exactitud_promedio": 0.7337,
+      "segundos_fit_promedio": 0.548
+    },
+    {
+      "modelo": "SGD logistico",
+      "f1_macro_promedio": 0.7447,
+      "f1_macro_desviacion": 0.0511,
+      "exactitud_promedio": 0.7358,
+      "segundos_fit_promedio": 0.618
+    },
+    {
+      "modelo": "Naive Bayes complementario",
+      "f1_macro_promedio": 0.7322,
+      "f1_macro_desviacion": 0.0528,
+      "exactitud_promedio": 0.7401,
+      "segundos_fit_promedio": 0.424
+    },
+    {
+      "modelo": "Bosque aleatorio",
+      "f1_macro_promedio": 0.6829,
+      "f1_macro_desviacion": 0.0215,
+      "exactitud_promedio": 0.6786,
+      "segundos_fit_promedio": 2.095
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "transacciones": [
+    {
+      "categoria": "SUSCRIPCIONES",
+      "confiabilidad": 0.999
+    },
+    {
+      "categoria": "APORTE_INVERSIONES",
+      "confiabilidad": 0.9674
+    },
+    {
+      "categoria": "GASTOS_HORMIGA",
+      "confiabilidad": 1.0
+    }
+  ]
+}

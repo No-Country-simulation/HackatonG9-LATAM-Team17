@@ -1,1 +1,180 @@
-﻿# Proyecto Financiera Saludable
+# Clasificador ML de transacciones financieras
+
+Entregable de Data Science para **Financiera Saludable**. El proyecto recibe
+transacciones en JSON y devuelve una categoría y una confiabilidad entre 0 y 1.
+El modelo entrenado está en `modelos/clasificador_gastos.pkl`; no se usa Joblib.
+
+## Los dos archivos que debes abrir
+
+- `probar_modelo_json.py`: prueba el PKL con un JSON sin escribir comandos.
+- `entrenar.py`: contiene y ejecuta todo el entrenamiento real, la comparación
+  de algoritmos, la calibración y la evaluación.
+
+Para probarlo en Visual Studio Code:
+
+1. Edita `ejemplos/entrada_transacciones.json`.
+2. Abre `probar_modelo_json.py`.
+3. Pulsa **Run Python File**.
+4. Revisa `ejemplos/salida_transacciones.json`.
+
+El script se relanza automáticamente con `.venv_hackathon`, evitando el error
+`No module named sklearn` aunque VS Code haya seleccionado el Python global.
+
+## Contrato JSON
+
+Entrada individual:
+
+```json
+{
+  "descripcion": "Netflix",
+  "valor": 15.0,
+  "fecha": "2026-08-07"
+}
+```
+
+Salida individual, con exactamente los dos campos acordados:
+
+```json
+{
+  "categoria": "SUSCRIPCIONES",
+  "confiabilidad": 0.999
+}
+```
+
+También se aceptan lotes y se preserva el orden:
+
+```json
+{
+  "transacciones": [
+    {"descripcion": "Netflix", "valor": 15, "fecha": "2026-08-07"},
+    {"descripcion": "aporte a fondo mutuo", "valor": 200, "fecha": "2026-08-07"}
+  ]
+}
+```
+
+```json
+{
+  "transacciones": [
+    {"categoria": "SUSCRIPCIONES", "confiabilidad": 0.999},
+    {"categoria": "APORTE_INVERSIONES", "confiabilidad": 0.9674}
+  ]
+}
+```
+
+`descripcion`, `valor` y `fecha` son obligatorios. El modelo NLP aprende solo de
+`descripcion`; `valor` y `fecha` se validan para cumplir el contrato, pero no
+cambian la predicción. Los esquemas formales están en `contratos/`.
+
+## Qué Machine Learning utiliza
+
+Es un clasificador supervisado multiclase, no un conjunto de reglas. El flujo es:
+
+```mermaid
+flowchart LR
+    A["JSON"] --> B["Normalización de descripción"]
+    B --> C["TF-IDF de palabras 1–2"]
+    B --> D["TF-IDF de caracteres 3–5"]
+    B --> E["Señales léxicas financieras"]
+    C --> F["Vector disperso"]
+    D --> F
+    E --> F
+    F --> G["Regresión logística multiclase"]
+    G --> H["Calibración de temperatura"]
+    H --> I["Categoría + confiabilidad JSON"]
+```
+
+Antes de elegir el modelo se compararon cinco familias con
+`StratifiedGroupKFold` de cinco folds. Las variaciones de un mismo concepto nunca
+aparecen simultáneamente en entrenamiento y prueba.
+
+| Modelo | F1 macro agrupado | Exactitud agrupada |
+|---|---:|---:|
+| SVM lineal | 75.03% | 74.74% |
+| Regresión logística | 74.87% | 73.37% |
+| SGD logístico | 74.47% | 73.58% |
+| Naive Bayes complementario | 73.22% | 74.01% |
+| Bosque aleatorio | 68.29% | 67.86% |
+
+SVM aventajó a logística en solo **0.16 puntos** de F1, menos que su variación
+entre folds. Se conserva regresión logística porque entrega probabilidades
+nativas, permite calibrar `confiabilidad` sin añadir un segundo modelo y produce
+un PKL simple de aproximadamente 2 MB. El resultado reproducible está en
+`resultados/comparacion_modelos.json`.
+
+## Datos y resultados actuales
+
+El entrenamiento final usa exactamente **100,000 descripciones únicas**, casi
+perfectamente balanceadas entre las 12 categorías:
+
+- 118 textos manuales curados;
+- 99,882 variaciones sintéticas reproducibles;
+- 94 casos separados para calibración y umbral;
+- 72 casos de holdout final, nunca usados para decidir el modelo.
+
+Los 100,000 textos no se guardan como un CSV gigante: `clasificador/datos.py`
+los genera de forma determinista y el PKL incluye su hash SHA-256, conteos y
+distribución. Esto mantiene Git liviano y permite reconstruir la misma base.
+Una variación sintética mejora tolerancia de redacción, pero no equivale a una
+transacción real independiente; para producción se necesitan datos reales
+anonimizados.
+
+| Métrica en holdout final (72 casos) | Resultado |
+|---|---:|
+| Exactitud | **95.83%** |
+| F1 macro | **95.82%** |
+| Log-loss | **0.1848** |
+| Error de calibración ECE | **2.62%** |
+| Cobertura automática | **98.61%** |
+| Precisión entre decisiones aceptadas | **97.18%** |
+
+Todos los resultados del modelo se escriben como **JSON** en `resultados/`.
+Los tres CSV de `datos/` son únicamente particiones etiquetadas de entrada.
+
+## Categorías
+
+`ALIMENTACION`, `APORTE_INVERSIONES`, `EDUCACION`, `GASTOS_HORMIGA`, `INGRESOS`,
+`OCIO`, `OTROS`, `SALUD`, `SERVICIOS`, `SUSCRIPCIONES`, `TRANSPORTE` y `VIVIENDA`.
+
+Un aporte hacia una inversión es `APORTE_INVERSIONES`; un dividendo recibido es
+`INGRESOS`. Un cargo recurrente de Netflix es `SUSCRIPCIONES`; una entrada
+puntual al cine es `OCIO`.
+
+## Estructura mínima
+
+```text
+entrenar.py                  entrenamiento, comparación y evaluación completa
+probar_modelo_json.py        prueba de entrada JSON -> salida JSON
+clasificador/datos.py        categorías y generación reproducible de datos
+clasificador/modelo.py       TF-IDF, LogisticRegression, confianza y PKL
+clasificador/contrato_json.py validación del contrato del backend
+datos/                       train, validación y holdout etiquetados
+modelos/                     PKL final y checksum SHA-256
+resultados/                  reportes y predicciones, todos en JSON
+tests/                       pruebas automáticas
+```
+
+## Instalación y reproducción
+
+La primera vez en una máquina nueva sí es necesario preparar el entorno:
+
+```powershell
+py -3.13 -m venv .venv_hackathon
+.\.venv_hackathon\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Después se pueden ejecutar `probar_modelo_json.py` o `entrenar.py` con el botón
+Run de VS Code. El entrenamiento completo tarda aproximadamente un minuto en la
+máquina de desarrollo y vuelve a generar el PKL y los reportes JSON.
+
+Pruebas automáticas:
+
+```powershell
+.\.venv_hackathon\Scripts\python.exe -m pytest -q
+```
+
+La explicación técnica completa, límites y lectura guiada del código están en
+[README_DATA.md](README_DATA.md).
+
+> Seguridad: Pickle puede ejecutar código al cargarse. Usa solo el PKL del
+> repositorio o de otra fuente confiable. `cargar_modelo` verifica el checksum
+> SHA-256 antes de deserializar.
