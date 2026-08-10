@@ -50,14 +50,14 @@ public class AnalisisController {
     }
 
     @Operation(
-            summary = "2. Procesar y analizar archivo CSV de transacciones",
+            summary = "Procesar y analizar archivo CSV de transacciones",
             description = "Permite la carga masiva de transacciones desde un CSV, categorizándolas e invocando el análisis de IA."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Archivo procesado y análisis generado exitosamente"),
             @ApiResponse(responseCode = "400", description = "El archivo CSV es inválido o está vacío")
     })
-    @PostMapping(value = "/csv/{usuarioId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/csv/{usuarioId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // ########## 2 ###############
     public ResponseEntity<AnalisisOutputDTO> procesarCsv(
             @PathVariable String usuarioId,
             @Valid @ModelAttribute AnalisisCsvParamsDTO params

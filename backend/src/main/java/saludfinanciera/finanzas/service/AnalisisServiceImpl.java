@@ -14,7 +14,6 @@ import saludfinanciera.finanzas.model.Transaccion;
 import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
 import saludfinanciera.finanzas.repository.TransaccionRepository;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;

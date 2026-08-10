@@ -22,7 +22,7 @@ public record TransaccionItemDTO(
         @JsonFormat(pattern = "yyyy-MM-dd")
         @JsonProperty("fecha")
         LocalDate fecha,
-
+// 1
         @Schema(
                 description = "Descripción o concepto del movimiento",
                 example = "Pago de servicio de Internet",
@@ -31,7 +31,7 @@ public record TransaccionItemDTO(
         @NotBlank(message = "La descripción no puede estar vacía")
         @JsonProperty("descripcion")
         String descripcion,
-
+// 2
         @Schema(
                 description = "Monto de la transacción",
                 example = "12500.50",
@@ -41,7 +41,7 @@ public record TransaccionItemDTO(
         @Positive(message = "El monto debe ser un valor positivo")
         @JsonProperty("monto")
         BigDecimal monto,
-
+// 3
         @Schema(
                 description = "Categoría del movimiento. Si se envía vacía o nula, será procesada por el microservicio NLP.",
                 example = "SERVICIOS",
@@ -49,6 +49,7 @@ public record TransaccionItemDTO(
         )
         @JsonProperty("categoria")
         String categoria
+// 4
 ) {
         // Constructor compacto para normalizar datos de entrada
         public TransaccionItemDTO {

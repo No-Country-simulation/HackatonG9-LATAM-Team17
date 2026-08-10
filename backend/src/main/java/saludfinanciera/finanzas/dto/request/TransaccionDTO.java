@@ -16,17 +16,16 @@ public record TransaccionDTO(
         @Schema(description = "Identificador único de la transacción en PostgreSQL", example = "3")
         @JsonProperty("id")
         Long id,
-
+// 1
 
         @Schema(
                 description = "Identificador del usuario propietario",
                 example = "USR-1001",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
-
         @JsonProperty("usuario_id")
         String usuarioId, // <--- CAMPO AGREGADO
-
+// 2
         @Schema(
                 description = "Descripción detallada del movimiento",
                 example = "Cobro por Hackathon",
@@ -35,7 +34,7 @@ public record TransaccionDTO(
         @NotBlank(message = "La descripción no puede estar vacía")
         @JsonProperty("descripcion")
         String descripcion,
-
+// 3
 
         @Schema(
                 description = "Monto monetario de la transacción",
@@ -46,7 +45,7 @@ public record TransaccionDTO(
         @Positive(message = "El monto debe ser un valor positivo")
         @JsonProperty("monto")
         BigDecimal monto,
-
+// 4
 
         @Schema(
                 description = "Tipo de movimiento financiero",
@@ -57,7 +56,7 @@ public record TransaccionDTO(
         @NotBlank(message = "El tipo de transacción es obligatorio (INGRESO/EGRESO)")
         @JsonProperty("tipo")
         String tipo,
-
+// 5
 
         @Schema(
                 description = "Categoría de la transacción. Si se envía vacía o nula, la IA la categoriza automáticamente.",
@@ -66,7 +65,7 @@ public record TransaccionDTO(
         )
         @JsonProperty("categoria")
         String categoria, // Opcional, puede venir nulo si lo categoriza Python
-
+// 6
         @Schema(
                 description = "Fecha y hora exacta en la que se realizó la transacción",
                 example = "2026-08-05T19:00:00"
@@ -74,6 +73,7 @@ public record TransaccionDTO(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         @JsonProperty("fecha_transaccion")
         LocalDateTime fechaTransaccion
+// 7
 ){
         // Constructor compacto para normalizar datos de entrada
         public TransaccionDTO {

@@ -118,5 +118,4 @@ public class TransaccionController {
         transaccionService.eliminarTransaccion(id);
         return ResponseEntity.noContent().build();
     }
-
 }
