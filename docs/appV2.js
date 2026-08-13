@@ -139,7 +139,7 @@ document.getElementById("finanzasForm").addEventListener("submit", async functio
         deuda_total: deudaTotal,
         objetivo_presupuesto: objetivoPresupuesto,
         pago_mensual_deuda: pagoMensualDeuda,
-        servicios_suscripción: serviciosSuscripcion,
+        servicios_suscripcion: serviciosSuscripcion,
         fondo_emergencia: fondoEmergencia,
         transacciones: listaGastos
     };
