@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { SeccionIngresoGastos } from "@/components/SeccionIngresoGastos";
-import { Transaction } from "@/components/MicroTarjetaGasto";
-import { AnalysisRequestPayload, AnalysisResponsePayload } from "@/types/finance";
+import React, { useState, useEffect } from "react";
+import { SeccionIngresoGastos } from "@/features/transacciones/components/SeccionIngresoGastos";
+import { AnalysisRequestPayload, AnalysisResponsePayload, Transaccion } from "@/types/finance";
 
 interface FormularioAnalisisProps {
   onAnalysisComplete: (result: AnalysisResponsePayload, computedDebtLevel: number) => void;
@@ -24,21 +23,92 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
   const [ingresoMensual, setIngresoMensual] = useState<string>("");
   const [valorDeuda, setValorDeuda] = useState<string>("");
   const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<string>("MENSUAL");
-  const [transacciones, setTransacciones] = useState<Transaction[]>([]);
+  const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleAddTransaction = (descripcion: string, valor: number) => {
-    const newTx: Transaction = {
-      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      descripcion,
-      valor,
+  // V2: New financial indicator states — defaults to empty string; parsed to float/int before dispatch
+  const [montoInversion, setMontoInversion] = useState<string>("");
+  const [objetivoPresupuesto, setObjetivoPresupuesto] = useState<string>("");
+  const [pagoMensualDeuda, setPagoMensualDeuda] = useState<string>("");
+  const [serviciosSuscripcion, setServiciosSuscripcion] = useState<string>("");
+  const [fondoEmergencia, setFondoEmergencia] = useState<string>("");
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      onLoadingChange(true);
+      try {
+        const res = await fetch("http://localhost:8080/api/v1/transacciones/usuario/USR-1001");
+        if (res.ok) {
+          const data = await res.json();
+          setTransacciones(data);
+        } else {
+          onError("No logramos cargar tus gastos previos del servidor.");
+        }
+      } catch (error) {
+        onError("Error de red al intentar cargar tus gastos iniciales.");
+      } finally {
+        onLoadingChange(false);
+      }
     };
-    setTransacciones((prev) => [...prev, newTx]);
-    if (validationError) setValidationError(null);
+    fetchTransactions();
+  }, [onError, onLoadingChange]);
+
+  const handleAddTransaction = async (descripcion: string, valor: number, fechaTransaccion: string) => {
+    onLoadingChange(true);
+    try {
+      // Backend contract requires snake_case and specific properties
+      const payload = {
+        usuario_id: "USR-1001",
+        descripcion: descripcion,
+        monto: valor,
+        tipo: "EGRESO",
+        categoria: null,
+        fecha_transaccion: fechaTransaccion
+      };
+      
+      const res = await fetch("http://localhost:8080/api/v1/transacciones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      if (res.status === 201 || res.ok) {
+        const data = await res.json();
+        // Map backend response back to our Transaccion UI interface
+        const newTx: Transaccion = {
+          id: data.id,
+          descripcion: data.descripcion,
+          valor: data.monto !== undefined ? data.monto : (data.valor || valor),
+          fecha_transaccion: data.fecha_transaccion || fechaTransaccion
+        };
+        setTransacciones((prev) => [...prev, newTx]);
+        if (validationError) setValidationError(null);
+      } else {
+        onError("Hubo un error al guardar el gasto en la nube.");
+      }
+    } catch (err) {
+      onError("No logramos conectar con el servidor para guardar tu gasto.");
+    } finally {
+      onLoadingChange(false);
+    }
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransacciones((prev) => prev.filter((tx) => tx.id !== id));
+  const handleDeleteTransaction = async (id: number | string) => {
+    onLoadingChange(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/v1/transacciones/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setTransacciones((prev) => prev.filter((tx) => String(tx.id) !== String(id)));
+      } else {
+        onError("Hubo un error al eliminar el gasto.");
+      }
+    } catch (err) {
+      onError("Error de red al intentar eliminar el gasto.");
+    } finally {
+      onLoadingChange(false);
+    }
   };
 
   const handleResetAll = () => {
@@ -47,6 +117,12 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
     setFrecuenciaAhorro("MENSUAL");
     setTransacciones([]);
     setValidationError(null);
+    // V2: also clear new fields
+    setMontoInversion("");
+    setObjetivoPresupuesto("");
+    setPagoMensualDeuda("");
+    setServiciosSuscripcion("");
+    setFondoEmergencia("");
     onReset();
   };
 
@@ -77,32 +153,36 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
       return;
     }
 
-    if (transacciones.length === 0) {
-      setValidationError(
-        "Para un análisis completo y certero, por favor registra al menos un gasto habitual en tu lista de transacciones antes de continuar."
-      );
-      return;
-    }
-
     setValidationError(null);
     onLoadingChange(true);
 
     const nivelEndeudamiento = Math.round((deudaNum / ingresoNum) * 100);
 
+    // V2: Safe numeric conversions — missing/empty fields default to 0 per appV2.js spec
+    const montoInversionNum = montoInversion ? parseFloat(montoInversion.replace(/[^0-9.]/g, "")) : 0;
+    const objetivoPresupuestoNum = objetivoPresupuesto ? parseFloat(objetivoPresupuesto.replace(/[^0-9.]/g, "")) : 0;
+    const pagoMensualDeudaNum = pagoMensualDeuda ? parseFloat(pagoMensualDeuda.replace(/[^0-9.]/g, "")) : 0;
+    // servicios_suscripcion is an integer count (e.g. number of subscriptions)
+    const serviciosSuscripcionNum = serviciosSuscripcion ? parseInt(serviciosSuscripcion.replace(/[^0-9]/g, ""), 10) : 0;
+    const fondoEmergenciaNum = fondoEmergencia ? parseFloat(fondoEmergencia.replace(/[^0-9.]/g, "")) : 0;
+
     const payload: AnalysisRequestPayload = {
       ingreso_mensual: ingresoNum,
       nivel_endeudamiento: nivelEndeudamiento,
       frecuencia_ahorro: frecuenciaAhorro,
-      transacciones: transacciones.map((tx) => ({
-        descripcion: tx.descripcion,
-        valor: tx.valor,
-      })),
+      monto_inversion: isNaN(montoInversionNum) ? 0 : montoInversionNum,
+      deuda_total: deudaNum,
+      objetivo_presupuesto: isNaN(objetivoPresupuestoNum) ? 0 : objetivoPresupuestoNum,
+      pago_mensual_deuda: isNaN(pagoMensualDeudaNum) ? 0 : pagoMensualDeudaNum,
+      servicios_suscripcion: isNaN(serviciosSuscripcionNum) ? 0 : serviciosSuscripcionNum,
+      fondo_emergencia: isNaN(fondoEmergenciaNum) ? 0 : fondoEmergenciaNum,
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/v1/finanzas/analizar", {
+      const res = await fetch("http://localhost:8080/api/v1/analisis/perfil/USR-1001", {
         method: "POST",
         headers: {
+          "Accept": "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -235,6 +315,141 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
           </div>
         </div>
 
+        {/* V2: Advanced Financial Indicators Card — same Level 1 style as base card */}
+        <div className="bg-surface-container-lowest rounded-2xl p-[24px] custom-shadow border border-surface-variant interactive-card transition-all">
+          <h3 className="font-sans text-[18px] font-bold text-on-surface mb-[8px] flex items-center gap-[8px]">
+            <span className="material-symbols-outlined text-primary">monitoring</span>
+            <span>Indicadores Financieros Avanzados</span>
+          </h3>
+          <p className="text-[14px] text-on-surface-variant mb-[24px] font-sans">
+            Estos datos complementan tu perfil para que el motor de IA genere un diagnóstico más preciso y recomendaciones personalizadas.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+
+            {/* Monto de Inversión */}
+            <div>
+              <label
+                htmlFor="monto-inversion"
+                className="block font-sans text-[12px] font-semibold text-on-surface-variant mb-[4px]"
+              >
+                Monto de Inversión ($)
+              </label>
+              <input
+                id="monto-inversion"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Ej. 200000"
+                value={montoInversion}
+                onChange={(e) => {
+                  setMontoInversion(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-surface-bright border border-outline-variant rounded-lg py-[8px] px-[16px] font-mono text-[18px] font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all duration-200"
+              />
+            </div>
+
+            {/* Objetivo de Presupuesto */}
+            <div>
+              <label
+                htmlFor="objetivo-presupuesto"
+                className="block font-sans text-[12px] font-semibold text-on-surface-variant mb-[4px]"
+              >
+                Objetivo de Presupuesto ($)
+              </label>
+              <input
+                id="objetivo-presupuesto"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Ej. 3000000"
+                value={objetivoPresupuesto}
+                onChange={(e) => {
+                  setObjetivoPresupuesto(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-surface-bright border border-outline-variant rounded-lg py-[8px] px-[16px] font-mono text-[18px] font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all duration-200"
+              />
+            </div>
+
+            {/* Pago Mensual de Deuda */}
+            <div>
+              <label
+                htmlFor="pago-mensual-deuda"
+                className="block font-sans text-[12px] font-semibold text-on-surface-variant mb-[4px]"
+              >
+                Pago Mensual de Deuda ($)
+              </label>
+              <input
+                id="pago-mensual-deuda"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Ej. 350000"
+                value={pagoMensualDeuda}
+                onChange={(e) => {
+                  setPagoMensualDeuda(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-surface-bright border border-outline-variant rounded-lg py-[8px] px-[16px] font-mono text-[18px] font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all duration-200"
+              />
+            </div>
+
+            {/* Servicios / Suscripciones — integer count */}
+            <div>
+              <label
+                htmlFor="servicios-suscripcion"
+                className="block font-sans text-[12px] font-semibold text-on-surface-variant mb-[4px]"
+              >
+                Cantidad de Suscripciones
+              </label>
+              <input
+                id="servicios-suscripcion"
+                type="number"
+                step="1"
+                min="0"
+                placeholder="Ej. 3"
+                value={serviciosSuscripcion}
+                onChange={(e) => {
+                  setServiciosSuscripcion(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-surface-bright border border-outline-variant rounded-lg py-[8px] px-[16px] font-sans text-[18px] font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all duration-200"
+              />
+            </div>
+
+            {/* Fondo de Emergencia — spans full width on 2-col grid */}
+            <div className="md:col-span-2">
+              <label
+                htmlFor="fondo-emergencia"
+                className="block font-sans text-[12px] font-semibold text-on-surface-variant mb-[4px]"
+              >
+                Fondo de Emergencia ($)
+              </label>
+              <input
+                id="fondo-emergencia"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Ej. 1500000"
+                value={fondoEmergencia}
+                onChange={(e) => {
+                  setFondoEmergencia(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-surface-bright border border-outline-variant rounded-lg py-[8px] px-[16px] font-mono text-[18px] font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all duration-200"
+              />
+            </div>
+
+          </div>
+        </div>
+
         {/* Expense Entry Card & Transactions Table Integration */}
         <SeccionIngresoGastos
           transactions={transacciones}
@@ -248,7 +463,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
         {/* Action Card exactly from code.html lines 367-378 */}
         <div className="bg-surface-container-lowest rounded-2xl p-[24px] custom-shadow border border-surface-variant flex flex-col items-center text-center gap-[16px] relative overflow-hidden group">
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-fixed rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 z-0"></div>
-          
+
           <div className="relative z-10 w-full flex flex-col items-center">
             <span className="material-symbols-outlined text-[48px] text-primary mb-[8px]">
               magic_button

@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { MicroTarjetaGasto, Transaction } from "@/components/MicroTarjetaGasto";
+import { MicroTarjetaGasto } from "@/features/transacciones/components/MicroTarjetaGasto";
+import { Transaccion } from "@/types/finance";
 
 interface SeccionIngresoGastosProps {
-  transactions: Transaction[];
-  onAddTransaction: (descripcion: string, valor: number) => void;
-  onDeleteTransaction: (id: string) => void;
+  transactions: Transaccion[];
+  onAddTransaction: (descripcion: string, valor: number, fechaTransaccion: string) => void;
+  onDeleteTransaction: (id: number | string) => void;
 }
 
 export const SeccionIngresoGastos: React.FC<SeccionIngresoGastosProps> = ({
@@ -45,7 +46,9 @@ export const SeccionIngresoGastos: React.FC<SeccionIngresoGastosProps> = ({
     }
 
     setErrorMsg(null);
-    onAddTransaction(descripcion.trim(), valorNumerico);
+    // V2: Automatically generate ISO 8601 timestamp at the moment of adding the transaction
+    const fechaTransaccion = new Date().toISOString().slice(0, 19);
+    onAddTransaction(descripcion.trim(), valorNumerico, fechaTransaccion);
     setDescripcion("");
     setValor("");
   };

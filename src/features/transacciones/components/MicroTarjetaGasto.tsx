@@ -1,14 +1,9 @@
 import React from "react";
-
-export interface Transaction {
-  id: string;
-  descripcion: string;
-  valor: number;
-}
+import { Transaccion } from "@/types/finance";
 
 interface MicroTarjetaGastoProps {
-  transaction: Transaction;
-  onDelete: (id: string) => void;
+  transaction: Transaccion;
+  onDelete: (id: number | string) => void;
 }
 
 export const MicroTarjetaGasto: React.FC<MicroTarjetaGastoProps> = ({
@@ -44,7 +39,7 @@ export const MicroTarjetaGasto: React.FC<MicroTarjetaGastoProps> = ({
           <span className="tracking-tight">{formattedValue}</span>
           <button
             type="button"
-            onClick={() => onDelete(transaction.id)}
+            onClick={() => transaction.id !== undefined && onDelete(transaction.id)}
             className="p-[6px] rounded-lg text-outline hover:text-error hover:bg-error-container/40 transition-colors duration-200 focus:outline-hidden focus:ring-1 focus:ring-error cursor-pointer opacity-70 group-hover:opacity-100"
             aria-label={`Eliminar gasto ${transaction.descripcion}`}
             title="Eliminar gasto"

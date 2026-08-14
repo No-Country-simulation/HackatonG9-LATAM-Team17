@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { FormularioAnalisis } from "@/components/FormularioAnalisis";
-import { TarjetaDiagnostico } from "@/components/TarjetaDiagnostico";
-import { TarjetaRecomendacion } from "@/components/TarjetaRecomendacion";
+import { FormularioAnalisis } from "@/features/analisis/components/FormularioAnalisis";
+import { TarjetaDiagnostico } from "@/features/analisis/components/TarjetaDiagnostico";
+import { TarjetaRecomendacion } from "@/features/analisis/components/TarjetaRecomendacion";
 import { AnalysisResponsePayload } from "@/types/finance";
 
 export default function Home() {
