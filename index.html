@@ -3,32 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación de Salud Financiera</title>
+    <title>Salud Financiera - Acceso</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div class="form-container">
-        <h2>Análisis de Salud Financiera</h2>
-        <p class="subtitle">Ingresa tus datos e historial de gastos para evaluar tu perfil con IA.</p>
+    <!-- ========================================== -->
+    <!-- PANTALLA 1: INICIO DE SESIÓN (LOGIN)      -->
+    <!-- ========================================== -->
+    <div id="loginScreen" class="form-container">
+        <h2>Iniciar Sesión</h2>
+        <p class="subtitle">Ingresa a tu cuenta de Salud Financiera.</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Correo electrónico</label>
+                <input type="email" id="loginEmail" placeholder="tu@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
+            </div>
+            <button type="submit" class="btn-principal" style="background-color: #2ecc71;">Entrar</button>
+        </form>
+
+        <div style="margin-top: 15px; text-align: center; font-size: 0.9em;">
+            <a href="#" id="linkMostrarRegistro" style="color: #3498db; text-decoration: none; display: block; margin-bottom: 8px;">¿No tienes cuenta? Regístrate aquí</a>
+            <a href="#" id="linkOlvidoPassword" style="color: #7f8c8d; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div id="loginMensaje" class="hidden" style="margin-top: 15px; padding: 10px; border-radius: 6px;"></div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- PANTALLA 2: REGISTRO DE NUEVA CUENTA      -->
+    <!-- ========================================== -->
+    <div id="registroScreen" class="form-container hidden">
+        <h2>Crear Cuenta</h2>
+        <p class="subtitle">Regístrate para comenzar a usar la plataforma.</p>
+
+        <form id="registroForm">
+            <div class="form-group">
+                <label for="regNombre">Nombre</label>
+                <input type="text" id="regNombre" placeholder="Tu nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Correo electrónico</label>
+                <input type="email" id="regEmail" placeholder="tu@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Contraseña</label>
+                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" minlength="6" required>
+            </div>
+            <button type="submit" class="btn-principal" style="background-color: #3498db;">Registrarse</button>
+        </form>
+
+        <div style="margin-top: 15px; text-align: center; font-size: 0.9em;">
+            <a href="#" id="linkVolverLogin" style="color: #3498db; text-decoration: none;">¿Ya tienes cuenta? Inicia sesión</a>
+        </div>
+
+        <div id="regMensaje" class="hidden" style="margin-top: 15px; padding: 10px; border-radius: 6px;"></div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- PANTALLA 3: APLICACIÓN FINANCIERA (PRINCIPAL)-->
+    <!-- ========================================== -->
+    <div id="appScreen" class="form-container hidden" style="max-width: 650px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Análisis de Salud Financiera</h2>
+            <button type="button" id="btnCerrarSesion" class="btn-eliminar" style="padding: 8px 12px;">Cerrar Sesión</button>
+        </div>
+        <p class="subtitle">Ingresa tus datos e historial de gastos para evaluar tu perfil.</p>
 
         <form id="finanzasForm">
-            
-            <!-- CAMPO: Ingreso Mensual -->
             <div class="form-group">
                 <label for="ingresoMensual">Ingreso Mensual ($)</label>
                 <input type="number" id="ingresoMensual" placeholder="Ej. 3000000" min="1" step="any" required>
-                <small class="help-text">Ingresa un valor numérico positivo mayor a cero.</small>
             </div>
 
-            <!-- CAMPO: Deuda Total -->
             <div class="form-group">
                 <label for="deudaTotal">Deuda Total ($)</label>
                 <input type="number" id="deudaTotal" placeholder="Ej. 900000" min="0" step="any" required>
-                <small class="help-text">Monto total de tus deudas actuales.</small>
             </div>
 
-            <!-- CAMPO: Frecuencia de Ahorro -->
             <div class="form-group">
                 <label for="frecuenciaAhorro">Frecuencia de Ahorro</label>
                 <select id="frecuenciaAhorro" required>
@@ -37,46 +96,31 @@
                     <option value="Medio">Medio</option>
                     <option value="Alto">Alto</option>
                 </select>
-                
-                <div class="info-box">
-                    <p><strong>Guía para elegir tu frecuencia:</strong></p>
-                    <ul>
-                        <li><strong>Bajo:</strong> Ahorras de forma ocasional o casi nunca (1-2 veces al año).</li>
-                        <li><strong>Medio:</strong> Ahorras constantemente (cada 2 o 3 meses).</li>
-                        <li><strong>Alto:</strong> Ahorras con disciplina todos los meses.</li>
-                    </ul>
-                </div>
             </div>
 
-            <!-- NUEVAS VARIABLES DE ENTRADA -->
             <div class="form-group">
                 <label for="montoInversion">Monto de Inversión ($)</label>
                 <input type="number" id="montoInversion" placeholder="Ej. 500000" min="0" step="any" required>
-                <small class="help-text">Monto destinado a inversiones (igual o mayor a 0).</small>
             </div>
 
             <div class="form-group">
                 <label for="objetivoPresupuesto">Objetivo de Presupuesto ($)</label>
                 <input type="number" id="objetivoPresupuesto" placeholder="Ej. 2000000" min="0" step="any" required>
-                <small class="help-text">Tu meta o límite de presupuesto mensual.</small>
             </div>
 
             <div class="form-group">
                 <label for="pagoMensualDeuda">Pago Mensual de Deuda ($)</label>
                 <input type="number" id="pagoMensualDeuda" placeholder="Ej. 250000" min="0" step="any" required>
-                <small class="help-text">Cuota mensual destinada a pagar deudas.</small>
             </div>
 
             <div class="form-group">
                 <label for="serviciosSuscripcion">Cantidad de Servicios de Suscripción</label>
                 <input type="number" id="serviciosSuscripcion" placeholder="Ej. 3" min="0" step="1" required>
-                <small class="help-text">Número de suscripciones activas (ej. Netflix, Spotify).</small>
             </div>
 
             <div class="form-group">
                 <label for="fondoEmergencia">Fondo de Emergencia ($)</label>
                 <input type="number" id="fondoEmergencia" placeholder="Ej. 1000000" min="0" step="any" required>
-                <small class="help-text">Dinero ahorrado exclusivamente para emergencias.</small>
             </div>
 
             <hr class="divider">
@@ -85,16 +129,12 @@
             <div class="gasto-inputs-container">
                 <div class="form-group">
                     <label for="descripcionGasto">Descripción del Gasto</label>
-                    <input type="text" id="descripcionGasto" maxlength="25" placeholder="Ej. Mercado, Arriendo, Luz">
-                    <small class="help-text warning-text">⚠️ Máximo 25 caracteres.</small>
+                    <input type="text" id="descripcionGasto" maxlength="25" placeholder="Ej. Mercado, Arriendo">
                 </div>
-
                 <div class="form-group">
                     <label for="valorGasto">Valor ($)</label>
                     <input type="number" id="valorGasto" placeholder="Ej. 150000" min="1" step="any">
-                    <small class="help-text">Los valores deben ser positivos.</small>
                 </div>
-
                 <button type="button" id="btnAgregarGasto" class="btn-secundario">＋ Agregar Gasto</button>
             </div>
 
@@ -120,15 +160,12 @@
 
         <div id="resultadoContainer" class="result-card hidden">
             <h3>Resultado del Análisis</h3>
-            
             <p><strong>Perfil Financiero:</strong> <span id="resPerfil">-</span></p>
             <p><strong>Probabilidad:</strong> <span id="resProbabilidad">-</span>%</p>
-            
             <div style="margin-top: 15px;">
                 <h4 style="margin-bottom: 5px;">Resumen de Gastos:</h4>
                 <div id="resCategorias">-</div>
             </div>
-
             <div style="margin-top: 15px;">
                 <h4 style="margin-bottom: 5px;">Recomendaciones:</h4>
                 <div id="resRecomendaciones">-</div>
@@ -136,6 +173,11 @@
         </div>
 
         <div id="errorContainer" class="error-card hidden"></div>
+
+        <!-- Botón para eliminar cuenta -->
+        <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+            <button type="button" id="btnEliminarCuenta" class="btn-eliminar" style="background-color: #c0392b; width: 100%; padding: 10px; font-weight: bold;">Eliminar Mi Cuenta</button>
+        </div>
     </div>
 
     <script src="app.js"></script>

@@ -12,11 +12,13 @@ body {
     background-color: #f4f7f6;
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 /* ==========================================
-   2. CONTENEDOR PRINCIPAL (TARJETA)
+   2. CONTENEDORES (TARJETAS DE LOGIN Y APP)
    ========================================== */
 .form-container {
     background: #ffffff;
@@ -66,32 +68,6 @@ input:focus, select:focus {
     outline: none;
 }
 
-.help-text {
-    font-size: 0.8em;
-    color: #7f8c8d;
-    margin-top: 4px;
-    display: block;
-}
-
-.warning-text {
-    color: #e67e22;
-}
-
-.info-box {
-    background-color: #f8f9fa;
-    border-left: 4px solid #3498db;
-    padding: 10px 12px;
-    margin-top: 8px;
-    border-radius: 4px;
-    font-size: 0.82em;
-    color: #555;
-}
-
-.info-box ul {
-    margin-left: 16px;
-    margin-top: 4px;
-}
-
 .divider {
     border: 0;
     height: 1px;
@@ -100,7 +76,7 @@ input:focus, select:focus {
 }
 
 /* ==========================================
-   4. SECCIÓN INTERACTIVA DE GASTOS Y TABLA
+   4. SECCIÓN DE GASTOS Y TABLA
    ========================================== */
 .gasto-inputs-container {
     background-color: #f9f9f9;
@@ -170,7 +146,7 @@ th {
 }
 
 /* ==========================================
-   5. BOTÓN PRINCIPAL Y TARJETAS DE ESTADO
+   5. BOTONES Y TARJETAS DE ESTADO
    ========================================== */
 .btn-principal {
     width: 100%;
@@ -190,7 +166,7 @@ th {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .result-card {
