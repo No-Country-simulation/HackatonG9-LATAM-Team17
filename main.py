@@ -1,60 +1,23 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List, Dict
+"""
+main.py - Punto de entrada principal de FastAPI
+"""
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
-app = FastAPI(title="Python Data Science API")
+from recomendaciones.src.api_router import router as api_router
 
-class TransaccionDTO(BaseModel):
-    descripcion: str
-    valor: float
+app = FastAPI(
+    title="API de Análisis y Recomendaciones Financieras",
+    version="3.0.0"
+)
 
-class AnalisisInputDTO(BaseModel):
-    ingresoMensual: float
-    nivelEndeudamiento: float
-    frecuenciaAhorro: str
-    transacciones: List[TransaccionDTO]
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("❌ ERROR 422 DETALLADO:", exc.errors())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": "Revisa la terminal de Python para ver el detalle exacto"}
+    )
 
-class RespuestaPythonDTO(BaseModel):
-    probabilidad: float
-    perfil_financiero: str
-    clasificacion_gastos: Dict[str, str]
-    recomendaciones: List[str]
-
-@app.post("/api/v1/analizar-perfil", response_model=RespuestaPythonDTO)
-def analizar_perfil(payload: AnalisisInputDTO):
-    print(f"\n--- [PYTHON NLP/IA] Clasificando transacciones recibidas ---")
-    
-    mapa_categorias = {}
-    
-    # Clasificación basada en tus 7 categorías principales
-    for t in payload.transacciones:
-        desc = t.descripcion.lower().strip()
-        
-        if any(kw in desc for kw in ["almuerzo", "comida", "cena", "mercado", "restaurante", "supermercado"]):
-            categoria = "Alimentación"
-        elif any(kw in desc for kw in ["gasolina", "moto", "transporte", "pasaje", "carro", "taxi", "peaje", "bus"]):
-            categoria = "Transporte"
-        elif any(kw in desc for kw in ["facia", "medico", "medicina", "dermatologo", "salud", "farmacia", "hospital", "cita"]):
-            categoria = "Salud"
-        elif any(kw in desc for kw in ["arriendo", "alquiler", "hipoteca", "mantenimiento", "casa", "apartamento"]):
-            categoria = "Vivienda"
-        elif any(kw in desc for kw in ["pension", "colegio", "universidad", "curso", "libro", "matricula", "estudio"]):
-            categoria = "Educación"
-        elif any(kw in desc for kw in ["cine", "bar", "fiesta", "viaje", "juego", "salida", "entretenimiento", "restaurante fin de semana"]):
-            categoria = "Ocio"
-        elif any(kw in desc for kw in ["luz", "agua", "gas", "internet", "telefono", "servicios", "plan"]):
-            categoria = "Servicios"
-        else:
-            categoria = "Ocio"  # Categoría por defecto si no encaja en las anteriores
-            
-        mapa_categorias[t.descripcion] = categoria
-
-    return {
-        "probabilidad": 0.82,
-        "perfil_financiero": "En observación",
-        "clasificacion_gastos": mapa_categorias,
-        "recomendaciones": [
-            "Monitorear los gastos recurrentes de entretenimiento y ocio",
-            "Aumentar la reserva financiera mensual"
-        ]
-    }
+app.include_router(api_router, prefix="/api/v1")
