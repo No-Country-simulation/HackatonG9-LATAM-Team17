@@ -39,16 +39,16 @@ public class PythonDataScienceClient {
         } catch (Exception e) {
             System.out.println("⚠️ Error conectando con Python (/analizar-perfil): " + e.getMessage());
 
-            // Construimos el mapa de respaldo de forma segura
-            Map<String, String> mapaFallback = new HashMap<>();
-            mapaFallback.put("almuerzo", "Alimentación");
-            mapaFallback.put("comida", "Alimentación");
-            mapaFallback.put("gasolina", "Transporte");
-            mapaFallback.put("moto", "Transporte");
+            // CORREGIDO: Mapa de respaldo con acumulados numéricos (Double)
+            Map<String, Double> mapaFallback = new HashMap<>();
+            mapaFallback.put("Alimentación", 150.0);
+            mapaFallback.put("Transporte", 50.0);
 
             return new RespuestaPythonDTO(
-                    0.75,
-                    "En observación",
+                    0.75, // probabilidadCategoria
+                    0.75, // probabilidadPerfilFinanciero
+                    0.75, // probabilidadRecomendaciones
+                    "Estable",
                     mapaFallback,
                     List.of(
                             "Servicio de IA no disponible temporalmente.",
@@ -71,17 +71,18 @@ public class PythonDataScienceClient {
         } catch (Exception e) {
             System.out.println("⚠️ Error conectando con Python (/clasificar-transaccion): " + e.getMessage());
 
-            // Validamos que la descripción no sea nula antes de ponerla en el mapa
-            String desc = (transaccionDTO != null && transaccionDTO.descripcion() != null)
-                    ? transaccionDTO.descripcion()
-                    : "desconocido";
+            // Obtenemos el valor de la transacción si existe para usarlo en el respaldo
+            double valorTransaccion = (transaccionDTO != null) ? transaccionDTO.valor() : 0.0;
 
-            Map<String, String> mapaFallbackIndividual = new HashMap<>();
-            mapaFallbackIndividual.put(desc, "Ocio");
+            // CORREGIDO: Mapa de respaldo individual con tipo Double
+            Map<String, Double> mapaFallbackIndividual = new HashMap<>();
+            mapaFallbackIndividual.put("Ocio", valorTransaccion);
 
             return new RespuestaPythonDTO(
-                    0.0,
-                    "SIN_PERFIL",
+                    0.0, // probabilidadCategoria
+                    0.0, // probabilidadPerfilFinanciero
+                    0.0, // probabilidadRecomendaciones
+                    "Estable",
                     mapaFallbackIndividual,
                     List.of("No fue posible obtener recomendaciones para esta transacción.")
             );

@@ -1,4 +1,4 @@
-package saludfinanciera.finanzas.model;
+/*package saludfinanciera.finanzas.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -71,4 +71,4 @@ public class AnalisisFinanciero {
         // Asigna la fecha y hora actual sin milisegundos.
         this.fechaAnalisis = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
-}
+}*/

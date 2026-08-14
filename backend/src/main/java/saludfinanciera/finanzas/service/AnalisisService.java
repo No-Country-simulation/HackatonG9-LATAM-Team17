@@ -7,7 +7,6 @@ import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +15,9 @@ import java.util.Map;
  * SERVICIO DE ANÁLISIS FINANCIERO
  *
  * Actúa como orquestador del sistema:
- * 1. Envía los gastos individuales a Python para que los clasifique en las 7 categorías
- *    (Alimentación, Transporte, Salud, Vivienda, Educación, Ocio, Servicios).
- * 2. Suma los valores en Java para armar el 'resumen_gastos' agrupado por categoría.
- * 3. Compila el perfil financiero, certidumbre y recomendaciones finales para el Frontend.
+ * 1. Envía los datos a Python para obtener el análisis y el resumen de gastos.
+ * 2. Calcula el promedio de las 3 probabilidades devueltas por los modelos de IA.
+ * 3. Compila el perfil financiero, la probabilidad promedio y recomendaciones finales para el Frontend.
  */
 @Service
 public class AnalisisService {
@@ -43,46 +41,37 @@ public class AnalisisService {
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO input) {
 
         // =========================================================================
-        // PASO 1: SOLICITAR CLASIFICACIÓN Y EVALUACIÓN A LA IA (PYTHON)
-        // Se le envían las transacciones crudas (ej: "almuerzo", "gasolina", "moto")
-        // Python nos devuelve un mapa con la asignación a las 7 categorías oficiales:
-        // Ej: {"almuerzo": "Alimentación", "gasolina": "Transporte", "moto": "Transporte"}
+        // PASO 1: SOLICITAR ANÁLISIS COMPLETO A LA IA (PYTHON)
         // =========================================================================
         RespuestaPythonDTO dsResponse = pythonClient.obtenerAnalisisDesdePython(input);
 
-        // Extraemos el mapa asignado por la IA en Python
-        Map<String, String> clasificacionPython = dsResponse.categoria();
-
+        // =========================================================================
+        // PASO 2: CÁLCULO DEL PROMEDIO DE LAS TRES PROBABILIDADES
+        // CORREGIDO: Se usa probabilidadRecomendaciones() con la ortografía correcta.
+        // =========================================================================
+        Double probabilidadPromedio = calcularPromedioProbabilidades(
+                dsResponse.probabilidadCategoria(),
+                dsResponse.probabilidadPerfilFinanciero(),
+                dsResponse.probabilidadRecomendaciones()
+        );
 
         // =========================================================================
-        // PASO 2: MATEMÁTICAS EN JAVA (ACUMULACIÓN POR CATEGORÍA)
-        // Recorremos las transacciones del usuario y sumamos los montos según
-        // la categoría que le asignó Python.
+        // PASO 3: OBTENER EL RESUMEN DE GASTOS DESDE PYTHON
+        // CORREGIDO: Python ya nos entrega el resumen agrupado mediante resumenGastos()
         // =========================================================================
         Map<String, Double> resumenGastosPorCategoria = new HashMap<>();
 
-        if (input.transacciones() != null) {
+        if (dsResponse.resumenGastos() != null && !dsResponse.resumenGastos().isEmpty()) {
+            resumenGastosPorCategoria.putAll(dsResponse.resumenGastos());
+        } else if (input.transacciones() != null) {
+            // Fallback por seguridad si el mapa viniera vacío
             for (TransaccionDTO t : input.transacciones()) {
-
-                // Buscamos qué categoría le asignó Python a esta descripción.
-                // Si por alguna razón no la encuentra, se clasifica en "Ocio" por defecto.
-                String categoria = "Ocio";
-                if (clasificacionPython != null && clasificacionPython.containsKey(t.descripcion())) {
-                    categoria = clasificacionPython.get(t.descripcion());
-                }
-
-                // Sumamos el valor a la categoría correspondiente
-                // Ejemplo:
-                // - "Alimentación": 100 (almuerzo) + 100 (comida) = 200.0
-                // - "Transporte":  200 (gasolina) + 400 (moto)    = 600.0
-                resumenGastosPorCategoria.merge(categoria, t.valor(), Double::sum);
+                resumenGastosPorCategoria.merge("Ocio", t.valor(), Double::sum);
             }
         }
 
-
         // =========================================================================
-        // PASO 3: EXTRAER RECOMENDACIONES DE LA IA
-        // Leemos las sugerencias generadas por Python.
+        // PASO 4: EXTRAER RECOMENDACIONES DE LA IA
         // Si Python devuelve nulo o una lista vacía, colocamos un mensaje genérico.
         // =========================================================================
         List<String> recomendaciones = dsResponse.recomendaciones();
@@ -90,21 +79,33 @@ public class AnalisisService {
             recomendaciones = List.of("Mantener un control regular de tus gastos.");
         }
 
-
         // =========================================================================
-        // PASO 4: CONSTRUCCIÓN DEL PAQUETE FINAL PARA EL FRONTEND
-        // Retornamos el DTO que enviará el JSON estructurado:
-        // - perfilFinanciero: generado por Python
-        // - probabilidad: generada por Python
-        // - resumenGastosPorCategoria: calculated por Java acumulando las 7 categorías
-        // - recomendaciones: generadas por Python
+        // PASO 5: CONSTRUCCIÓN DEL PAQUETE FINAL PARA EL FRONTEND
         // =========================================================================
         return new AnalisisOutputDTO(
                 dsResponse.perfilFinanciero(),
-                dsResponse.probabilidad(),
+                probabilidadPromedio,
                 resumenGastosPorCategoria,
                 recomendaciones
         );
+    }
+
+    /**
+     * Método auxiliar para calcular el promedio de las probabilidades de forma segura.
+     * Omite valores nulos y previene divisiones por cero.
+     */
+    private Double calcularPromedioProbabilidades(Double... probs) {
+        double suma = 0.0;
+        int count = 0;
+
+        for (Double p : probs) {
+            if (p != null) {
+                suma += p;
+                count++;
+            }
+        }
+
+        return count > 0 ? (suma / count) : 0.0;
     }
 
     /**

@@ -1,4 +1,4 @@
-package saludfinanciera.finanzas.model;
+/*package saludfinanciera.finanzas.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,4 +25,4 @@ public class Transaccion {
 
     @Column(name = "categoria_asignada") // Mapea con la columna 'categoria_asignada'.
     private String categoriaAsignada;
-}
+}*/
