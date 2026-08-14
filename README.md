@@ -128,6 +128,28 @@ Simplificación en controladores (AnalisisController): Se eliminaron anotaciones
 
 Limpieza de archivos locales: Se eliminaron configuraciones temporales de IntelliJ (compiler.xml, material_theme_project_new.xml, etc.) que venían afectando el directorio del proyecto.
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+Resumen de Cambios: Implementación de Autenticación y Estructura Base de Analítica
+Se desarrolló e integró el sistema completo de gestión de usuarios y autenticación en el backend de Spring Boot, además de conectar los modelos de datos para el análisis financiero.
+
+1. Módulo de Autenticación y Seguridad (auth)
+Controlador (AuthController): Creación de los endpoints públicos para el registro de nuevos usuarios y el inicio de sesión.
+
+Servicio (AuthService): Lógica de negocio para procesar el registro de credenciales y validar el acceso de los usuarios de forma segura.
+
+Modelos y Repositorios (Usuario, UsuarioRepository): Creación de la entidad de usuario en la base de datos y su respectiva interfaz de persistencia con Spring Data JPA.
+
+DTOs de Solicitud (LoginRequestDTO, RegistroRequestDTO): Estructuras de transferencia de datos optimizadas para capturar las peticiones HTTP de autenticación.
+
+Configuración de Seguridad y CORS (SecurityConfig, CorsConfig): Ajustes de seguridad iniciales y habilitación de políticas de intercambio de recursos de origen cruzado para permitir la comunicación fluida con el frontend.
+
+2. Conexión y Analítica Financiera
+Actualización del Cliente Python (PythonDataScienceClient) y DTOs (RespuestaPythonDTO): Ajuste de la comunicación para consumir correctamente el servicio orquestador de Machine Learning.
+
+Modelos de Negocio y Repositorios (AnalisisFinanciero, Transaccion, repositorios asociados): Preparación de las entidades relacionales para almacenar el historial de análisis financieros y las transacciones asociadas de cada usuario.
+
+Configuración del Sistema (application.properties, pom.xml): Actualización de dependencias y parámetros de conexión para soportar los nuevos módulos de seguridad y persistencia.
+
 6. Capa Repository y Service (Persistencia y Lógica de Negocio)
 AnalisisFinancieroRepository.java: Ajustes en la interfaz de repositorio para el manejo y guardado de los análisis en la base de datos.
 
