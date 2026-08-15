@@ -13,10 +13,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF para permitir peticiones POST desde el frontend
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/finanzas/**").permitAll() // Rutas libres sin login previo
+                        .requestMatchers("/api/v1/auth/**",
+                                                   "/api/v1/finanzas/**",
+                                                  // Rutas permitidas para Swagger / OpenAPI
+                                                   "/v3/api-docs/**",
+                                                   "/swagger-ui/**",
+                                                   "/swagger-ui.html"
+                                ).permitAll() // Rutas libres sin login previo
                         .anyRequest().authenticated()
                 );
-
         return http.build();
     }
 }

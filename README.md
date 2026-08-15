@@ -1,3 +1,7 @@
+## Vista del mapeo con Swagger
+
+![Vista previa de Swagger](assets/imagen-swagger.png)
+
 ## 🛠️ Registro de Correcciones y Refactorización - Backend    
 
 Este documento detalla las modificaciones críticas realizadas en la arquitectura del backend para corregir errores de compilación, estandarizar las convenciones del proyecto y garantizar la compatibilidad absoluta del entorno con Java 21 y Spring Boot 3.
