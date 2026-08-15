@@ -2,6 +2,37 @@
 
 ![Vista previa de Swagger](assets/imagen-swagger.png)
 
+## 🛠️ Arquitectura de Tratamiento de Errores
+
+La estructura queda dividida entre el paquete `dto.error` para las respuestas de API y el paquete `exception` para las clases de manejo de errores:
+
+````text
+saludfinanciera/finanzas/
+ ├── dto/
+ │   └── error/
+ │       ├── ErrorResponseDTO.java          # DTO para errores generales de validación y datos del cliente (400, 415, 500)
+ │       ├── DataErrorResponseDTO.java       # DTO para errores de persistencia y base de datos (409)
+ │       ├── PythonServiceErrorDTO.java     # DTO para fallas en la comunicación con el servicio de Python (502, 503)
+ │       └── AIServiceErrorDTO.java         # DTO para timeouts y fallas del motor IA
+ └── exception/
+     ├── GlobalExceptionHandler.java     # Interceptor centralizado (@RestControllerAdvice)
+     ├── EntityAlreadyExistsException.java  # Excepción personalizada para entidades duplicadas (409)
+     └── ResourceNotFoundException.java   # Excepción personalizada para recursos no encontrados (404)
+````
+
+## 📊 3. Matriz de Cobertura de Errores
+
+| Capa / Origen | Excepción Interceptada | Código HTTP | DTO Devuelto | Descripción |
+|---------------|------------------------|-------------|--------------|-------------|
+| Validación DTO (Front) | `MethodArgumentNotValidException` | `400 BAD REQUEST` | `ErrorResponseDTO` | Devuelve un mapa con el detalle de los campos que violaron las reglas (`@NotNull`, `@Valid`, etc.). |
+| Recursos Inexistentes | `ResourceNotFoundException` | `404 NOT FOUND` | `ErrorResponseDTO` | Entidades o registros no encontrados en el dominio. |
+| Persistencia / BD (data) | `DataIntegrityViolationException` / `EntityAlreadyExistsException` | `409 CONFLICT` | `DataErrorResponseDTO` | Sanitiza errores técnicos de SQL o registros duplicados, devolviendo un mensaje amigable al usuario. |
+| Microservicio Python | `HttpStatusCodeException` | `502 BAD GATEWAY` | `PythonServiceErrorDTO` | Captura respuestas 4xx/5xx provenientes del cliente externo en Python. |
+| Red / Conexión Python | `ResourceAccessException` | `503 SERVICE UNAVAILABLE` | `PythonServiceErrorDTO` | Captura caídas o fallas de red al intentar alcanzar el servicio de Python. |
+| General / Inesperado | `Exception` | `500 INTERNAL ERROR` | `ErrorResponseDTO` | Captura no controlada para evitar exponer la traza de Java. |
+
+___
+
 ## 🛠️ Registro de Correcciones y Refactorización - Backend    
 
 Este documento detalla las modificaciones críticas realizadas en la arquitectura del backend para corregir errores de compilación, estandarizar las convenciones del proyecto y garantizar la compatibilidad absoluta del entorno con Java 21 y Spring Boot 3.
