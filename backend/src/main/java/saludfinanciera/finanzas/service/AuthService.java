@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import saludfinanciera.finanzas.dto.request.LoginRequestDTO;
 import saludfinanciera.finanzas.dto.request.RegistroRequestDTO;
+import saludfinanciera.finanzas.exception.ResourceNotFoundException;
 import saludfinanciera.finanzas.model.Usuario;
 import saludfinanciera.finanzas.repository.UsuarioRepository;
 
@@ -24,7 +25,7 @@ public class AuthService {
     public String registrarUsuario(RegistroRequestDTO request) {
         // 1. Validar si el correo ya está registrado
         if (usuarioRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("El correo electrónico ya está en uso.");
+            throw new RuntimeException("El correo electrónico " +  request.email() + " ya existe");
         }
 
         // 2. Crear la entidad Usuario
@@ -39,29 +40,26 @@ public class AuthService {
 
         return "Usuario registrado exitosamente";
     }
+
     public String autenticarUsuario(LoginRequestDTO request) {
         // 1. Buscar al usuario por correo en PostgreSQL
-        var usuarioOpt = usuarioRepository.findByEmail(request.email());
+        Usuario usuario = usuarioRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("Usuario o contraseña incorrectos."));
 
-        if (usuarioOpt.isEmpty()) {
-            throw new RuntimeException("Usuario o contraseña incorrectos.");
-        }
-
-        var usuario = usuarioOpt.get();
-
-        // 2. Verificar si la contraseña coincide con el hash almacenado
+        // 2. Verificar si la contraseña coincide
         if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {
-            throw new RuntimeException("Usuario o contraseña incorrectos.");
+            throw new ResourceNotFoundException("Usuario o contraseña incorrectos.");
         }
 
         return "Bienvenido de nuevo, " + usuario.getNombre();
     }
+
+
     public boolean eliminarPorEmail(String email) {
-        Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
-        if (usuario.isPresent()) {
-            usuarioRepository.delete(usuario.get());
-            return true;
-        }
-        return false;
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con el correo: " + email));
+
+        usuarioRepository.delete(usuario);
+        return true;
     }
 }
