@@ -6,6 +6,7 @@ import saludfinanciera.finanzas.dto.RespuestaPythonDTO;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
+import saludfinanciera.finanzas.exception.ResourceNotFoundException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,48 +41,44 @@ public class AnalisisService {
      */
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO input) {
 
-        // =========================================================================
-        // PASO 1: SOLICITAR ANÁLISIS COMPLETO A LA IA (PYTHON)
-        // =========================================================================
+        // Validar datos mínimos de entrada
+        if (input == null || input.transacciones() == null || input.transacciones().isEmpty()) {
+            throw new ResourceNotFoundException("No se proporcionaron transacciones válidas para realizar el análisis.");
+        }
+
+        // 1. SOLICITAR ANÁLISIS AL SERVICIO DE PYTHON
         RespuestaPythonDTO dsResponse = pythonClient.obtenerAnalisisDesdePython(input);
 
-        // =========================================================================
-        // PASO 2: CÁLCULO DEL PROMEDIO DE LAS TRES PROBABILIDADES
-        // CORREGIDO: Se usa probabilidadRecomendaciones() con la ortografía correcta.
-        // =========================================================================
+        if (dsResponse == null) {
+            throw new ResourceNotFoundException("No se pudo obtener una respuesta válida del motor de análisis.");
+        }
+
+        // 2. CÁLCULO DEL PROMEDIO DE PROBABILIDADES
         Double probabilidadPromedio = calcularPromedioProbabilidades(
                 dsResponse.probabilidadCategoria(),
                 dsResponse.probabilidadPerfilFinanciero(),
                 dsResponse.probabilidadRecomendaciones()
         );
 
-        // =========================================================================
-        // PASO 3: OBTENER EL RESUMEN DE GASTOS DESDE PYTHON
-        // CORREGIDO: Python ya nos entrega el resumen agrupado mediante resumenGastos()
-        // =========================================================================
+        // 3. OBTENER RESUMEN DE GASTOS
         Map<String, Double> resumenGastosPorCategoria = new HashMap<>();
 
         if (dsResponse.resumenGastos() != null && !dsResponse.resumenGastos().isEmpty()) {
             resumenGastosPorCategoria.putAll(dsResponse.resumenGastos());
-        } else if (input.transacciones() != null) {
-            // Fallback por seguridad si el mapa viniera vacío
+        } else {
+            // Fallback por seguridad
             for (TransaccionDTO t : input.transacciones()) {
                 resumenGastosPorCategoria.merge("Ocio", t.valor(), Double::sum);
             }
         }
 
-        // =========================================================================
-        // PASO 4: EXTRAER RECOMENDACIONES DE LA IA
-        // Si Python devuelve nulo o una lista vacía, colocamos un mensaje genérico.
-        // =========================================================================
+        // 4. EXTRAER RECOMENDACIONES
         List<String> recomendaciones = dsResponse.recomendaciones();
         if (recomendaciones == null || recomendaciones.isEmpty()) {
             recomendaciones = List.of("Mantener un control regular de tus gastos.");
         }
 
-        // =========================================================================
-        // PASO 5: CONSTRUCCIÓN DEL PAQUETE FINAL PARA EL FRONTEND
-        // =========================================================================
+        // 5. CONSTRUCCIÓN Y RETORNO DEL DTO FINAL
         return new AnalisisOutputDTO(
                 dsResponse.perfilFinanciero(),
                 probabilidadPromedio,
@@ -91,8 +88,24 @@ public class AnalisisService {
     }
 
     /**
-     * Método auxiliar para calcular el promedio de las probabilidades de forma segura.
-     * Omite valores nulos y previene divisiones por cero.
+     * CLASIFICACIÓN INDIVIDUAL DE UNA TRANSACCIÓN
+     */
+    public RespuestaPythonDTO clasificarTransaccion(TransaccionDTO transaccionDTO) {
+        if (transaccionDTO == null) {
+            throw new ResourceNotFoundException("Los datos de la transacción no pueden ser nulos.");
+        }
+
+        RespuestaPythonDTO respuesta = pythonClient.obtenerClasificacionDesdePython(transaccionDTO);
+
+        if (respuesta == null) {
+            throw new ResourceNotFoundException("No se obtuvo respuesta para la clasificación de la transacción.");
+        }
+
+        return respuesta;
+    }
+
+    /**
+     * Funcion auxiliar para calcular el promedio de probabilidades.
      */
     private Double calcularPromedioProbabilidades(Double... probs) {
         double suma = 0.0;
@@ -106,16 +119,5 @@ public class AnalisisService {
         }
 
         return count > 0 ? (suma / count) : 0.0;
-    }
-
-    /**
-     * CLASIFICACIÓN INDIVIDUAL DE UNA TRANSACCIÓN
-     * Utilizado por el Controlador para procesar o validar un gasto de forma independiente.
-     *
-     * @param transaccionDTO Objeto con la descripción y el valor de un solo gasto.
-     * @return RespuestaPythonDTO enviada desde el cliente de Python.
-     */
-    public RespuestaPythonDTO clasificarTransaccion(TransaccionDTO transaccionDTO) {
-        return pythonClient.obtenerClasificacionDesdePython(transaccionDTO);
     }
 }
