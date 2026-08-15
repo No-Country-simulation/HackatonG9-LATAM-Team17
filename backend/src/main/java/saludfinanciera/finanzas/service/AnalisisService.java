@@ -2,7 +2,7 @@ package saludfinanciera.finanzas.service;
 
 import org.springframework.stereotype.Service;
 import saludfinanciera.finanzas.client.PythonDataScienceClient;
-import saludfinanciera.finanzas.dto.RespuestaPythonDTO;
+import saludfinanciera.finanzas.dto.response.RespuestaPythonDTO;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;

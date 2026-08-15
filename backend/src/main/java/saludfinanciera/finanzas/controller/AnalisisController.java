@@ -10,7 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
-import saludfinanciera.finanzas.dto.RespuestaPythonDTO;
+import saludfinanciera.finanzas.dto.response.RespuestaPythonDTO;
 import saludfinanciera.finanzas.dto.error.DataErrorResponseDTO;
 import saludfinanciera.finanzas.dto.error.ErrorResponseDTO;
 import saludfinanciera.finanzas.dto.error.PythonServiceErrorDTO;
