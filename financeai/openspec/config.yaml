@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Tech stack: React 19, TypeScript, Vite, TailwindCSS v4, Framer Motion.
+  Domain: Finance AI Frontend (Hackaton G9).
+  Icons: lucide-react.
+  UI Guidelines: Modern, vibrant aesthetics. Use the established color palette (e.g., primary #4648d4, secondary #fd933d, text #191c1d / #767586). Rely on Tailwind utility classes like `rounded-xl`, `font-display`, and `font-mono-val`.
+  Backend Integration: Java Spring Boot REST API. Consult `docs/API_BACKEND_ENDPOINTS.md` for endpoint specifics. The frontend must handle the most common 4xx/5xx errors gracefully to mask backend inconsistencies, providing friendly messages to the user.
+
+rules:
+  proposal:
+    - Clearly define UI/UX impact and any backend dependencies.
+    - Always include a "Non-goals" section to avoid scope creep.
+  design:
+    - Never introduce new colors outside the existing Tailwind/branding palette.
+    - Mention which Lucide icons will be used.
+  tasks:
+    - Break tasks into small, self-contained implementation steps.
+    - Always include a final task to run `npm run lint` (which triggers `tsc --noEmit`) to verify TypeScript correctness.
