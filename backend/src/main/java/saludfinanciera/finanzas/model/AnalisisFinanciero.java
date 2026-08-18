@@ -1,6 +1,7 @@
-/*package saludfinanciera.finanzas.model;
+package saludfinanciera.finanzas.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"transacciones", "recomendaciones"}) // Excluimos relaciones para evitar loops infinitos en toString().
+@ToString(exclude = {"transacciones", "recomendaciones", "categorias"})
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalisisFinanciero {
@@ -25,50 +26,39 @@ public class AnalisisFinanciero {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "ingreso_mensual")
-    private double ingresoMensual;
-
-    @Column(name = "nivel_endeudamiento")
-    private int nivelEndeudamiento;
-
-    @Column(name = "frecuencia_ahorro")
-    private String frecuenciaAhorro;
+    // Relación con el usuario que hizo el análisis
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(name = "perfil_financiero")
     private String perfilFinanciero;
-
-    @Column(name = "probabilidad_ia")
-    private double probabilidadIa;
 
     @Column(name = "fecha_analisis", nullable = false, updatable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaAnalisis;
 
-    // Relación Uno a Muchos: Un análisis tiene muchas transacciones.
-    // CascadeType.ALL: Si guardamos o eliminamos el Análisis, sus Transacciones asociadas se guardan/eliminan automáticamente.
-    // orphanRemoval = true: Si quitamos una transacción de la lista, Hibernate la borra físicamente de la BD.
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "analisis_id") // Crea una clave foránea (FK) 'analisis_id' en la tabla transacciones.
+    // Relación Uno a Muchos con las transacciones de este análisis específico
+    @OneToMany(mappedBy = "analisisFinanciero", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
-    private List<Transaccion> transacciones = new ArrayList<>();
+    private List<TransaccionAnalisis> transacciones = new ArrayList<>();
 
-    // ElementCollection guarda una lista de elementos simples (String) en una tabla auxiliar.
-    @ElementCollection
-    @CollectionTable(name = "analisis_categorias", joinColumns = @JoinColumn(name = "analisis_id"))
-    @Column(name = "categoria")
+    // Nueva relación: Uno a Muchos con las categorías asociadas al análisis
+    @OneToMany(mappedBy = "analisisFinanciero", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
-    private List<String> categoria = new ArrayList<>();
+    private List<CategoriaAnalisis> categorias = new ArrayList<>();
 
+    // Lista de recomendaciones generadas
     @ElementCollection
     @CollectionTable(name = "recomendaciones_analisis", joinColumns = @JoinColumn(name = "analisis_id"))
-    @Column(name = "texto_recomendacion")
+    @Column(name = "texto_recomendacion", length = 1000)
     @Builder.Default
     private List<String> recomendaciones = new ArrayList<>();
 
-    // Callback de JPA que se ejecuta automáticamente JUSTO ANTES de hacer el INSERT en la BD.
+    // Callback de JPA para asignar la fecha exacta antes de guardar
     @PrePersist
     protected void prePersist() {
-        // Asigna la fecha y hora actual sin milisegundos.
         this.fechaAnalisis = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
-}*/
+}
