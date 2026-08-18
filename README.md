@@ -2,6 +2,68 @@
 
 ![Vista previa de Swagger](assets/imagen-swagger.png)
 
+___
+## 🚀 Endpoints de Finanzas
+
+A continuación se detallan los endpoints disponibles para el análisis y clasificación de finanzas personales.
+
+---
+
+### 1. Analizar Finanzas
+
+Realiza un análisis financiero integral a partir de los datos generales del usuario y su historial de transacciones.
+
+- **Método:** `POST`
+- **URL:** `/api/v1/finanzas/analizar`
+- **Headers:** `Content-Type: application/json`
+
+#### 📥 Ejemplo de Request Body:
+
+````json
+{
+  "ingreso_mensual": 650000.00,
+  "nivel_endeudamiento": 2,
+  "frecuencia_ahorro": "MENSUAL",
+  "monto_inversion": 50000.00,
+  "deuda_total": 120000.00,
+  "objetivo_presupuesto": 300000.00,
+  "pago_mensual_deuda": 15000.00,
+  "servicios_suscripcion": 4,
+  "fondo_emergencia": 100000.00,
+  "transacciones": [
+    {
+      "descripcion": "Supermercado Coto compras semana",
+      "valor": 42500.00,
+      "categoria": "ALIMENTACION",
+      "fecha": "2026-08-18"
+    }
+  ]
+}
+````
+2. Clasificar Transacción / Perfil Financiero
+   Clasifica un movimiento puntual asociándolo al perfil financiero y metas de ahorro del usuario.
+
+Método: **POST**
+
+URL: **/api/v1/finanzas/clasificar**
+
+Headers: **Content-Type: application/json**
+
+### 📥 Ejemplo de Request Body:
+
+````json
+{
+  "usuario_id": "USR-1001",
+  "ingreso_mensual": 650000.00,
+  "ahorro_actual": 150000.00,
+  "meta_ahorro": 300000.00,
+  "nivel_endeudamiento": 2,
+  "frecuencia_ahorro": "MENSUAL",
+  "descripcion": "Supermercado Coto compras semana",
+  "valor": 42500.00
+}
+````
+
 ## 🛠️ Arquitectura de Tratamiento de Errores
 
 La estructura queda dividida entre el paquete `dto.error` para las respuestas de API y el paquete `exception` para las clases de manejo de errores:

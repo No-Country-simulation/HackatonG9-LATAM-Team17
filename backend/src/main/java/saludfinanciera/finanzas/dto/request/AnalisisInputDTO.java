@@ -100,7 +100,7 @@ public record AnalisisInputDTO(
         )
         @NotNull(message = "El monto no puede ser nulo")
         @PositiveOrZero(message = "El monto debe ser un valor positivo igual o mayor a cero sin decimales")
-        @JsonProperty("servicios_suscripción")
+        @JsonProperty("servicios_suscripcion")
         Integer serviciosSuscripcion,
 
 
