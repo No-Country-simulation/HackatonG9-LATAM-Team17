@@ -12,6 +12,8 @@ interface FormularioAnalisisProps {
   isLoading: boolean;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
   onAnalysisComplete,
   onLoadingChange,
@@ -37,7 +39,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
     const fetchTransactions = async () => {
       onLoadingChange(true);
       try {
-        const res = await fetch("http://localhost:8080/api/v1/transacciones/usuario/USR-1001");
+        const res = await fetch(`${API_BASE_URL}/api/v1/transacciones/usuario/USR-1001`);
         if (res.ok) {
           const data = await res.json();
           setTransacciones(data);
@@ -66,7 +68,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
         fecha_transaccion: fechaTransaccion
       };
       
-      const res = await fetch("http://localhost:8080/api/v1/transacciones", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/transacciones`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -96,7 +98,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
   const handleDeleteTransaction = async (id: number | string) => {
     onLoadingChange(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/v1/transacciones/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/transacciones/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -179,7 +181,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/v1/analisis/perfil/USR-1001", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/analisis/perfil/USR-1001`, {
         method: "POST",
         headers: {
           "Accept": "application/json",
@@ -196,7 +198,7 @@ export const FormularioAnalisis: React.FC<FormularioAnalisisProps> = ({
       onAnalysisComplete(data, nivelEndeudamiento);
     } catch (err) {
       onError(
-        "No logramos conectar con el motor de Inteligencia Artificial en el servidor local (http://localhost:8080). Por favor verifica que tu servicio en Spring Boot esté en ejecución e inténtalo nuevamente. ¡Tus datos en pantalla se conservan!"
+        `No logramos conectar con el motor de Inteligencia Artificial en el servidor local (${API_BASE_URL}). Por favor verifica que tu servicio en Spring Boot esté en ejecución e inténtalo nuevamente. ¡Tus datos en pantalla se conservan!`
       );
     } finally {
       onLoadingChange(false);
