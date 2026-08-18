@@ -629,6 +629,15 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   </span>
                 </div>
               )}
+
+              {analysisError && (
+                <div className="p-3 bg-[#ffdad6]/40 border border-[#ffdad6] rounded-xl flex items-center gap-2 text-left mt-2">
+                  <AlertCircle className="w-4 h-4 text-[#ba1a1a] shrink-0" />
+                  <span className="text-[11px] font-semibold text-[#93000a] leading-snug">
+                    {analysisError}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="mt-6">

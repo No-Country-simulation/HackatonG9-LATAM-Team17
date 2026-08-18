@@ -565,11 +565,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             );
           })}
 
-          <div className="p-3 bg-[#f8f9fa] rounded-xl border border-dashed border-[#e1e3e4] text-center">
-            <p className="text-xs text-[#767586] font-medium">
-              No hay recomendaciones nuevas en este momento.
-            </p>
-          </div>
+          {recommendations.length === 0 && (
+            <div className="p-3 bg-[#f8f9fa] rounded-xl border border-dashed border-[#e1e3e4] text-center">
+              <p className="text-xs text-[#767586] font-medium">
+                No hay recomendaciones nuevas en este momento.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
