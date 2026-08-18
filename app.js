@@ -1,375 +1,402 @@
-/**
- * APP.JS - Lógica de control de pantallas, autenticación, gestión de gastos y eliminación de cuenta.
- */
-
-// URLs de conexión hacia Spring Boot
+// ==========================================
+// 1. CONFIGURACIÓN E INICIALIZACIÓN
+// ==========================================
 const API_FINANZAS_URL = "http://localhost:8080/api/v1/finanzas/analizar";
-const AUTH_REGISTRO_URL = "http://localhost:8080/api/v1/auth/registro";
 const AUTH_LOGIN_URL = "http://localhost:8080/api/v1/auth/login";
+const AUTH_REGISTRO_URL = "http://localhost:8080/api/v1/auth/registro";
 const AUTH_ELIMINAR_URL = "http://localhost:8080/api/v1/auth/eliminar";
 
-// Arreglos y variables globales de control
 let listaGastos = [];
 let correoUsuarioLogueado = "";
+let usuarioIdLogueado = null;
+let miGraficoPastel = null;
 
-// Referencias a las pantallas principales del HTML
+// Elementos UI
 const loginScreen = document.getElementById("loginScreen");
 const registroScreen = document.getElementById("registroScreen");
+const dashboardLayout = document.getElementById("dashboardLayout");
 const appScreen = document.getElementById("appScreen");
+const historialScreen = document.getElementById("historialScreen");
+const detalleTransaccionesScreen = document.getElementById("detalleTransaccionesScreen");
 
 // ==========================================
-// SECCIÓN 1: NAVEGACIÓN ENTRE VISTAS
+// 2. NAVEGACIÓN Y LOGIN / REGISTRO
 // ==========================================
 document.getElementById("linkMostrarRegistro").addEventListener("click", (e) => {
     e.preventDefault();
     loginScreen.classList.add("hidden");
     registroScreen.classList.remove("hidden");
-    document.getElementById("regMensaje").classList.add("hidden");
 });
 
 document.getElementById("linkVolverLogin").addEventListener("click", (e) => {
     e.preventDefault();
     registroScreen.classList.add("hidden");
     loginScreen.classList.remove("hidden");
-    document.getElementById("loginMensaje").classList.add("hidden");
 });
 
-document.getElementById("linkOlvidoPassword").addEventListener("click", (e) => {
-    e.preventDefault();
-    alert("Funcionalidad de recuperación de contraseña próximamente disponible.");
-});
-// ==========================================
-// SECCIÓN 2: REGISTRO DE NUEVO USUARIO
-// ==========================================
-document.getElementById("registroForm").addEventListener("submit", async function (event) {
+// Lógica de Registro
+document.getElementById("registroForm")?.addEventListener("submit", async function (event) {
     event.preventDefault();
-
-    const nombre = document.getElementById("regNombre").value.trim();
-    const email = document.getElementById("regEmail").value.trim();
-    const password = document.getElementById("regPassword").value;
-    const mensajeDiv = document.getElementById("regMensaje");
-
-    const payload = { nombre, email, password };
+    const nombre = document.getElementById("registroNombre")?.value.trim() || "";
+    const email = document.getElementById("registroEmail").value.trim();
+    const password = document.getElementById("registroPassword").value;
 
     try {
         const response = await fetch(AUTH_REGISTRO_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ nombre, email, password })
         });
 
         if (!response.ok) {
-            throw new Error("El correo ya está registrado o hubo un error en el servidor.");
+            const errorText = await response.text();
+            throw new Error(errorText || "No se pudo registrar el usuario.");
         }
 
-        mensajeDiv.textContent = "¡Registro exitoso! Redirigiendo al login...";
-        mensajeDiv.style.backgroundColor = "#e8f8f5";
-        mensajeDiv.style.color = "#117a65";
-        mensajeDiv.classList.remove("hidden");
-
-        setTimeout(() => {
-            registroScreen.classList.add("hidden");
-            loginScreen.classList.remove("hidden");
-            document.getElementById("registroForm").reset();
-            mensajeDiv.classList.add("hidden");
-        }, 1500);
-
+        alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+        registroScreen.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+        document.getElementById("registroForm").reset();
     } catch (error) {
-        mensajeDiv.textContent = error.message;
-        mensajeDiv.style.backgroundColor = "#fadbd8";
-        mensajeDiv.style.color = "#78281f";
-        mensajeDiv.classList.remove("hidden");
+        alert("Error en el registro: " + error.message);
     }
 });
 
-// ==========================================
-// SECCIÓN 3: INICIO DE SESIÓN (LOGIN)
-// ==========================================
+// Lógica de Login
 document.getElementById("loginForm").addEventListener("submit", async function (event) {
     event.preventDefault();
-
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
-    const loginMensajeDiv = document.getElementById("loginMensaje");
-
-    const payload = { email, password };
 
     try {
         const response = await fetch(AUTH_LOGIN_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ email, password })
         });
-
-        if (!response.ok) {
-            throw new Error("Usuario o contraseña incorrectos.");
-        }
-
-        // Guardar el correo actual para futuros procesos como eliminación de cuenta
-        correoUsuarioLogueado = email;
-
-        loginMensajeDiv.classList.add("hidden");
-        loginScreen.classList.add("hidden");
-        appScreen.classList.remove("hidden");
-        document.getElementById("loginForm").reset();
-
-    } catch (error) {
-        // Muestra el mensaje de error en la tarjeta visual
-        loginMensajeDiv.textContent = error.message;
-        loginMensajeDiv.style.backgroundColor = "#fadbd8";
-        loginMensajeDiv.style.color = "#78281f";
-        loginMensajeDiv.classList.remove("hidden");
-
-        // Espera 2 segundos (2000 milisegundos) para que el usuario lea el error y reinicia la página
-        setTimeout(() => {
-            location.reload();
-        }, 2000);
-    }
-});
-
-// Botón para cerrar sesión
-document.getElementById("btnCerrarSesion").addEventListener("click", function () {
-    appScreen.classList.add("hidden");
-    loginScreen.classList.remove("hidden");
-    document.getElementById("loginForm").reset();
-    document.getElementById("loginMensaje").classList.add("hidden");
-    correoUsuarioLogueado = "";
-});
-
-// ==========================================
-// SECCIÓN 4: GESTIÓN DE GASTOS Y TRANSACCIONES
-// ==========================================
-document.getElementById("btnAgregarGasto").addEventListener("click", function () {
-    const inputDesc = document.getElementById("descripcionGasto");
-    const inputValor = document.getElementById("valorGasto");
-
-    const descripcion = inputDesc.value.trim();
-    const valor = parseFloat(inputValor.value);
-
-    if (descripcion === "") {
-        alert("Debes escribir una descripción para el gasto.");
-        return;
-    }
-
-    if (descripcion.length > 25) {
-        alert("La descripción del gasto no puede superar los 25 caracteres.");
-        return;
-    }
-
-    if (isNaN(valor) || valor <= 0) {
-        alert("El valor del gasto debe ser un número positivo mayor a cero.");
-        return;
-    }
-
-    const fechaAutomatica = new Date().toISOString().slice(0, 19);
-
-    const nuevoGasto = {
-        descripcion: descripcion,
-        valor: valor,
-        fecha_transaccion: fechaAutomatica
-    };
-
-    listaGastos.push(nuevoGasto);
-    inputDesc.value = "";
-    inputValor.value = "";
-
-    actualizarTablaGastos();
-});
-
-function actualizarTablaGastos() {
-    const cuerpoTabla = document.getElementById("cuerpoTablaGastos");
-    cuerpoTabla.innerHTML = "";
-
-    if (listaGastos.length === 0) {
-        cuerpoTabla.innerHTML = `
-            <tr id="filaVacia">
-                <td colspan="3" class="texto-centrado">No has agregado ningún gasto aún.</td>
-            </tr>`;
-        return;
-    }
-
-    listaGastos.forEach((gasto, index) => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-            <td>${gasto.descripcion}</td>
-            <td>$${gasto.valor.toLocaleString()}</td>
-            <td>
-                <button type="button" class="btn-eliminar" onclick="eliminarGasto(${index})">Eliminar</button>
-            </td>
-        `;
-        cuerpoTabla.appendChild(fila);
-    });
-}
-
-window.eliminarGasto = function (index) {
-    listaGastos.splice(index, 1);
-    actualizarTablaGastos();
-};
-
-// ==========================================
-// SECCIÓN 5: ENVÍO DE DATOS FINANCIEROS AL BACKEND
-// ==========================================
-document.getElementById("finanzasForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
-    ocultarMensajesFinanzas();
-
-    if (listaGastos.length === 0) {
-        mostrarErrorFinanzas("Debes agregar al menos un gasto a la lista antes de presionar 'Analizar'.");
-        return;
-    }
-
-    const ingresoMensualVal = document.getElementById("ingresoMensual").value;
-    const deudaTotalVal = document.getElementById("deudaTotal").value;
-    const frecuenciaAhorroVal = document.getElementById("frecuenciaAhorro").value;
-    const montoInversionVal = document.getElementById("montoInversion").value;
-    const objetivoPresupuestoVal = document.getElementById("objetivoPresupuesto").value;
-    const pagoMensualDeudaVal = document.getElementById("pagoMensualDeuda").value;
-    const serviciosSuscripcionVal = document.getElementById("serviciosSuscripcion").value;
-    const fondoEmergenciaVal = document.getElementById("fondoEmergencia").value;
-
-    const ingresoMensual = ingresoMensualVal ? parseFloat(ingresoMensualVal) : 0;
-    const deudaTotal = deudaTotalVal ? parseFloat(deudaTotalVal) : 0;
-    const montoInversion = montoInversionVal ? parseFloat(montoInversionVal) : 0;
-    const objetivoPresupuesto = objetivoPresupuestoVal ? parseFloat(objetivoPresupuestoVal) : 0;
-    const pagoMensualDeuda = pagoMensualDeudaVal ? parseFloat(pagoMensualDeudaVal) : 0;
-    const serviciosSuscripcion = serviciosSuscripcionVal ? parseInt(serviciosSuscripcionVal, 10) : 0;
-    const fondoEmergencia = fondoEmergenciaVal ? parseFloat(fondoEmergenciaVal) : 0;
-
-    if (isNaN(ingresoMensual) || ingresoMensual <= 0) {
-        mostrarErrorFinanzas("El ingreso mensual debe ser un número válido mayor a cero.");
-        return;
-    }
-
-    if (!frecuenciaAhorroVal) {
-        mostrarErrorFinanzas("Debes seleccionar una frecuencia de ahorro.");
-        return;
-    }
-
-    const nivelEndeudamiento = Math.round((deudaTotal / ingresoMensual) * 100);
-
-    const payload = {
-        ingreso_mensual: ingresoMensual,
-        nivel_endeudamiento: nivelEndeudamiento,
-        frecuencia_ahorro: frecuenciaAhorroVal,
-        monto_inversion: montoInversion,
-        deuda_total: deudaTotal,
-        objetivo_presupuesto: objetivoPresupuesto,
-        pago_mensual_deuda: pagoMensualDeuda,
-        servicios_suscripción: serviciosSuscripcion,
-        fondo_emergencia: fondoEmergencia,
-        transacciones: listaGastos
-    };
-
-    try {
-        const response = await fetch(API_FINANZAS_URL, {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error en el servidor: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error("Credenciales inválidas.");
         const data = await response.json();
-        mostrarResultadoFinanzas(data);
+        usuarioIdLogueado = data.id;
+        correoUsuarioLogueado = email;
+        document.getElementById("labelUsuarioEmail").textContent = email;
 
-    } catch (error) {
-        mostrarErrorFinanzas("No se pudo conectar con el servidor backend en " + API_FINANZAS_URL);
-    }
-});
-
-// ==========================================
-// SECCIÓN 6: ELIMINACIÓN DE CUENTA DE USUARIO
-// ==========================================
-document.getElementById("btnEliminarCuenta").addEventListener("click", async function () {
-    const confirmar = confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción borrará tus datos permanentemente.");
-    
-    if (!confirmar) return;
-
-    try {
-        const response = await fetch(`${AUTH_ELIMINAR_URL}?email=${encodeURIComponent(correoUsuarioLogueado)}`, {
-            method: "DELETE"
-        });
-
-        if (!response.ok) {
-            throw new Error("No se pudo procesar la eliminación de la cuenta.");
-        }
-
-        alert("Tu cuenta ha sido eliminada con éxito.");
-        
-        // Limpiar estado y regresar al login
-        appScreen.classList.add("hidden");
-        loginScreen.classList.remove("hidden");
-        document.getElementById("loginForm").reset();
-        document.getElementById("finanzasForm").reset();
-        listaGastos = [];
-        actualizarTablaGastos();
-        correoUsuarioLogueado = "";
-
+        loginScreen.classList.add("hidden");
+        dashboardLayout.classList.remove("hidden");
     } catch (error) {
         alert("Error: " + error.message);
     }
 });
 
 // ==========================================
-// SECCIÓN 7: FUNCIONES AUXILIARES DE RESULTADOS
+// 3. NAVEGACIÓN SIDEBAR
 // ==========================================
-function mostrarResultadoFinanzas(data) {
-    const perfil = data.perfilFinanciero || data.perfil_financiero || "Sin evaluar";
-    document.getElementById("resPerfil").textContent = perfil;
-    
-    const probabilidadVal = data.probabilidadCategoria !== undefined ? data.probabilidadCategoria : (data.probabilidad || 0);
-    const probabilidadPct = (probabilidadVal * 100).toFixed(0);
-    document.getElementById("resProbabilidad").textContent = probabilidadPct;
+document.getElementById("navInicio").addEventListener("click", () => {
+    historialScreen.classList.add("hidden");
+    detalleTransaccionesScreen.classList.add("hidden");
+    appScreen.classList.remove("hidden");
+});
 
-    const contenedorGastos = document.getElementById("resCategorias"); 
-    const resumen = data.resumenGastos || data.resumen_gastos;
+document.getElementById("btnIrHistorial").addEventListener("click", async () => {
+    appScreen.classList.add("hidden");
+    detalleTransaccionesScreen.classList.add("hidden");
+    historialScreen.classList.remove("hidden");
+    await cargarPantallaHistorial();
+});
 
-    if (contenedorGastos) {
-        if (resumen && Object.keys(resumen).length > 0) {
-            let htmlGastos = "<ul>";
-            for (const [categoria, monto] of Object.entries(resumen)) {
-                htmlGastos += `<li><strong>${categoria}:</strong> $${monto.toLocaleString()}</li>`;
-            }
-            htmlGastos += "</ul>";
-            contenedorGastos.innerHTML = htmlGastos;
-        } else {
-            contenedorGastos.textContent = "No hay desglose de gastos disponible.";
-        }
+document.getElementById("btnCerrarSesion").addEventListener("click", () => {
+    location.reload();
+});
+
+// ==========================================
+// 4. GESTIÓN DE GASTOS
+// ==========================================
+document.getElementById("btnAgregarGasto").addEventListener("click", function () {
+    const desc = document.getElementById("descripcionGasto").value.trim();
+    const valor = parseFloat(document.getElementById("valorGasto").value);
+
+    if (!desc || isNaN(valor) || valor <= 0) {
+        alert("Por favor, ingresa una descripción y un valor válido.");
+        return;
     }
 
-    const contenedorRecomendaciones = document.getElementById("resRecomendaciones");
-    if (contenedorRecomendaciones) {
-        if (data.recomendaciones && data.recomendaciones.length > 0) {
-            let htmlRec = "<ul>";
-            data.recomendaciones.forEach(rec => {
-                htmlRec += `<li>${rec}</li>`;
-            });
-            htmlRec += "</ul>";
-            contenedorRecomendaciones.innerHTML = htmlRec;
-        } else {
-            contenedorRecomendaciones.textContent = "Sin recomendaciones por ahora.";
-        }
+    listaGastos.push({ descripcion: desc, valor: valor, fecha_transaccion: new Date().toISOString() });
+    document.getElementById("descripcionGasto").value = "";
+    document.getElementById("valorGasto").value = "";
+    actualizarTablaGastos();
+});
+
+function actualizarTablaGastos() {
+    const cuerpo = document.getElementById("cuerpoTablaGastos");
+    cuerpo.innerHTML = listaGastos.length === 0 ? 
+        '<tr id="filaVacia"><td colspan="3" class="text-center p-6 text-slate-400 text-sm">No has agregado ningún gasto aún.</td></tr>' : "";
+    
+    listaGastos.forEach((g, i) => {
+        cuerpo.innerHTML += `
+            <tr class="text-center">
+                <td class="p-3.5 text-slate-700">${g.descripcion}</td>
+                <td class="p-3.5 text-slate-600 font-semibold">$${g.valor.toLocaleString()}</td>
+                <td class="p-3.5"><button type="button" class="text-rose-600 font-bold text-sm hover:underline" onclick="eliminarGasto(${i})">Eliminar</button></td>
+            </tr>`;
+    });
+}
+
+window.eliminarGasto = (i) => { listaGastos.splice(i, 1); actualizarTablaGastos(); };
+
+// ==========================================
+// 5. ENVÍO Y ANÁLISIS
+// ==========================================
+document.getElementById("finanzasForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    ocultarMensajesFinanzas();
+
+    if (!usuarioIdLogueado) {
+        mostrarErrorFinanzas("No hay una sesión activa. Por favor, inicia sesión de nuevo.");
+        return;
+    }
+
+    if (listaGastos.length === 0) {
+        mostrarErrorFinanzas("Debes agregar al menos un gasto a la lista.");
+        return;
+    }
+
+    const payload = {
+        ingreso_mensual: parseFloat(document.getElementById("ingresoMensual").value) || 0,
+        deuda_total: parseFloat(document.getElementById("deudaTotal").value) || 0,
+        frecuencia_ahorro: document.getElementById("frecuenciaAhorro").value || "MENSUAL",
+        monto_inversion: parseFloat(document.getElementById("montoInversion").value) || 0,
+        objetivo_presupuesto: parseFloat(document.getElementById("objetivoPresupuesto").value || 0),
+        pago_mensual_deuda: parseFloat(document.getElementById("pagoMensualDeuda").value || 0),
+        servicios_suscripción: parseInt(document.getElementById("serviciosSuscripcion").value || 0, 10),
+        fondo_emergencia: parseFloat(document.getElementById("fondoEmergencia").value || 0),
+        transacciones: listaGastos
+    };
+
+    try {
+        const res = await fetch(`${API_FINANZAS_URL}?usuarioId=${usuarioIdLogueado}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Error al procesar el análisis.");
+
+        const data = await res.json();
+        mostrarResultadoFinanzas(data);
+    } catch (err) {
+        mostrarErrorFinanzas("No se pudo conectar con el servidor.");
+    }
+});
+
+function mostrarResultadoFinanzas(data) {
+    document.getElementById("resPerfil").textContent = data.perfilFinanciero || "Evaluado";
+    const prob = data.probabilidadCategoria !== undefined ? data.probabilidadCategoria : (data.probabilidad || 0);
+    document.getElementById("resProbabilidad").textContent = (prob * 100).toFixed(0);
+    
+    // 1. Mostrar Recomendaciones
+    const recContainer = document.getElementById("resRecomendaciones");
+    if (data.recomendaciones && data.recomendaciones.length > 0) {
+        recContainer.innerHTML = `<ul class="list-disc pl-5 space-y-1">${data.recomendaciones.map(r => `<li>${r}</li>`).join('')}</ul>`;
+    } else {
+        recContainer.textContent = "Sin recomendaciones.";
+    }
+
+    // 2. Mostrar Categorías Detectadas desde "resumen_gastos"
+    const categoriasContainer = document.getElementById("resCategoriasContainer");
+    const resumen = data.resumen_gastos || data.resumenGastos || data.categorias || {};
+    
+    let listaNombres = [];
+    if (Array.isArray(resumen)) {
+        listaNombres = resumen.map(c => typeof c === 'string' ? c : (c.categoria || c.nombre || "Categoría"));
+    } else if (typeof resumen === 'object' && resumen !== null) {
+        listaNombres = Object.keys(resumen); // Lee las llaves "Transporte", "Alimentación", "Suscripciones"
+    }
+
+    if (listaNombres.length > 0) {
+        let catHtml = `<h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Categorías Detectadas:</h4>`;
+        catHtml += `<div class="flex flex-wrap gap-1.5">`;
+        
+        listaNombres.forEach(nombreCat => {
+            catHtml += `<span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-semibold">${nombreCat}</span>`;
+        });
+        
+        catHtml += `</div>`;
+        categoriasContainer.innerHTML = catHtml;
+    } else {
+        categoriasContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No se detectaron categorías en este análisis.</p>`;
     }
 
     document.getElementById("resultadoContainer").classList.remove("hidden");
 }
 
-function mostrarErrorFinanzas(mensaje) {
-    const errDiv = document.getElementById("errorContainer");
-    if (errDiv) {
-        errDiv.textContent = mensaje;
-        errDiv.classList.remove("hidden");
-    }
+function mostrarErrorFinanzas(msg) {
+    const err = document.getElementById("errorContainer");
+    err.textContent = msg;
+    err.classList.remove("hidden");
 }
 
 function ocultarMensajesFinanzas() {
-    const resContainer = document.getElementById("resultadoContainer");
-    const errContainer = document.getElementById("errorContainer");
-    if (resContainer) resContainer.classList.add("hidden");
-    if (errContainer) errContainer.classList.add("hidden");
+    document.getElementById("resultadoContainer").classList.add("hidden");
+    document.getElementById("errorContainer").classList.add("hidden");
 }
+
+// ==========================================
+// 6. HISTORIAL DE ANÁLISIS
+// ==========================================
+async function cargarPantallaHistorial() {
+    if (!usuarioIdLogueado) return;
+
+    const contenedor = document.getElementById("listaHistorialContainer");
+    contenedor.innerHTML = `<p class="text-center text-slate-400 py-6 text-base">Cargando historial...</p>`;
+
+    try {
+        const response = await fetch(`http://localhost:8080/api/v1/finanzas/historial/${usuarioIdLogueado}`);
+        if (!response.ok) throw new Error("No se pudo cargar el historial.");
+
+        const historial = await response.json();
+
+        if (historial.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-slate-400 py-6 text-base">No tienes análisis previos guardados.</p>`;
+            return;
+        }
+
+        historial.sort((a, b) => new Date(b.fechaAnalisis) - new Date(a.fechaAnalisis));
+        window.historialCache = {};
+        let html = "";
+
+        historial.forEach((item) => {
+            let fechaFormateada = new Date(item.fechaAnalisis).toLocaleString();
+            window.historialCache[item.id] = item;
+            let recHtml = "<ul class='list-disc pl-5 text-base text-slate-700 space-y-2'>";
+            item.recomendaciones?.forEach(r => recHtml += `<li>${r}</li>`) || (recHtml += "<li>Sin recomendaciones</li>");
+            recHtml += "</ul>";
+
+            html += `
+                <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-slate-900 text-lg">Análisis del ${fechaFormateada}</h3>
+                        <span class="text-sm bg-purple-50 text-purple-700 px-3 py-1 rounded-lg font-semibold">${item.perfilFinanciero || 'Perfil Estándar'}</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Recomendaciones:</p>
+                        ${recHtml}
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-sm text-slate-500">Transacciones: ${item.transacciones?.length || 0}</span>
+                        <button type="button" onclick="abrirDetalleTransacciones(${item.id})" class="bg-blue-700 hover:bg-blue-800 text-white text-sm px-5 py-2.5 rounded-xl font-semibold transition shadow-sm">
+                            Ver Transacciones y Gráfico
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    } catch (error) {
+        contenedor.innerHTML = `<p class="text-center text-rose-500 py-6 text-base">Error al cargar el historial.</p>`;
+    }
+}
+
+// ==========================================
+// 7. DETALLE Y GRÁFICO
+// ==========================================
+window.abrirDetalleTransacciones = function(analisisId) {
+    const item = window.historialCache[analisisId];
+    if (!item) return;
+
+    const transacciones = item.transacciones || [];
+    const resumen = item.resumen_gastos || item.resumenGastos || item.categorias || {}; 
+
+    let listaCategoriasDetalle = [];
+    if (Array.isArray(resumen)) {
+        listaCategoriasDetalle = resumen.map(c => typeof c === 'string' ? { categoria: c, valor: 1 } : c);
+    } else if (typeof resumen === 'object' && resumen !== null) {
+        listaCategoriasDetalle = Object.keys(resumen).map(k => ({ categoria: k, valor: resumen[k] }));
+    }
+
+    document.getElementById("detalleInfoAnalisis").textContent = `Detalle del análisis del: ${new Date(item.fechaAnalisis).toLocaleString()}`;
+
+    // 1. Tabla Superior para Categorías
+    const cuerpoTablaCategorias = document.getElementById("cuerpoTablaCategorias");
+    if (cuerpoTablaCategorias) {
+        cuerpoTablaCategorias.innerHTML = "";
+        if (listaCategoriasDetalle.length === 0) {
+            cuerpoTablaCategorias.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400">No hay categorías registradas.</td></tr>`;
+        } else {
+            listaCategoriasDetalle.forEach(c => {
+                let fechaCat = c.fechaRegistro ? new Date(c.fechaRegistro).toLocaleString() : "N/A";
+                let nombreCategoria = c.categoria || c.nombre || "Categoría"; 
+                
+                cuerpoTablaCategorias.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-4 font-medium text-slate-800 text-base">${nombreCategoria}</td>
+                        <td class="p-4 text-right text-slate-500 text-sm">${fechaCat}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 2. Tabla Inferior para Transacciones
+    const cuerpoTablaTransacciones = document.getElementById("cuerpoTablaDetalleTransacciones");
+    if (cuerpoTablaTransacciones) {
+        cuerpoTablaTransacciones.innerHTML = "";
+        if (transacciones.length === 0) {
+            cuerpoTablaTransacciones.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">No hay transacciones registradas.</td></tr>`;
+        } else {
+            transacciones.forEach(t => {
+                cuerpoTablaTransacciones.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-4 font-medium text-slate-800 text-base">${t.descripcion}</td>
+                        <td class="p-4 text-right text-slate-700 text-base font-semibold">$${t.valor.toLocaleString()}</td>
+                        <td class="p-4 text-right text-slate-500 text-sm">${t.fechaTransaccion ? new Date(t.fechaTransaccion).toLocaleString() : "N/A"}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 3. Gráfico Tipo Pie
+    if (miGraficoPastel) miGraficoPastel.destroy();
+    const ctx = document.getElementById('graficoPastelTransacciones').getContext('2d');
+    
+    miGraficoPastel = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: listaCategoriasDetalle.map(c => c.categoria || "Categoría"),
+            datasets: [{
+                data: listaCategoriasDetalle.map(c => c.valor || 1), 
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b']
+            }]
+        }
+    });
+
+    historialScreen.classList.add("hidden");
+    detalleTransaccionesScreen.classList.remove("hidden");
+};
+
+document.getElementById("btnVolverHistorial").addEventListener("click", () => {
+    detalleTransaccionesScreen.classList.add("hidden");
+    historialScreen.classList.remove("hidden");
+});
+
+document.getElementById("btnVolverApp").addEventListener("click", () => {
+    historialScreen.classList.add("hidden");
+    appScreen.classList.remove("hidden");
+});
+
+document.getElementById("btnEliminarCuenta").addEventListener("click", async function () {
+    if (!confirm("¿Seguro que deseas eliminar tu cuenta permanentemente?")) return;
+    try {
+        const response = await fetch(`${AUTH_ELIMINAR_URL}?email=${encodeURIComponent(correoUsuarioLogueado)}`, { method: "DELETE" });
+        if (response.ok) { alert("Cuenta eliminada."); location.reload(); }
+        else throw new Error("Error al eliminar.");
+    } catch (error) { alert("Error: " + error.message); }
+});
+
+// ==========================================
+// 8. BLOQUEAR RUEDA DEL MOUSE EN INPUTS NUMÉRICOS
+// ==========================================
+document.addEventListener("wheel", function(event) {
+    if (document.activeElement && document.activeElement.type === "number") {
+        document.activeElement.blur();
+    }
+});

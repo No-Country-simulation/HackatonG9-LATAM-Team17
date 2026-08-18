@@ -3,181 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salud Financiera - Acceso</title>
+    <title>Mi Salud Financiera</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased">
 
     <!-- ========================================== -->
-    <!-- PANTALLA 1: INICIO DE SESIÓN (LOGIN)      -->
+    <!-- PANTALLA 1: INICIO DE SESIÓN              -->
     <!-- ========================================== -->
-    <div id="loginScreen" class="form-container">
-        <h2>Iniciar Sesión</h2>
-        <p class="subtitle">Ingresa a tu cuenta de Salud Financiera.</p>
+    <div id="loginScreen" class="min-h-screen w-full relative flex items-center justify-center p-4">
+        <img src="naturaleza.jpg" alt="Fondo de naturaleza" class="absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="loginEmail">Correo electrónico</label>
-                <input type="email" id="loginEmail" placeholder="tu@correo.com" required>
+        <div class="relative z-10 w-full max-w-lg bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl shadow-2xl border border-white/20 space-y-4">
+            <div class="text-center flex flex-col items-center">
+                <img src="logoNombre.jpg" alt="Logo Mi Salud Financiera" class="w-40 h-auto object-contain mb-2 mx-auto rounded-xl">
+                <h2 class="text-xl font-bold tracking-tight text-slate-900">Iniciar Sesión</h2>
+                <p class="text-slate-500 text-xs mt-0.5">Ingresa a tu cuenta de Salud Financiera.</p>
             </div>
-            <div class="form-group">
-                <label for="loginPassword">Contraseña</label>
-                <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
-            </div>
-            <button type="submit" class="btn-principal" style="background-color: #2ecc71;">Entrar</button>
-        </form>
 
-        <div style="margin-top: 15px; text-align: center; font-size: 0.9em;">
-            <a href="#" id="linkMostrarRegistro" style="color: #3498db; text-decoration: none; display: block; margin-bottom: 8px;">¿No tienes cuenta? Regístrate aquí</a>
-            <a href="#" id="linkOlvidoPassword" style="color: #7f8c8d; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+            <form id="loginForm" class="space-y-3">
+                <div>
+                    <label for="loginEmail" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="tu@correo.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="Tu contraseña" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-blue-700/20 text-sm">Entrar</button>
+            </form>
+
+            <div class="text-center space-y-1 pt-1 text-sm">
+                <a href="#" id="linkMostrarRegistro" class="text-blue-600 hover:underline font-medium block text-xs">¿No tienes cuenta? Regístrate aquí</a>
+                <a href="#" id="linkOlvidoPassword" class="text-slate-400 hover:underline block text-[11px]">¿Olvidaste tu contraseña?</a>
+            </div>
         </div>
-
-        <div id="loginMensaje" class="hidden" style="margin-top: 15px; padding: 10px; border-radius: 6px;"></div>
     </div>
 
 
     <!-- ========================================== -->
-    <!-- PANTALLA 2: REGISTRO DE NUEVA CUENTA      -->
+    <!-- PANTALLA 2: REGISTRO                      -->
     <!-- ========================================== -->
-    <div id="registroScreen" class="form-container hidden">
-        <h2>Crear Cuenta</h2>
-        <p class="subtitle">Regístrate para comenzar a usar la plataforma.</p>
+    <div id="registroScreen" class="min-h-screen w-full relative flex items-center justify-center p-4 hidden">
+        <img src="naturaleza.jpg" alt="Fondo de naturaleza" class="absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
 
-        <form id="registroForm">
-            <div class="form-group">
-                <label for="regNombre">Nombre</label>
-                <input type="text" id="regNombre" placeholder="Tu nombre" required>
+        <div class="relative z-10 w-full max-w-lg bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl shadow-2xl border border-white/20 space-y-4">
+            <div class="text-center flex flex-col items-center">
+                <img src="logoNombre.jpg" alt="Logo Mi Salud Financiera" class="w-40 h-auto object-contain mb-2 mx-auto rounded-xl">
+                <h2 class="text-xl font-bold tracking-tight text-slate-900">Crear Cuenta</h2>
+                <p class="text-slate-500 text-xs mt-0.5">Regístrate para comenzar a usar la plataforma.</p>
             </div>
-            <div class="form-group">
-                <label for="regEmail">Correo electrónico</label>
-                <input type="email" id="regEmail" placeholder="tu@correo.com" required>
-            </div>
-            <div class="form-group">
-                <label for="regPassword">Contraseña</label>
-                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" minlength="6" required>
-            </div>
-            <button type="submit" class="btn-principal" style="background-color: #3498db;">Registrarse</button>
-        </form>
 
-        <div style="margin-top: 15px; text-align: center; font-size: 0.9em;">
-            <a href="#" id="linkVolverLogin" style="color: #3498db; text-decoration: none;">¿Ya tienes cuenta? Inicia sesión</a>
+            <form id="registroForm" class="space-y-3">
+                <div>
+                    <label for="registroNombre" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nombre</label>
+                    <input type="text" id="registroNombre" placeholder="Tu nombre" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                </div>
+                <div>
+                    <label for="registroEmail" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo electrónico</label>
+                    <input type="email" id="registroEmail" placeholder="tu@correo.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                </div>
+                <div>
+                    <label for="registroPassword" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
+                    <input type="password" id="registroPassword" placeholder="Mínimo 6 caracteres" minlength="6" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-blue-700/20 text-sm">Registrarse</button>
+            </form>
+
+            <div class="text-center text-sm">
+                <a href="#" id="linkVolverLogin" class="text-blue-600 hover:underline font-medium text-xs">¿Ya tienes cuenta? Inicia sesión</a>
+            </div>
         </div>
-
-        <div id="regMensaje" class="hidden" style="margin-top: 15px; padding: 10px; border-radius: 6px;"></div>
     </div>
 
 
     <!-- ========================================== -->
-    <!-- PANTALLA 3: APLICACIÓN FINANCIERA (PRINCIPAL)-->
+    <!-- DISEÑO DE DASHBOARD CON SIDEBAR FIJA       -->
     <!-- ========================================== -->
-    <div id="appScreen" class="form-container hidden" style="max-width: 650px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>Análisis de Salud Financiera</h2>
-            <button type="button" id="btnCerrarSesion" class="btn-eliminar" style="padding: 8px 12px;">Cerrar Sesión</button>
-        </div>
-        <p class="subtitle">Ingresa tus datos e historial de gastos para evaluar tu perfil.</p>
-
-        <form id="finanzasForm">
-            <div class="form-group">
-                <label for="ingresoMensual">Ingreso Mensual ($)</label>
-                <input type="number" id="ingresoMensual" placeholder="Ej. 3000000" min="1" step="any" required>
-            </div>
-
-            <div class="form-group">
-                <label for="deudaTotal">Deuda Total ($)</label>
-                <input type="number" id="deudaTotal" placeholder="Ej. 900000" min="0" step="any" required>
-            </div>
-
-            <div class="form-group">
-                <label for="frecuenciaAhorro">Frecuencia de Ahorro</label>
-                <select id="frecuenciaAhorro" required>
-                    <option value="" disabled selected>Selecciona una opción...</option>
-                    <option value="Bajo">Bajo</option>
-                    <option value="Medio">Medio</option>
-                    <option value="Alto">Alto</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="montoInversion">Monto de Inversión ($)</label>
-                <input type="number" id="montoInversion" placeholder="Ej. 500000" min="0" step="any" required>
-            </div>
-
-            <div class="form-group">
-                <label for="objetivoPresupuesto">Objetivo de Presupuesto ($)</label>
-                <input type="number" id="objetivoPresupuesto" placeholder="Ej. 2000000" min="0" step="any" required>
-            </div>
-
-            <div class="form-group">
-                <label for="pagoMensualDeuda">Pago Mensual de Deuda ($)</label>
-                <input type="number" id="pagoMensualDeuda" placeholder="Ej. 250000" min="0" step="any" required>
-            </div>
-
-            <div class="form-group">
-                <label for="serviciosSuscripcion">Cantidad de Servicios de Suscripción</label>
-                <input type="number" id="serviciosSuscripcion" placeholder="Ej. 3" min="0" step="1" required>
-            </div>
-
-            <div class="form-group">
-                <label for="fondoEmergencia">Fondo de Emergencia ($)</label>
-                <input type="number" id="fondoEmergencia" placeholder="Ej. 1000000" min="0" step="any" required>
-            </div>
-
-            <hr class="divider">
-            <h3>Registro de Gastos / Transacciones</h3>
-
-            <div class="gasto-inputs-container">
-                <div class="form-group">
-                    <label for="descripcionGasto">Descripción del Gasto</label>
-                    <input type="text" id="descripcionGasto" maxlength="25" placeholder="Ej. Mercado, Arriendo">
+    <div id="dashboardLayout" class="min-h-screen flex hidden w-full">
+        
+        <!-- SIDEBAR IZQUIERDA -->
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col justify-between p-6 shrink-0 shadow-sm">
+            <div class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <img src="logo.jpg" alt="Logo" class="w-10 h-10 object-contain rounded-xl">
+                    <span class="font-bold text-slate-900 text-base tracking-tight leading-tight">Mi Salud Financiera</span>
                 </div>
-                <div class="form-group">
-                    <label for="valorGasto">Valor ($)</label>
-                    <input type="number" id="valorGasto" placeholder="Ej. 150000" min="1" step="any">
+
+                <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm border border-blue-200 shrink-0">
+                        👤
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs text-slate-400 font-medium">Bienvenido</p>
+                        <p id="labelUsuarioEmail" class="text-sm font-bold text-slate-700 truncate">Hola, Usuario</p>
+                    </div>
                 </div>
-                <button type="button" id="btnAgregarGasto" class="btn-secundario">＋ Agregar Gasto</button>
+
+                <nav class="space-y-1.5 pt-2">
+                    <button type="button" id="navInicio" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        <span class="text-lg">📊</span> Inicio
+                    </button>
+                    <button type="button" id="btnIrHistorial" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        <span class="text-lg">🕒</span> Historial
+                    </button>
+                </nav>
             </div>
 
-            <div class="tabla-container">
-                <table id="tablaGastos">
-                    <thead>
-                        <tr>
-                            <th>Descripción</th>
-                            <th>Valor ($)</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpoTablaGastos">
-                        <tr id="filaVacia">
-                            <td colspan="3" class="texto-centrado">No has agregado ningún gasto aún.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="space-y-1.5 pt-4 border-t border-slate-100">
+                <button type="button" id="btnCerrarSesion" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                    <span class="text-lg">🚪</span> Cerrar sesión
+                </button>
+                <button type="button" id="btnEliminarCuenta" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition">
+                    <span class="text-lg">🗑️</span> Eliminar cuenta
+                </button>
             </div>
+        </aside>
 
-            <button type="submit" id="btnEnviar" class="btn-principal">Analizar Mi Perfil</button>
-        </form>
+        <!-- CONTENIDO PRINCIPAL A LA DERECHA -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
+            <div class="max-w-6xl w-full mx-auto space-y-6">
 
-        <div id="resultadoContainer" class="result-card hidden">
-            <h3>Resultado del Análisis</h3>
-            <p><strong>Perfil Financiero:</strong> <span id="resPerfil">-</span></p>
-            <p><strong>Probabilidad:</strong> <span id="resProbabilidad">-</span>%</p>
-            <div style="margin-top: 15px;">
-                <h4 style="margin-bottom: 5px;">Resumen de Gastos:</h4>
-                <div id="resCategorias">-</div>
+                <!-- ========================================== -->
+                <!-- PANTALLA 3: FORMULARIO FINANCIERO          -->
+                <!-- ========================================== -->
+                <div id="appScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Análisis de Salud Financiera</h2>
+                        <p class="text-slate-500 text-sm mt-1">Ingresa tus datos para evaluar tu perfil.</p>
+                    </div>
+
+                    <form id="finanzasForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="ingresoMensual" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Ingreso Mensual ($)</label>
+                                <input type="number" id="ingresoMensual" placeholder="Ej. 3000000" min="1" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="deudaTotal" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Deuda Total ($)</label>
+                                <input type="number" id="deudaTotal" placeholder="Ej. 900000" min="0" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="frecuenciaAhorro" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Frecuencia de Ahorro</label>
+                                <select id="frecuenciaAhorro" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                                    <option value="" disabled selected>Selecciona una opción...</option>
+                                    <option value="Bajo">Bajo</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Alto">Alto</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="montoInversion" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Monto de Inversión ($)</label>
+                                <input type="number" id="montoInversion" placeholder="Ej. 500000" min="0" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="objetivoPresupuesto" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Objetivo de Presupuesto ($)</label>
+                                <input type="number" id="objetivoPresupuesto" placeholder="Ej. 2000000" min="0" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="pagoMensualDeuda" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pago Mensual de Deuda ($)</label>
+                                <input type="number" id="pagoMensualDeuda" placeholder="Ej. 250000" min="0" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="serviciosSuscripcion" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Cantidad de Suscripciones</label>
+                                <input type="number" id="serviciosSuscripcion" placeholder="Ej. 3" min="0" step="1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                            <div>
+                                <label for="fondoEmergencia" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fondo de Emergencia ($)</label>
+                                <input type="number" id="fondoEmergencia" placeholder="Ej. 1000000" min="0" step="any" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+                        <h3 class="text-base font-bold text-slate-800">Registro de Gastos / Transacciones</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <div>
+                                <label for="descripcionGasto" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descripción</label>
+                                <input type="text" id="descripcionGasto" maxlength="25" placeholder="Ej. Mercado" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-base focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label for="valorGasto" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor ($)</label>
+                                <input type="number" id="valorGasto" placeholder="Ej. 150000" min="1" step="any" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-base focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition">
+                            </div>
+                            <button type="button" id="btnAgregarGasto" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-base transition shadow-sm flex items-center justify-center gap-2">
+                                <span>＋</span> Agregar Gasto
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                            <table id="tablaGastos" class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="p-3.5">Descripción</th>
+                                        <th class="p-3.5">Valor ($)</th>
+                                        <th class="p-3.5 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cuerpoTablaGastos" class="divide-y divide-slate-100">
+                                    <tr id="filaVacia">
+                                        <td colspan="3" class="text-center p-6 text-slate-400 text-sm">No has agregado ningún gasto aún.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <button type="submit" id="btnEnviar" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 rounded-xl transition shadow-md shadow-blue-700/20">Analizar Mi Perfil</button>
+                    </form>
+
+                    <div id="resultadoContainer" class="mt-6 p-6 bg-slate-50 border border-slate-200 rounded-2xl hidden space-y-3">
+                        <h3 class="text-lg font-bold text-slate-900">Resultado del Análisis</h3>
+                        <p class="text-sm text-slate-700"><strong>Perfil Financiero:</strong> <span id="resPerfil" class="text-blue-600 font-semibold">-</span></p>
+                        <p class="text-sm text-slate-700"><strong>Probabilidad:</strong> <span id="resProbabilidad" class="text-blue-600 font-semibold">-</span>%</p>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Recomendaciones:</h4>
+                            <div id="resRecomendaciones" class="text-sm text-slate-600 space-y-1"></div>
+                        </div>
+                        <!-- Espacio fijo para las categorías detectadas -->
+                        <div id="resCategoriasContainer" class="pt-3 border-t border-slate-200"></div>
+                    </div>
+
+                    <div id="errorContainer" class="mt-4 p-4 bg-rose-50 text-rose-600 text-sm rounded-2xl border border-rose-200 hidden"></div>
+                </div>
+
+
+                <!-- ========================================== -->
+                <!-- PANTALLA 4: HISTORIAL DE ANÁLISIS          -->
+                <!-- ========================================== -->
+                <div id="historialScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6 hidden">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Análisis</h2>
+                            <p class="text-slate-500 text-sm mt-1">Tus evaluaciones financieras pasadas.</p>
+                        </div>
+                        <button type="button" id="btnVolverApp" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Volver</button>
+                    </div>
+
+                    <div id="listaHistorialContainer" class="space-y-4">
+                        <p class="text-center text-slate-400 py-8">Cargando historial...</p>
+                    </div>
+                </div>
+
+
+                <!-- ========================================== -->
+                <!-- PANTALLA 5: DETALLE DE TRANSACCIONES & CHART-->
+                <!-- ========================================== -->
+                <div id="detalleTransaccionesScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6 hidden">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Detalle de Transacciones</h2>
+                            <p id="detalleInfoAnalisis" class="text-slate-500 text-sm mt-1">Transacciones asociadas al análisis.</p>
+                        </div>
+                        <button type="button" id="btnVolverHistorial" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Volver al Historial</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Gráfico de Pastel -->
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+                            <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Distribución de Gastos</h3>
+                            <div class="w-full max-w-[240px] h-60">
+                                <canvas id="graficoPastelTransacciones"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Superior: Categorías -->
+                        <div class="border border-slate-200 rounded-2xl bg-white">
+                            <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+                                Categorías
+                            </div>
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="p-3.5">Categoría</th>
+                                        <th class="p-3.5 text-right">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cuerpoTablaCategorias" class="divide-y divide-slate-100">
+                                    <!-- Dinámico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabla Inferior: Transacciones (Ocupando todo el ancho abajo, como el recuadro rojo) -->
+                    <div class="border border-slate-200 rounded-2xl bg-white">
+                        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+                            Transacciones
+                        </div>
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3.5">Descripción</th>
+                                    <th class="p-3.5 text-right">Valor ($)</th>
+                                    <th class="p-3.5 text-right">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTablaDetalleTransacciones" class="divide-y divide-slate-100">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
             </div>
-            <div style="margin-top: 15px;">
-                <h4 style="margin-bottom: 5px;">Recomendaciones:</h4>
-                <div id="resRecomendaciones">-</div>
-            </div>
-        </div>
-
-        <div id="errorContainer" class="error-card hidden"></div>
-
-        <!-- Botón para eliminar cuenta -->
-        <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-            <button type="button" id="btnEliminarCuenta" class="btn-eliminar" style="background-color: #c0392b; width: 100%; padding: 10px; font-weight: bold;">Eliminar Mi Cuenta</button>
-        </div>
+        </main>
     </div>
 
     <script src="app.js"></script>
