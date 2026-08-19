@@ -1,12 +1,12 @@
-# Documentación de Endpoints - Backend Finanzas
+# Documentacion de Endpoints - Backend Finanzas
 
-## Información base
+## Informacion base
 
 - **Base URL local:** `http://localhost:8080`
 - **Prefijo API:** `/api/v1`
-- **Autenticación actual:** no se requiere token (rutas `/api/v1/auth/**` y `/api/v1/finanzas/**` públicas).
-- **Content-Type esperado en requests con body:** `application/json`
-- **CORS:** permitido para cualquier origen (`*`).
+- **Autenticacion actual:** no se requiere token para `/api/v1/auth/**` ni `/api/v1/finanzas/**`
+- **Content-Type esperado:** `application/json`
+- **CORS:** permitido para cualquier origen (`*`)
 
 ---
 
@@ -26,30 +26,31 @@ Registra un nuevo usuario.
 }
 ```
 
-**Campos**
-
-| Campo | Tipo | Requerido | Validación |
+| Campo | Tipo | Requerido | Validacion |
 |---|---|---|---|
-| `nombre` | string | Sí | No vacío |
-| `email` | string | Sí | No vacío + formato email |
-| `password` | string | Sí | No vacío + mínimo 6 caracteres |
+| `nombre` | string | Si | No vacio |
+| `email` | string | Si | No vacio + formato email |
+| `password` | string | Si | No vacio + minimo 6 caracteres |
 
 **Respuesta 200**
 
-```text
-Usuario registrado exitosamente
+```json
+{
+  "mensaje": "Usuario registrado exitosamente",
+  "status": "success"
+}
 ```
 
-**Errores frecuentes**
+**Errores**
 
-- `400`: body inválido por validación.
-- `500`: email ya registrado (actualmente se lanza `RuntimeException`).
+- `400` validaciones DTO
+- `500` error interno (ej. email duplicado si se lanza `RuntimeException`)
 
 ---
 
 ### `POST /api/v1/auth/login`
 
-Autentica usuario por email/password.
+Autentica por email/password.
 
 **Body JSON**
 
@@ -60,27 +61,24 @@ Autentica usuario por email/password.
 }
 ```
 
-**Campos**
-
-| Campo | Tipo | Requerido | Validación |
+| Campo | Tipo | Requerido | Validacion |
 |---|---|---|---|
-| `email` | string | Sí | No vacío + formato email |
-| `password` | string | Sí | No vacío |
+| `email` | string | Si | No vacio + formato email |
+| `password` | string | Si | No vacio |
 
 **Respuesta 200**
 
 ```json
 {
   "mensaje": "Bienvenido de nuevo, Ana",
+  "email": "ana@email.com",
   "id": 1,
-  "email": "ana@email.com"
+  "token": "fake-jwt-token-for-session",
+  "status": "success"
 }
 ```
 
-**Errores frecuentes**
-
-- `400`: body inválido por validación.
-- `500`: credenciales incorrectas (actualmente se lanza `RuntimeException`).
+> `id` y `token` son valores simulados en la implementacion actual.
 
 ---
 
@@ -88,11 +86,9 @@ Autentica usuario por email/password.
 
 Elimina cuenta por email.
 
-**Query params**
-
-| Parámetro | Tipo | Requerido | Descripción |
-|---|---|---|---|
-| `email` | string | Sí | Email del usuario a eliminar |
+| Parametro | Tipo | Requerido |
+|---|---|---|
+| `email` | string | Si |
 
 **Respuesta 200**
 
@@ -114,15 +110,9 @@ Elimina cuenta por email.
 
 ## 2) Finanzas
 
-### `POST /api/v1/finanzas/analizar?usuarioId={id}`
+### `POST /api/v1/finanzas/analizar`
 
-Genera análisis financiero, guarda historial y devuelve resultado para frontend.
-
-**Query params**
-
-| Parámetro | Tipo | Requerido | Descripción |
-|---|---|---|---|
-| `usuarioId` | number (long) | Sí | ID del usuario dueño del análisis |
+Genera analisis financiero y guarda historial.
 
 **Body JSON**
 
@@ -141,34 +131,32 @@ Genera análisis financiero, guarda historial y devuelve resultado para frontend
     {
       "descripcion": "Supermercado",
       "valor": 120.5,
-      "fecha_transaccion": "2026-08-17T20:30:00"
+      "fecha_transaccion": "2026-08-17T20:30:00.000Z"
     }
   ]
 }
 ```
 
-**Campos de body**
-
-| Campo | Tipo | Requerido | Validación |
+| Campo | Tipo | Requerido | Validacion |
 |---|---|---|---|
-| `ingreso_mensual` | number (double) | Sí | `> 0` |
-| `nivel_endeudamiento` | integer | No | Sin validación adicional |
-| `frecuencia_ahorro` | string | Sí | No nulo |
-| `monto_inversion` | number (double) | Sí | `>= 0` |
-| `deuda_total` | number (double) | Sí | `>= 0` |
-| `objetivo_presupuesto` | number (double) | Sí | `>= 0` |
-| `pago_mensual_deuda` | number (double) | Sí | `>= 0` |
-| `servicios_suscripción` | integer | Sí | `>= 0` |
-| `fondo_emergencia` | number (double) | Sí | `>= 0` |
-| `transacciones` | array | No | Lista de transacciones |
+| `ingreso_mensual` | number (double) | Si | `> 0` |
+| `nivel_endeudamiento` | integer | Si | No nulo |
+| `frecuencia_ahorro` | string | Si | No nulo |
+| `monto_inversion` | number (double) | Si | `>= 0` |
+| `deuda_total` | number (double) | Si | `>= 0` |
+| `objetivo_presupuesto` | number (double) | Si | `>= 0` |
+| `pago_mensual_deuda` | number (double) | Si | `>= 0` |
+| `servicios_suscripción` | integer | Si | `>= 0` |
+| `fondo_emergencia` | number (double) | Si | `>= 0` |
+| `transacciones` | array | Si | No vacia (validacion en servicio) |
 
-**Objeto `transacciones[]`**
+`transacciones[]`
 
-| Campo | Tipo | Requerido | Validación |
+| Campo | Tipo | Requerido | Validacion |
 |---|---|---|---|
-| `descripcion` | string | Sí | No vacío |
-| `valor` | number (double) | Sí | `> 0` |
-| `fecha_transaccion` | string datetime ISO-8601 | No | Si no se envía, backend usa fecha/hora actual |
+| `descripcion` | string | Si | No vacio |
+| `valor` | number (double) | Si | `> 0` |
+| `fecha_transaccion` | string datetime ISO-8601 | No | acepta formato con o sin milisegundos y `Z` |
 
 **Respuesta 200 (`AnalisisOutputDTO`)**
 
@@ -177,7 +165,7 @@ Genera análisis financiero, guarda historial y devuelve resultado para frontend
   "perfil_financiero": "Estable",
   "probabilidad": 0.78,
   "resumen_gastos": {
-    "Alimentación": 420.0,
+    "Alimentacion": 420.0,
     "Transporte": 180.0
   },
   "recomendaciones": [
@@ -187,16 +175,16 @@ Genera análisis financiero, guarda historial y devuelve resultado para frontend
 }
 ```
 
-**Notas importantes para frontend**
+**Notas de comportamiento**
 
-- Si falla el microservicio Python, este endpoint igualmente responde `200` con datos fallback.
-- Si `usuarioId` no existe, actualmente puede responder `500`.
+- Si falla el microservicio Python, el backend devuelve fallback con `200`.
+- Este endpoint ya **no** recibe `usuarioId`; guarda el analisis en el primer usuario encontrado en BD.
 
 ---
 
 ### `POST /api/v1/finanzas/clasificar`
 
-Clasifica una transacción individual.
+Clasifica una transaccion individual.
 
 **Body JSON**
 
@@ -204,17 +192,15 @@ Clasifica una transacción individual.
 {
   "descripcion": "Netflix",
   "valor": 15.99,
-  "fecha_transaccion": "2026-08-17T20:30:00"
+  "fecha_transaccion": "2026-08-17T20:30:00.000Z"
 }
 ```
 
-**Campos**
-
-| Campo | Tipo | Requerido | Validación |
+| Campo | Tipo | Requerido | Validacion |
 |---|---|---|---|
-| `descripcion` | string | Sí | No vacío |
-| `valor` | number (double) | Sí | `> 0` |
-| `fecha_transaccion` | string datetime ISO-8601 | No | Puede omitirse |
+| `descripcion` | string | Si | No vacio |
+| `valor` | number (double) | Si | `> 0` |
+| `fecha_transaccion` | string datetime ISO-8601 | No | acepta formato con o sin milisegundos y `Z` |
 
 **Respuesta 200 (`RespuestaPythonDTO`)**
 
@@ -233,21 +219,15 @@ Clasifica una transacción individual.
 }
 ```
 
-**Nota**
-
-- Si falla Python, responde `200` con valores fallback.
-
 ---
 
 ### `GET /api/v1/finanzas/historial/{usuarioId}`
 
-Obtiene historial del usuario, ordenado del más reciente al más antiguo.
+Obtiene historial por ID de usuario.
 
-**Path params**
-
-| Parámetro | Tipo | Requerido | Descripción |
-|---|---|---|---|
-| `usuarioId` | number (long) | Sí | ID del usuario |
+| Parametro | Tipo | Requerido |
+|---|---|---|
+| `usuarioId` | number (long) | Si |
 
 **Respuesta 200**
 
@@ -257,43 +237,59 @@ Obtiene historial del usuario, ordenado del más reciente al más antiguo.
     "id": 10,
     "perfilFinanciero": "Estable",
     "fechaAnalisis": "2026-08-17 20:31:10",
-    "transacciones": [
-      {
-        "id": 101,
-        "descripcion": "Supermercado",
-        "valor": 120.5,
-        "fechaTransaccion": "2026-08-17T20:30:00"
-      }
-    ],
-    "categorias": [
-      {
-        "id": 201,
-        "categoria": "Alimentación",
-        "fechaRegistro": "2026-08-17T20:31:10"
-      }
-    ],
-    "recomendaciones": [
-      "Mantén un presupuesto mensual"
-    ]
+    "transacciones": [],
+    "categorias": [],
+    "recomendaciones": []
   }
 ]
 ```
 
-**Campos relevantes del historial**
+---
 
-- En `AnalisisFinanciero` **no** se serializa `usuario` (está con `@JsonIgnore`).
-- En `TransaccionAnalisis` y `CategoriaAnalisis` no se serializa `analisisFinanciero` (evita recursión JSON).
+### `GET /api/v1/finanzas/historial`
+
+Obtiene historial del primer usuario encontrado en BD.
+
+**Respuesta 200**
+
+```json
+[
+  {
+    "id": 10,
+    "perfilFinanciero": "Estable",
+    "fechaAnalisis": "2026-08-17 20:31:10",
+    "transacciones": [],
+    "categorias": [],
+    "recomendaciones": []
+  }
+]
+```
+
+Si no hay usuarios registrados, responde lista vacia `[]`.
 
 ---
 
-## Formato de errores (actual)
+## Formato de errores vigente (GlobalExceptionHandler)
 
-No hay manejador global de excepciones en `src/main/java` para estandarizar errores de negocio.  
-Por eso hoy conviven respuestas:
+El backend ahora si tiene manejador global:
 
-1. Errores manuales JSON (ej. `DELETE /auth/eliminar` retorna `{ "error": ... }` con `404`).
-2. Errores por validación Bean Validation (`400`).
-3. Errores por `RuntimeException` (`500`), por ejemplo credenciales inválidas, email duplicado o `usuarioId` inexistente en análisis.
+- `400` (`ErrorResponseDTO`) para validaciones DTO
+- `404` (`ErrorResponseDTO`) para `ResourceNotFoundException`
+- `409` (`DataErrorResponseDTO`) para duplicados/integridad
+- `415` (`ErrorResponseDTO`) para `Content-Type` no soportado
+- `500` (`ErrorResponseDTO`) para errores no controlados
 
-Para frontend, conviene tratar `4xx/5xx` como error genérico y leer `message/error/detail` si existe en la respuesta.
+Ejemplo `ErrorResponseDTO`:
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Error de validacion en los datos enviados.",
+  "validation_errors": {
+    "ingresoMensual": "El ingreso mensual es obligatorio"
+  },
+  "timestamp": "2026-08-19T11:00:00"
+}
+```
 
