@@ -1,3 +1,40 @@
+## 🛠️ Entorno de Desarrollo y Flujo de Trabajo
+
+El proyecto utiliza una arquitectura distribuida que permite trabajar cada módulo en su IDE ideal, orquestando todo el ecosistema mediante **Docker Desktop**.
+
+---
+
+### 🔀 Integración VSC + IntelliJ IDEA + Docker
+
+| Herramienta | Módulo / Función | Descripción |
+| :--- | :--- | :--- |
+| **Visual Studio Code** | Microservicio Python (NLP) | Desarrollo de la API en FastAPI, lógica de recomendaciones y modelos `.pkl`. Cuenta con su propio `Dockerfile`. |
+| **IntelliJ IDEA** | Backend Java (Spring Boot) | Desarrollo de la API Gateway, modelos de datos relacionales y orquestación general con `docker-compose.yml`. |
+| **Docker Desktop** | Motor y Monitoreo | Ejecuta los contenedores isolados (`postgres_db`, `python_nlp_api`, `spring_backend`) y permite la lectura de logs en tiempo real. |
+
+---
+
+### 🖥️ Uso Diario del Entorno
+
+1. **Abrir Docker Desktop:** Asegúrate de que el motor de Docker esté iniciado antes de ejecutar la aplicación.
+2. **Levantar los servicios:** Desde la terminal integrada en la raíz del proyecto, ejecuta:
+
+````bash
+docker compose up -d --build
+````
+1. Monitorear y Controlar: Utiliza la interfaz visual de Docker Desktop para verificar la salud de los contenedores y validar los puertos expuestos:
+
+Python NLP API: **http://localhost:8000**
+
+Spring Boot Backend: **http://localhost:8008**
+
+PostgreSQL Database: **localhost:5432**
+
+## 📥 Requisitos de Instalación
+Para colaborar en el proyecto es imprescindible contar con el motor de Docker instalado localmente:
+
+* 🐳 [Descargar Docker Desktop Oficial](https://www.docker.com/products/docker-desktop/)
+
 ## Vista del mapeo con Swagger
 
 ![Vista previa de Swagger](assets/imagen-swagger.png)
