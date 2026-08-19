@@ -16,19 +16,19 @@ import {
   HelpCircle,
   Check
 } from 'lucide-react';
-import { AnalysisReport, UserProfile, Transaction, ExpenseCategory } from '../types';
+import { ReporteAnalisis, UserProfile, Transaction, ExpenseCategory } from '../types';
 import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 
 interface DashboardViewProps {
-  report: AnalysisReport;
+  report: ReporteAnalisis;
   userProfile: UserProfile;
   transactions: Transaction[];
   onAddTransaction: (tx: Partial<Transaction>) => void;
   onDeleteTransaction: (id: string) => void;
   onNavigateToNewAnalysis: () => void;
-  onOpenAnalysisModal: (report: AnalysisReport) => void;
+  onOpenAnalysisModal: (report: ReporteAnalisis) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -49,7 +49,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [isModelFailed, setIsModelFailed] = useState(false);
   const [manualOverrideActive, setManualOverrideActive] = useState(false);
   const [activeTxTab, setActiveTxTab] = useState<'empty-state' | 'tx-list'>('tx-list');
-  const [recommendations, setRecommendations] = useState(report.recommendations || []);
+  const [recommendations, setRecommendations] = useState(report.recomendaciones || []);
   
   // Timer countdown simulation
   const [countdown, setCountdown] = useState({ hours: 48, minutes: 22, seconds: 10 });
@@ -122,7 +122,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const toggleRecommendationComplete = (id: string) => {
     setRecommendations((prev) =>
-      prev.map((rec) => (rec.id === id ? { ...rec, completed: !rec.completed } : rec))
+      prev.map((rec) => (rec.id === id ? { ...rec, completada: !rec.completada } : rec))
     );
   };
 
@@ -133,7 +133,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     'Riesgo': { text: 'Riesgo', bg: 'bg-[#ba1a1a]/15', textCol: 'text-[#ba1a1a]', border: 'border-[#ba1a1a]/30' },
   };
 
-  const currentStatus = statusBadgeConfig[report.status] || statusBadgeConfig['En observación'];
+  const currentStatus = statusBadgeConfig[report.estadoSalud] || statusBadgeConfig['En observación'];
 
   return (
     <div className="space-y-7 pb-12 animate-in fade-in duration-200" id="dashboard-view-container">
@@ -221,7 +221,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div className="flex items-baseline gap-1">
               <span className="text-[40px] md:text-[44px] font-extrabold text-[#191c1d] tracking-tight font-display leading-none">
-                {report.healthScore}%
+                {report.puntajeSalud}%
               </span>
             </div>
             <p className="text-xs font-semibold text-[#767586] mt-1">
@@ -229,7 +229,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </p>
 
             <p className="text-xs font-bold text-[#944a00] mt-3 leading-relaxed">
-              <span>{report.encouragingMessage || '¡Vamos a mejorar tu salud financiera! 💪'}</span>
+              <span>{report.mensajeMotivador || '¡Vamos a mejorar tu salud financiera! 💪'}</span>
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
 
             <h3 className="text-lg font-bold text-white mt-2 leading-snug font-display">
-              {report.weeklyAchievement?.title || '¡Ahorraste 15% más que la semana pasada! 🎉'}
+              {report.logroSemanal?.titulo || '¡Ahorraste 15% más que la semana pasada! 🎉'}
             </h3>
           </div>
 
@@ -284,18 +284,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {report.categoryDistribution.map((cat) => (
+          {report.distribucionCategorias.map((cat) => (
             <div
-              key={cat.category}
-              id={`card-cat-${cat.category.toLowerCase()}`}
+              key={cat.categoria}
+              id={`card-cat-${cat.categoria.toLowerCase()}`}
               className="bg-white rounded-xl p-4 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-[#6063ee]/30 transition-all"
             >
               <div>
                 <p className="text-xs font-semibold text-[#464554]">
-                  {cat.category}
+                  {cat.categoria}
                 </p>
                 <p className="text-base font-bold text-[#191c1d] font-mono-val mt-1">
-                  ${cat.amount.toLocaleString()}
+                  ${cat.monto.toLocaleString()}
                 </p>
               </div>
 
@@ -305,13 +305,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
-                      width: `${Math.min(100, Math.max(8, cat.percentage * 2))}%`,
-                      backgroundColor: cat.color,
+                      width: `${Math.min(100, Math.max(8, cat.porcentaje * 2))}%`,
+                      backgroundColor: cat.colorHex,
                     }}
                   />
                 </div>
                 <p className="text-[10px] font-bold text-[#767586] text-right mt-1 font-mono-val">
-                  {cat.percentage}%
+                  {cat.porcentaje}%
                 </p>
               </div>
             </div>
@@ -520,7 +520,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className="space-y-2.5">
           {recommendations.map((rec) => {
-            const isRed = rec.statusType === 'danger' || rec.title.toLowerCase().includes('reduce');
+            const isRed = rec.tipoEstado === 'danger' || rec.titulo.toLowerCase().includes('reduce');
             return (
               <div
                 key={rec.id}
@@ -529,26 +529,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   isRed
                     ? 'bg-[#ffdad6]/25 border-[#ffdad6] hover:border-[#ba1a1a]/40'
                     : 'bg-[#ffdcc5]/20 border-[#ffdcc5] hover:border-[#fd933d]/40'
-                } ${rec.completed ? 'opacity-50 line-through' : ''}`}
+                } ${rec.completada ? 'opacity-50 line-through' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleRecommendationComplete(rec.id)}
                     className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                      rec.completed 
+                      rec.completada 
                         ? 'bg-[#10b981] border-[#10b981] text-white' 
                         : isRed ? 'border-[#ba1a1a]' : 'border-[#fd933d]'
                     }`}
                   >
-                    {rec.completed && <CheckCircle className="w-3 h-3" />}
+                    {rec.completada && <CheckCircle className="w-3 h-3" />}
                   </button>
 
                   <div>
                     <h4 className="text-xs font-bold text-[#191c1d]">
-                      {rec.title}
+                      {rec.titulo}
                     </h4>
                     <p className="text-[11px] text-[#464554] mt-0.5">
-                      {rec.description}
+                      {rec.descripcion}
                     </p>
                   </div>
                 </div>
@@ -559,7 +559,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     isRed ? 'text-[#4648d4]' : 'text-[#4648d4]'
                   }`}
                 >
-                  {rec.actionLabel || 'Ver detalles'}
+                  {rec.etiquetaAccion || 'Ver detalles'}
                 </button>
               </div>
             );

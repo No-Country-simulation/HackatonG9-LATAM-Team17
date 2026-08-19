@@ -12,7 +12,7 @@ import {
   Coins,
   Cpu
 } from 'lucide-react';
-import { UserProfile, Transaction, ExpenseCategory, SavingsFrequency, AnalysisReport } from '../types';
+import { UserProfile, Transaction, ExpenseCategory, SavingsFrequency, ReporteAnalisis } from '../types';
 import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
@@ -20,7 +20,7 @@ import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from 
 interface NewAnalysisViewProps {
   userProfile: UserProfile;
   initialTransactions: Transaction[];
-  onAnalysisComplete: (newReport: AnalysisReport) => void;
+  onAnalysisComplete: (newReport: ReporteAnalisis) => void;
 }
 
 export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
@@ -191,45 +191,45 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
       // Fallback generate report
       setTimeout(() => {
         const totalExp = transactionsList.reduce((acc, t) => acc + t.amount, 0);
-        const fallbackReport: AnalysisReport = {
+        const fallbackReport: ReporteAnalisis = {
           id: `an-${Date.now()}`,
-          date: '15 Oct, 2024',
-          timestamp: Date.now(),
-          totalSpent: totalExp,
-          healthScore: 86,
-          status: 'Saludable',
-          encouragingMessage: '¡Excelente progreso! Tu balance muestra un camino firme hacia tus metas de ahorro.',
-          weeklyAchievement: {
-            title: '¡Ahorraste 15% más que la semana pasada! 🎉',
-            percentageGain: 15,
-            hoursLeft: 48,
+          fecha: '15 Oct, 2024',
+          marcaTiempo: Date.now(),
+          totalGastado: totalExp,
+          puntajeSalud: 86,
+          estadoSalud: 'Saludable',
+          mensajeMotivador: '¡Excelente progreso! Tu balance muestra un camino firme hacia tus metas de ahorro.',
+          logroSemanal: {
+            titulo: '¡Ahorraste 15% más que la semana pasada! 🎉',
+            porcentajeGanancia: 15,
+            horasRestantes: 48,
           },
-          categoryDistribution: [
-            { category: 'Vivienda', amount: 1200, percentage: 54.8, color: '#4648d4' },
-            { category: 'Alimentación', amount: 420, percentage: 19.2, color: '#fd933d' },
-            { category: 'Transporte', amount: 300, percentage: 13.7, color: '#712ae2' },
-            { category: 'Servicios', amount: 150, percentage: 6.8, color: '#38bdf8' },
-            { category: 'Salud', amount: 80, percentage: 3.7, color: '#10b981' },
-            { category: 'Entretenimiento', amount: 40, percentage: 1.8, color: '#ef4444' },
+          distribucionCategorias: [
+            { categoria: 'Vivienda', monto: 1200, porcentaje: 54.8, colorHex: '#4648d4' },
+            { categoria: 'Alimentación', monto: 420, porcentaje: 19.2, colorHex: '#fd933d' },
+            { categoria: 'Transporte', monto: 300, porcentaje: 13.7, colorHex: '#712ae2' },
+            { categoria: 'Servicios', monto: 150, porcentaje: 6.8, colorHex: '#38bdf8' },
+            { categoria: 'Salud', monto: 80, porcentaje: 3.7, colorHex: '#10b981' },
+            { categoria: 'Entretenimiento', monto: 40, porcentaje: 1.8, colorHex: '#ef4444' },
           ],
-          recommendations: [
+          recomendaciones: [
             {
               id: 'rec-f1',
-              title: 'Reduce entretenimiento',
-              description: 'Monitorear gastos recurrentes de streaming',
-              category: 'Entretenimiento',
-              impact: 'Ahorra $40/mes',
-              actionLabel: 'Ver detalles',
-              statusType: 'danger',
+              titulo: 'Reduce entretenimiento',
+              descripcion: 'Monitorear gastos recurrentes de streaming',
+              categoria: 'Entretenimiento',
+              impacto: 'Ahorra $40/mes',
+              etiquetaAccion: 'Ver detalles',
+              tipoEstado: 'danger',
             },
             {
               id: 'rec-f2',
-              title: 'Aumenta ahorro',
-              description: 'Reserva +200 pesos mensuales',
-              category: 'Ahorro',
-              impact: '+$2,400 al año',
-              actionLabel: 'Configurar',
-              statusType: 'warning',
+              titulo: 'Aumenta ahorro',
+              descripcion: 'Reserva +200 pesos mensuales',
+              categoria: 'Ahorro',
+              impacto: '+$2,400 al año',
+              etiquetaAccion: 'Configurar',
+              tipoEstado: 'warning',
             },
           ],
         };

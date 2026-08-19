@@ -9,8 +9,10 @@ export type NavigationTab =
 export type TopSubTab = 'Análisis' | 'Informes';
 
 export type HealthStatus = 'Saludable' | 'En observación' | 'Observación' | 'Riesgo';
+export type EstadoSalud = HealthStatus;
 
 export type SavingsFrequency = 'Semanal' | 'Quincenal' | 'Mensual';
+export type FrecuenciaAhorro = SavingsFrequency;
 
 export interface UserProfile {
   name: string;
@@ -33,6 +35,7 @@ export type ExpenseCategory =
   | 'Salud'
   | 'Entretenimiento'
   | 'Otros';
+export type CategoriaGasto = ExpenseCategory;
 
 export interface Transaction {
   id: string;
@@ -45,46 +48,49 @@ export interface Transaction {
   categorizationFailed?: boolean;
 }
 
-export interface Recommendation {
+export interface Recomendacion {
   id: string;
-  title: string;
-  description: string;
-  category: string;
-  impact: string;
-  actionLabel: string;
-  completed?: boolean;
-  statusType?: 'danger' | 'warning' | 'info' | 'success';
+  titulo: string;
+  descripcion: string;
+  categoria: string;
+  impacto: string;
+  etiquetaAccion: string;
+  completada?: boolean;
+  tipoEstado?: 'danger' | 'warning' | 'info' | 'success';
 }
 
-export interface AnalysisReport {
+export interface DistribucionCategoria {
+  categoria: CategoriaGasto;
+  monto: number;
+  porcentaje: number;
+  colorHex: string;
+}
+
+export interface ReporteAnalisis {
   id: string;
-  date: string;
-  timestamp: number;
-  totalSpent: number;
-  healthScore: number;
-  status: HealthStatus;
-  encouragingMessage: string;
-  weeklyAchievement: {
-    title: string;
-    percentageGain: number;
-    hoursLeft: number;
+  fecha: string;
+  marcaTiempo: number;
+  totalGastado: number;
+  puntajeSalud: number;
+  estadoSalud: EstadoSalud;
+  mensajeMotivador: string;
+  logroSemanal: {
+    titulo: string;
+    porcentajeGanancia: number;
+    horasRestantes: number;
   };
-  categoryDistribution: {
-    category: ExpenseCategory;
-    amount: number;
-    percentage: number;
-    color: string;
-  }[];
-  recommendations: Recommendation[];
-  aiNarrative?: string;
-  inputs?: {
-    income: number;
-    debts: number;
-    savingsFreq: SavingsFrequency;
-    budgetGoal: number;
-    debtPayment: number;
-    subscriptions: number;
-    emergencyFund: number;
-    transactionsCount: number;
+  distribucionCategorias: DistribucionCategoria[];
+  recomendaciones: Recomendacion[];
+  narrativaIa?: string;
+  entradas?: {
+    ingresoMensual: number;
+    deudas: number;
+    frecuenciaAhorro: FrecuenciaAhorro;
+    objetivoPresupuesto: number;
+    pagoDeuda: number;
+    suscripciones: number;
+    fondoEmergencia: number;
+    cantidadTransacciones: number;
   };
 }
+

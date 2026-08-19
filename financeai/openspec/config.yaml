@@ -1,19 +1,26 @@
 schema: spec-driven
 
 context: |
-  Tech stack: React 19, TypeScript, Vite, TailwindCSS v4, Framer Motion.
-  Domain: Finance AI Frontend (Hackaton G9).
-  Icons: lucide-react.
-  UI Guidelines: Modern, vibrant aesthetics. Use the established color palette (e.g., primary #4648d4, secondary #fd933d, text #191c1d / #767586). Rely on Tailwind utility classes like `rounded-xl`, `font-display`, and `font-mono-val`.
-  Backend Integration: Java Spring Boot REST API. Consult `docs/API_BACKEND_ENDPOINTS.md` for endpoint specifics. The frontend must handle the most common 4xx/5xx errors gracefully to mask backend inconsistencies, providing friendly messages to the user.
+  Domain: Aplicación de finanzas personales (Finance AI) enfocada en gestión de gastos, reportes interactivos, metas de ahorro y recomendaciones guiadas por IA.
+  Frontend Stack: React 19, TypeScript, Vite 6, TailwindCSS v4, Lucide React, Motion (Framer Motion).
+  Backend Stack: API REST en Java Spring Boot (Documentada en docs/API_BACKEND_ENDPOINTS.md).
+  Dev Server: Express y Node.js para servir la aplicación localmente.
+  UI/UX Guidelines: 
+    - Diseños modernos y "premium" (colores vibrantes, glassmorphism, modo oscuro/claro).
+    - Uso intensivo de TailwindCSS para utilidades y colores HEX personalizados (ej. text-[#191c1d]).
+    - Micro-animaciones para mejorar la interacción del usuario.
+  Convenciones de Nomenclatura:
+    - Todo el proyecto usa variables y nombres íntegramente en ESPAÑOL.
+    - Se debe conservar en todo momento el uso de `camelCase` para variables y funciones (ej. miVariableNueva).
+  Restricción Arquitectónica Backend: Los endpoints del backend documentados NO se modificarán. Si una funcionalidad frontend requiere creación adicional de código por parte del backend, se deben sugerir alternativas exclusivas de frontend (ej. mocks, transformaciones locales). Cualquier necesidad ineludible de backend debe quedar documentada en los artefactos como "Sugerencia para versión futura" y no planificarse para el desarrollo actual.
 
 rules:
   proposal:
-    - Clearly define UI/UX impact and any backend dependencies.
-    - Always include a "Non-goals" section to avoid scope creep.
+    - "Al proponer nuevas integraciones de datos, validar primero si la funcionalidad es posible con la API actual documentada en 'docs/API_BACKEND_ENDPOINTS.md'."
+    - "Si el diseño original de una funcionalidad requiere cambios o nuevos endpoints en el backend, re-enfocar la implementación para resolverse enteramente en el frontend, y documentar explícitamente el cambio de backend deseado en una sección de 'Sugerencias Futuras'."
+    - "Describir siempre el impacto visual de los componentes a agregar para asegurar un diseño de alto nivel (premium)."
+    - "Si durante la propuesta se plantea cambiar el idioma o el nombre de variables existentes, se DEBE agregar una advertencia en la sección 'User Review Required' explicando por qué, solicitando la opción de aceptar o rechazar el cambio antes de programar nada."
   design:
-    - Never introduce new colors outside the existing Tailwind/branding palette.
-    - Mention which Lucide icons will be used.
+    - "Detallar siempre los estados locales o globales y las propiedades (interfaces de TypeScript) de los nuevos componentes de React."
   tasks:
-    - Break tasks into small, self-contained implementation steps.
-    - Always include a final task to run `npm run lint` (which triggers `tsc --noEmit`) to verify TypeScript correctness.
+    - "Desglosar las tareas de implementación en pasos muy atómicos y testeables individualmente."

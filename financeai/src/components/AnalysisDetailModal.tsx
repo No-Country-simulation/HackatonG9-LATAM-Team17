@@ -1,21 +1,21 @@
 import React from 'react';
 import { X, Sparkles, CheckCircle2, TrendingUp, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
-import { AnalysisReport } from '../types';
+import { ReporteAnalisis } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
-interface AnalysisDetailModalProps {
-  report: AnalysisReport | null;
-  onClose: () => void;
+interface PropsModalDetalleAnalisis {
+  reporte: ReporteAnalisis | null;
+  alCerrar: () => void;
 }
 
-export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
-  report,
-  onClose,
+export const AnalysisDetailModal: React.FC<PropsModalDetalleAnalisis> = ({
+  reporte,
+  alCerrar,
 }) => {
-  if (!report) return null;
+  if (!reporte) return null;
 
   return (
-    <div 
+    <div
       id="analysis-detail-modal"
       className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in"
     >
@@ -25,7 +25,7 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md p-1 flex items-center justify-center shrink-0">
               <img
-                src={report.healthScore >= 80 ? MASCOTS.happyPotatoCoin : MASCOTS.catWorriedEmpty}
+                src={reporte.puntajeSalud >= 80 ? MASCOTS.happyPotatoCoin : MASCOTS.catWorriedEmpty}
                 alt="Status Mascot"
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
@@ -33,16 +33,16 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#ffdcc5]">
-                REPORTE DEL EXPERTO ALENTADOR • {report.date}
+                REPORTE DEL EXPERTO ALENTADOR • {reporte.fecha}
               </span>
               <h2 className="text-xl font-bold text-white font-display">
-                Salud Financiera: {report.healthScore}% ({report.status})
+                Salud Financiera: {reporte.puntajeSalud}% ({reporte.estadoSalud})
               </h2>
             </div>
           </div>
 
           <button
-            onClick={onClose}
+            onClick={alCerrar}
             className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -58,11 +58,11 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
               <span>Mensaje del Coach</span>
             </div>
             <p className="text-xs text-[#693300] leading-relaxed font-medium">
-              "{report.encouragingMessage}"
+              "{reporte.mensajeMotivador}"
             </p>
-            {report.aiNarrative && (
+            {reporte.narrativaIa && (
               <p className="text-[11px] text-[#767586] leading-relaxed mt-1">
-                {report.aiNarrative}
+                {reporte.narrativaIa}
               </p>
             )}
           </div>
@@ -70,14 +70,14 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
           {/* Breakdown Distribution */}
           <div>
             <h4 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-3">
-              Desglose de Gastos Analizados (Total: ${report.totalSpent.toLocaleString()})
+              Desglose de Gastos Analizados (Total: ${reporte.totalGastado.toLocaleString()})
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {report.categoryDistribution.map((c) => (
-                <div key={c.category} className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e1e3e4]">
-                  <p className="text-[11px] text-[#767586] font-medium">{c.category}</p>
+              {reporte.distribucionCategorias.map((c) => (
+                <div key={c.categoria} className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e1e3e4]">
+                  <p className="text-[11px] text-[#767586] font-medium">{c.categoria}</p>
                   <p className="text-sm font-bold text-[#191c1d] font-mono-val mt-0.5">
-                    ${c.amount.toLocaleString()} ({c.percentage}%)
+                    ${c.monto.toLocaleString()} ({c.porcentaje}%)
                   </p>
                 </div>
               ))}
@@ -89,7 +89,7 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
             <h4 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider">
               Recomendaciones y Plan de Acción
             </h4>
-            {report.recommendations.map((rec) => (
+            {reporte.recomendaciones.map((rec) => (
               <div
                 key={rec.id}
                 className="p-4 rounded-xl border border-[#e1e3e4] hover:border-[#4648d4]/40 transition-all flex items-start justify-between gap-3 bg-white"
@@ -99,10 +99,10 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-[#191c1d]">{rec.title}</h5>
-                    <p className="text-[11px] text-[#464554] mt-0.5">{rec.description}</p>
+                    <h5 className="text-xs font-bold text-[#191c1d]">{rec.titulo}</h5>
+                    <p className="text-[11px] text-[#464554] mt-0.5">{rec.descripcion}</p>
                     <span className="inline-block mt-2 text-[10px] font-bold text-[#4648d4] bg-[#4648d4]/10 px-2 py-0.5 rounded-full">
-                      Impacto: {rec.impact}
+                      Impacto: {rec.impacto}
                     </span>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({
         {/* Modal Footer */}
         <div className="p-4 bg-[#f8f9fa] border-t border-[#e1e3e4] flex justify-end">
           <button
-            onClick={onClose}
+            onClick={alCerrar}
             className="px-5 py-2 bg-[#4648d4] hover:bg-[#393bb8] text-white text-xs font-bold rounded-xl transition-all shadow-sm"
           >
             Entendido, ¡a por ello!

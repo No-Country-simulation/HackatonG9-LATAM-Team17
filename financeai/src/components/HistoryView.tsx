@@ -16,12 +16,12 @@ import {
   DollarSign,
   Activity
 } from 'lucide-react';
-import { AnalysisReport, HealthStatus } from '../types';
+import { ReporteAnalisis, HealthStatus } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
 interface HistoryViewProps {
-  analysisHistory: AnalysisReport[];
-  onOpenAnalysisModal: (report: AnalysisReport) => void;
+  analysisHistory: ReporteAnalisis[];
+  onOpenAnalysisModal: (report: ReporteAnalisis) => void;
   onNavigateToNewAnalysis: () => void;
 }
 
@@ -40,7 +40,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       .filter((item) => {
         // Status filter
         if (statusFilter !== 'all') {
-          const itemStatusNorm = item.status === 'Observación' ? 'En observación' : item.status;
+          const itemStatusNorm = item.estadoSalud === 'Observación' ? 'En observación' : item.estadoSalud;
           const filterNorm = statusFilter === 'Observación' ? 'En observación' : statusFilter;
           if (itemStatusNorm !== filterNorm) return false;
         }
@@ -48,19 +48,19 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         // Search query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchesDate = item.date.toLowerCase().includes(q);
-          const matchesMsg = item.encouragingMessage?.toLowerCase().includes(q) || false;
-          const matchesStatus = item.status.toLowerCase().includes(q);
+          const matchesDate = item.fecha.toLowerCase().includes(q);
+          const matchesMsg = item.mensajeMotivador?.toLowerCase().includes(q) || false;
+          const matchesStatus = item.estadoSalud.toLowerCase().includes(q);
           return matchesDate || matchesMsg || matchesStatus;
         }
 
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'newest') return b.timestamp - a.timestamp;
-        if (sortBy === 'oldest') return a.timestamp - b.timestamp;
-        if (sortBy === 'score-high') return b.healthScore - a.healthScore;
-        if (sortBy === 'score-low') return a.healthScore - b.healthScore;
+        if (sortBy === 'newest') return b.marcaTiempo - a.marcaTiempo;
+        if (sortBy === 'oldest') return a.marcaTiempo - b.marcaTiempo;
+        if (sortBy === 'score-high') return b.puntajeSalud - a.puntajeSalud;
+        if (sortBy === 'score-low') return a.puntajeSalud - b.puntajeSalud;
         return 0;
       });
   }, [analysisHistory, statusFilter, searchQuery, sortBy]);
@@ -68,8 +68,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   // Statistics calculation
   const stats = useMemo(() => {
     if (analysisHistory.length === 0) return { count: 0, avgScore: 0, avgSpent: 0 };
-    const totalScore = analysisHistory.reduce((acc, curr) => acc + curr.healthScore, 0);
-    const totalSpent = analysisHistory.reduce((acc, curr) => acc + curr.totalSpent, 0);
+    const totalScore = analysisHistory.reduce((acc, curr) => acc + curr.puntajeSalud, 0);
+    const totalSpent = analysisHistory.reduce((acc, curr) => acc + curr.totalGastado, 0);
     return {
       count: analysisHistory.length,
       avgScore: Math.round(totalScore / analysisHistory.length),
@@ -309,32 +309,32 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               <div className="flex items-start gap-4 flex-1 min-w-0">
                 <div className="w-12 h-12 rounded-2xl bg-[#f8f9fa] group-hover:bg-[#e0e7ff]/60 text-[#4648d4] flex flex-col items-center justify-center shrink-0 border border-[#e1e3e4] group-hover:border-[#6063ee]/30 transition-colors">
                   <BarChart2 className="w-5 h-5" />
-                  <span className="text-[9px] font-bold mt-0.5">{item.healthScore}%</span>
+                  <span className="text-[9px] font-bold mt-0.5">{item.puntajeSalud}%</span>
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <span className="text-sm font-bold text-[#191c1d] font-display flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#767586]" />
-                      {item.date}
+                      {item.fecha}
                     </span>
-                    {getStatusBadge(item.status)}
+                    {getStatusBadge(item.estadoSalud)}
                     <span className="text-xs font-bold text-[#4648d4] font-mono-val bg-[#e0e7ff]/60 px-2.5 py-0.5 rounded-full">
-                      ${item.totalSpent.toLocaleString()} evaluados
+                      ${item.totalGastado.toLocaleString()} evaluados
                     </span>
                   </div>
 
-                  {item.encouragingMessage && (
+                  {item.mensajeMotivador && (
                     <p className="text-xs text-[#464554] font-medium line-clamp-2 leading-relaxed">
-                      💡 {item.encouragingMessage}
+                      💡 {item.mensajeMotivador}
                     </p>
                   )}
 
                   {/* Summary tags */}
-                  {item.recommendations && item.recommendations.length > 0 && (
+                  {item.recomendaciones && item.recomendaciones.length > 0 && (
                     <div className="flex items-center gap-2 pt-1">
                       <span className="text-[11px] text-[#767586]">
-                        {item.recommendations.length} {item.recommendations.length === 1 ? 'recomendación detectada' : 'recomendaciones detectadas'}
+                        {item.recomendaciones.length} {item.recomendaciones.length === 1 ? 'recomendación detectada' : 'recomendaciones detectadas'}
                       </span>
                     </div>
                   )}

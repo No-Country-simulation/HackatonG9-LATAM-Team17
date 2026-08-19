@@ -13,12 +13,12 @@ import {
   CheckCircle2,
   FileText
 } from 'lucide-react';
-import { AnalysisReport, UserProfile } from '../types';
+import { ReporteAnalisis, UserProfile } from '../types';
 
 interface ReportsViewProps {
-  report: AnalysisReport;
+  report: ReporteAnalisis;
   userProfile: UserProfile;
-  onOpenAnalysisModal?: (report: AnalysisReport) => void;
+  onOpenAnalysisModal?: (report: ReporteAnalisis) => void;
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({

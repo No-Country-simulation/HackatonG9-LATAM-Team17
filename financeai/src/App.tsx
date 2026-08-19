@@ -10,7 +10,7 @@ import { HistoryView } from './components/HistoryView';
 import { LoginModal } from './components/LoginModal';
 import { AnalysisDetailModal } from './components/AnalysisDetailModal';
 import { Footer } from './components/Footer';
-import { NavigationTab, TopSubTab, UserProfile, Transaction, AnalysisReport } from './types';
+import { NavigationTab, TopSubTab, UserProfile, Transaction, ReporteAnalisis } from './types';
 
 export default function App() {
   // Navigation State
@@ -20,7 +20,7 @@ export default function App() {
 
   // Modals State
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [activeReportModal, setActiveReportModal] = useState<AnalysisReport | null>(null);
+  const [activeReportModal, setActiveReportModal] = useState<ReporteAnalisis | null>(null);
 
   // User Profile State
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -47,135 +47,135 @@ export default function App() {
   ]);
 
   // Current Report State
-  const [currentReport, setCurrentReport] = useState<AnalysisReport>({
+  const [currentReport, setCurrentReport] = useState<ReporteAnalisis>({
     id: 'an-init',
-    date: '15 Oct, 2024',
-    timestamp: Date.now(),
-    totalSpent: 2190,
-    healthScore: 82,
-    status: 'En observación',
-    encouragingMessage: '¡Vamos a mejorar tu salud financiera! 💪',
-    weeklyAchievement: {
-      title: '¡Ahorraste 15% más que la semana pasada! 🎉',
-      percentageGain: 15,
-      hoursLeft: 48,
+    fecha: '15 Oct, 2024',
+    marcaTiempo: Date.now(),
+    totalGastado: 2190,
+    puntajeSalud: 82,
+    estadoSalud: 'En observación',
+    mensajeMotivador: '¡Vamos a mejorar tu salud financiera! 💪',
+    logroSemanal: {
+      titulo: '¡Ahorraste 15% más que la semana pasada! 🎉',
+      porcentajeGanancia: 15,
+      horasRestantes: 48,
     },
-    categoryDistribution: [
-      { category: 'Vivienda', amount: 1200, percentage: 26.7, color: '#4648d4' },
-      { category: 'Alimentación', amount: 420, percentage: 9.3, color: '#fd933d' },
-      { category: 'Transporte', amount: 300, percentage: 6.7, color: '#712ae2' },
-      { category: 'Servicios', amount: 150, percentage: 3.3, color: '#38bdf8' },
-      { category: 'Salud', amount: 80, percentage: 1.8, color: '#10b981' },
-      { category: 'Entretenimiento', amount: 40, percentage: 0.9, color: '#ef4444' },
+    distribucionCategorias: [
+      { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
+      { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
+      { categoria: 'Transporte', monto: 300, porcentaje: 6.7, colorHex: '#712ae2' },
+      { categoria: 'Servicios', monto: 150, porcentaje: 3.3, colorHex: '#38bdf8' },
+      { categoria: 'Salud', monto: 80, porcentaje: 1.8, colorHex: '#10b981' },
+      { categoria: 'Entretenimiento', monto: 40, porcentaje: 0.9, colorHex: '#ef4444' },
     ],
-    recommendations: [
+    recomendaciones: [
       {
         id: 'rec-1',
-        title: 'Reduce entretenimiento',
-        description: 'Monitorear gastos recurrentes de streaming',
-        category: 'Entretenimiento',
-        impact: 'Ahorra $40/mes',
-        actionLabel: 'Ver detalles',
-        statusType: 'danger',
+        titulo: 'Reduce entretenimiento',
+        descripcion: 'Monitorear gastos recurrentes de streaming',
+        categoria: 'Entretenimiento',
+        impacto: 'Ahorra $40/mes',
+        etiquetaAccion: 'Ver detalles',
+        tipoEstado: 'danger',
       },
       {
         id: 'rec-2',
-        title: 'Aumenta ahorro',
-        description: 'Reserva +200 pesos mensuales',
-        category: 'Ahorro',
-        impact: '+$2,400 al año',
-        actionLabel: 'Configurar',
-        statusType: 'warning',
+        titulo: 'Aumenta ahorro',
+        descripcion: 'Reserva +200 pesos mensuales',
+        categoria: 'Ahorro',
+        impacto: '+$2,400 al año',
+        etiquetaAccion: 'Configurar',
+        tipoEstado: 'warning',
       },
     ],
   });
 
   // History State
-  const [analysisHistory, setAnalysisHistory] = useState<AnalysisReport[]>([
+  const [analysisHistory, setAnalysisHistory] = useState<ReporteAnalisis[]>([
     {
       id: 'an-1',
-      date: '24 Oct, 2023',
-      timestamp: 1698144000000,
-      totalSpent: 12450,
-      healthScore: 92,
-      status: 'Saludable',
-      encouragingMessage: '¡Excelente disciplina! Has mantenido tus gastos esenciales controlados.',
-      weeklyAchievement: {
-        title: '¡Ahorraste 18% más que el mes anterior!',
-        percentageGain: 18,
-        hoursLeft: 36,
+      fecha: '24 Oct, 2023',
+      marcaTiempo: 1698144000000,
+      totalGastado: 12450,
+      puntajeSalud: 92,
+      estadoSalud: 'Saludable',
+      mensajeMotivador: '¡Excelente disciplina! Has mantenido tus gastos esenciales controlados.',
+      logroSemanal: {
+        titulo: '¡Ahorraste 18% más que el mes anterior!',
+        porcentajeGanancia: 18,
+        horasRestantes: 36,
       },
-      categoryDistribution: [
-        { category: 'Vivienda', amount: 1200, percentage: 26.7, color: '#4648d4' },
-        { category: 'Alimentación', amount: 420, percentage: 9.3, color: '#fd933d' },
-        { category: 'Transporte', amount: 300, percentage: 6.7, color: '#712ae2' },
+      distribucionCategorias: [
+        { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
+        { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
+        { categoria: 'Transporte', monto: 300, porcentaje: 6.7, colorHex: '#712ae2' },
       ],
-      recommendations: [
+      recomendaciones: [
         {
           id: 'rec-1',
-          title: 'Mantén el hábito de ahorro',
-          description: 'Aporta consistentemente a tu fondo para crear un colchón de seguridad.',
-          category: 'Ahorro',
-          impact: '+$4,800 a largo plazo',
-          actionLabel: 'Ver reportes',
-          statusType: 'success',
+          titulo: 'Mantén el hábito de ahorro',
+          descripcion: 'Aporta consistentemente a tu fondo para crear un colchón de seguridad.',
+          categoria: 'Ahorro',
+          impacto: '+$4,800 a largo plazo',
+          etiquetaAccion: 'Ver reportes',
+          tipoEstado: 'success',
         },
       ],
     },
     {
       id: 'an-2',
-      date: '15 Sep, 2023',
-      timestamp: 1694774400000,
-      totalSpent: 11200,
-      healthScore: 82,
-      status: 'En observación',
-      encouragingMessage: '¡Vamos a mejorar tu salud financiera! Pequeños ajustes marcarán la diferencia.',
-      weeklyAchievement: {
-        title: '¡Ahorraste 15% más que la semana pasada!',
-        percentageGain: 15,
-        hoursLeft: 48,
+      fecha: '15 Sep, 2023',
+      marcaTiempo: 1694774400000,
+      totalGastado: 11200,
+      puntajeSalud: 82,
+      estadoSalud: 'En observación',
+      mensajeMotivador: '¡Vamos a mejorar tu salud financiera! Pequeños ajustes marcarán la diferencia.',
+      logroSemanal: {
+        titulo: '¡Ahorraste 15% más que la semana pasada!',
+        porcentajeGanancia: 15,
+        horasRestantes: 48,
       },
-      categoryDistribution: [
-        { category: 'Vivienda', amount: 1200, percentage: 26.7, color: '#4648d4' },
-        { category: 'Alimentación', amount: 420, percentage: 9.3, color: '#fd933d' },
+      distribucionCategorias: [
+        { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
+        { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
       ],
-      recommendations: [
+      recomendaciones: [
         {
           id: 'rec-2',
-          title: 'Reduce entretenimiento',
-          description: 'Monitorear gastos recurrentes de streaming',
-          category: 'Entretenimiento',
-          impact: 'Ahorra $40/mes',
-          actionLabel: 'Ver detalles',
-          statusType: 'danger',
+          titulo: 'Reduce entretenimiento',
+          descripcion: 'Monitorear gastos recurrentes de streaming',
+          categoria: 'Entretenimiento',
+          impacto: 'Ahorra $40/mes',
+          etiquetaAccion: 'Ver detalles',
+          tipoEstado: 'danger',
         },
       ],
     },
     {
       id: 'an-3',
-      date: '02 Ago, 2023',
-      timestamp: 1690972800000,
-      totalSpent: 14800,
-      healthScore: 68,
-      status: 'Riesgo',
-      encouragingMessage: 'No te desanimes, ¡cada paso cuenta! Ajustando el plan volverás a la senda verde.',
-      weeklyAchievement: {
-        title: 'Fondo de emergencia iniciado con éxito',
-        percentageGain: 8,
-        hoursLeft: 72,
+      fecha: '02 Ago, 2023',
+      marcaTiempo: 1690972800000,
+      totalGastado: 14800,
+      puntajeSalud: 68,
+      estadoSalud: 'Riesgo',
+      mensajeMotivador: 'No te desanimes, ¡cada paso cuenta! Ajustando el plan volverás a la senda verde.',
+      logroSemanal: {
+        titulo: 'Fondo de emergencia iniciado con éxito',
+        porcentajeGanancia: 8,
+        horasRestantes: 72,
       },
-      categoryDistribution: [
-        { category: 'Vivienda', amount: 1200, percentage: 25.0, color: '#4648d4' },
+      distribucionCategorias: [
+        { categoria: 'Vivienda', monto: 1200, porcentaje: 25.0, colorHex: '#4648d4' },
       ],
-      recommendations: [
+      recomendaciones: [
         {
           id: 'rec-4',
-          title: 'Refinancia deudas',
-          description: 'Consolida tus pasivos para reducir el costo financiero.',
-          category: 'Deudas',
-          impact: 'Reduce 12% intereses',
-          actionLabel: 'Plan de pago',
-          statusType: 'danger',
+          titulo: 'Refinancia deudas',
+          descripcion: 'Consolida tus pasivos para reducir el costo financiero.',
+          categoria: 'Deudas',
+          impacto: 'Reduce 12% intereses',
+          etiquetaAccion: 'Plan de pago',
+          tipoEstado: 'danger',
         },
       ],
     },
@@ -244,7 +244,7 @@ export default function App() {
     }).catch(() => {});
   };
 
-  const handleNewAnalysisComplete = (newReport: AnalysisReport) => {
+  const handleNewAnalysisComplete = (newReport: ReporteAnalisis) => {
     setCurrentReport(newReport);
     setAnalysisHistory([newReport, ...analysisHistory]);
     setCurrentTab('tablero');
@@ -432,8 +432,8 @@ export default function App() {
 
       {/* Analysis Details Modal */}
       <AnalysisDetailModal
-        report={activeReportModal}
-        onClose={() => setActiveReportModal(null)}
+        reporte={activeReportModal}
+        alCerrar={() => setActiveReportModal(null)}
       />
     </div>
   );
