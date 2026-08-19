@@ -26,28 +26,19 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   userProfile,
   onOpenAnalysisModal,
 }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState('Octubre 2024');
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportSuccess, setExportSuccess] = useState(false);
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState('Octubre 2024');
+  const [estaExportando, setEstaExportando] = useState(false);
+  const [exportacionExitosa, setExportacionExitosa] = useState(false);
 
-  // Categories breakdown
-  const categories = [
-    { name: 'Vivienda', amount: 1200, percentage: 55, group: 'Esenciales', color: '#4648d4' },
-    { name: 'Alimentación', amount: 420, percentage: 19, group: 'Esenciales', color: '#4648d4' },
-    { name: 'Transporte', amount: 300, percentage: 14, group: 'Esenciales', color: '#4648d4' },
-    { name: 'Servicios', amount: 150, percentage: 7, group: 'Esenciales', color: '#4648d4' },
-    { name: 'Salud', amount: 80, percentage: 3, group: 'Esenciales', color: '#4648d4' },
-    { name: 'Ocio', amount: 40, percentage: 2, group: 'Discrecional', color: '#712ae2' },
-  ];
 
-  const handleExportPDF = () => {
-    setIsExporting(true);
+  const manejarExportacionPdf = () => {
+    setEstaExportando(true);
     setTimeout(() => {
-      setIsExporting(false);
-      setExportSuccess(true);
+      setEstaExportando(false);
+      setExportacionExitosa(true);
       // Trigger browser print to PDF
       window.print();
-      setTimeout(() => setExportSuccess(false), 3000);
+      setTimeout(() => setExportacionExitosa(false), 3000);
     }, 800);
   };
 
@@ -66,12 +57,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
         <button
           id="btn-export-report-pdf"
-          onClick={handleExportPDF}
-          disabled={isExporting}
+          onClick={manejarExportacionPdf}
+          disabled={estaExportando}
           className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-[#f8f9fa] text-[#4648d4] border border-[#4648d4] text-xs font-bold rounded-xl shadow-xs transition-all active:scale-98"
         >
           <Download className="w-4 h-4 text-[#4648d4] stroke-[2.2]" />
-          <span>{isExporting ? 'Generando Informe...' : 'Exportar Informe (PDF)'}</span>
+          <span>{estaExportando ? 'Generando Informe...' : 'Exportar Informe (PDF)'}</span>
         </button>
       </div>
 
@@ -189,54 +180,48 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               {/* Visual Multi-bar representation */}
               <div className="md:col-span-7 space-y-4">
                 <div className="h-6 w-full bg-[#f3f4f5] rounded-xl overflow-hidden flex shadow-inner">
-                  <div style={{ width: '90%' }} className="h-full bg-[#4648d4] transition-all hover:opacity-90" title="Esenciales: 90%" />
-                  <div style={{ width: '5%' }} className="h-full bg-[#712ae2] transition-all hover:opacity-90" title="Discrecional: 5%" />
-                  <div style={{ width: '5%' }} className="h-full bg-[#fd933d] transition-all hover:opacity-90" title="Imprevistos: 5%" />
+                  {report?.distribucionCategorias?.length > 0 ? (
+                    report.distribucionCategorias.map((cat, idx) => (
+                      <div key={idx} style={{ width: `${cat.porcentaje}%`, backgroundColor: cat.colorHex }} className="h-full transition-all hover:opacity-90" title={`${cat.categoria}: ${cat.porcentaje}%`} />
+                    ))
+                  ) : (
+                    <div style={{ width: '100%' }} className="h-full bg-[#d9dadb] transition-all" title="Sin datos" />
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-semibold text-[#767586] px-1">
-                  <span>Esenciales: $1,970</span>
-                  <span>Discrecional: $110</span>
-                  <span>Imprevistos: $110</span>
+                  {report?.distribucionCategorias?.slice(0, 3).map((cat, idx) => (
+                    <span key={idx}>{cat.categoria}: ${(cat.monto || 0).toLocaleString('en-US')}</span>
+                  ))}
                 </div>
               </div>
 
               {/* Legend List on Right */}
               <div className="md:col-span-5 space-y-3 pl-0 md:pl-6 border-t md:border-t-0 md:border-l border-[#f3f4f5] pt-4 md:pt-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#4648d4]" />
-                    <span className="text-xs font-medium text-[#464554]">Esenciales</span>
-                  </div>
-                  <span className="text-xs font-bold text-[#191c1d] font-mono-val">90%</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#712ae2]" />
-                    <span className="text-xs font-medium text-[#464554]">Discrecional</span>
-                  </div>
-                  <span className="text-xs font-bold text-[#191c1d] font-mono-val">5%</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#fd933d]" />
-                    <span className="text-xs font-medium text-[#464554]">Imprevistos</span>
-                  </div>
-                  <span className="text-xs font-bold text-[#191c1d] font-mono-val">5%</span>
-                </div>
+                {report?.distribucionCategorias?.length > 0 ? (
+                  report.distribucionCategorias.map((cat, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: cat.colorHex}} />
+                        <span className="text-xs font-medium text-[#464554]">{cat.categoria}</span>
+                      </div>
+                      <span className="text-xs font-bold text-[#191c1d] font-mono-val">{cat.porcentaje}%</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-[#767586]">No hay suficientes datos para graficar</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Bottom Sub-categories Bar (Exact as screenshot) */}
           <div className="pt-6 border-t border-[#f3f4f5] flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-[#464554]">
-            {['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Ocio'].map((cat) => (
+            {report?.distribucionCategorias?.map((c) => c.categoria).map((cat) => (
               <span key={cat} className="hover:text-[#4648d4] transition-colors cursor-pointer">
                 {cat}
               </span>
-            ))}
+            )) || <span className="text-[#767586]">Sin datos</span>}
           </div>
         </div>
 
@@ -251,7 +236,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Ahorro Total
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              $12,450
+              ${(report?.totalGastado || 12450).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#4648d4]">
               <TrendingUp className="w-4 h-4 stroke-[2]" />
@@ -267,7 +252,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Obj. Presupuesto
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              85%
+              ${(userProfile.budgetGoal || 3000000).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <Target className="w-4 h-4 stroke-[2]" />
@@ -283,7 +268,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Suscripciones
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              8 Activas
+              {userProfile.subscriptionsCount || 8} Activas
             </p>
             <div className="flex justify-end text-[#fd933d]">
               <Tv className="w-4 h-4 stroke-[2]" />
@@ -299,7 +284,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Fondo Emergencia
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              3 Meses
+              ${(userProfile.emergencyFund || 1500000).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <ShieldCheck className="w-4 h-4 stroke-[2]" />
