@@ -17,7 +17,7 @@ services:
       - app-network
   # Comentado temporalmente hasta que esté la carpeta python-nlp-service
   python-nlp:
-    build: ../python-nlp-service # modificar x el archivo nuevo #
+    build: ../HackatonG9-LATAM-Team17-feature-back-python-prueba
     container_name: python_nlp_api
     ports:
       - "8000:8000"
