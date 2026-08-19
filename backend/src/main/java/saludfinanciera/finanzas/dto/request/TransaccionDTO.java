@@ -32,12 +32,13 @@ public record TransaccionDTO(
 
         @Schema(
                 description = "Fecha y hora en que se realizó la transacción (formato ISO-8601)",
-                example = "2026-08-14T10:30:00",
+                example = "2026-08-14T10:30:00.000Z",
                 requiredMode = Schema.RequiredMode.NOT_REQUIRED,
                 type = "string",
                 format = "date-time"
         )
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        // 👇 ESTA ES LA LÍNEA CORREGIDA PARA ACEPTAR LA 'Z' Y LOS MILISEGUNDOS DEL NAVEGADOR
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
         @JsonProperty("fecha_transaccion")
         LocalDateTime fechaTransaccion
 ) {}
