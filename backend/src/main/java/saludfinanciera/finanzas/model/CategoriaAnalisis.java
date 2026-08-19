@@ -1,6 +1,6 @@
 package saludfinanciera.finanzas.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,14 +21,13 @@ public class CategoriaAnalisis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // El atributo en Java ahora se llama exactamente igual que la columna en la BD
     @Column(name = "categoria", nullable = false)
     private String categoria;
 
     @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
-    @JsonIgnore
+    @JsonBackReference(value = "analisis-categorias")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analisis_financiero_id", nullable = false)
     private AnalisisFinanciero analisisFinanciero;

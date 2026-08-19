@@ -1,84 +1,110 @@
 package saludfinanciera.finanzas.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import saludfinanciera.finanzas.client.PythonDataScienceClient;
 import saludfinanciera.finanzas.dto.response.RespuestaPythonDTO;
 import saludfinanciera.finanzas.dto.request.AnalisisInputDTO;
 import saludfinanciera.finanzas.dto.request.TransaccionDTO;
 import saludfinanciera.finanzas.dto.response.AnalisisOutputDTO;
 import saludfinanciera.finanzas.exception.ResourceNotFoundException;
+import saludfinanciera.finanzas.model.AnalisisFinanciero;
+import saludfinanciera.finanzas.model.CategoriaAnalisis;
+import saludfinanciera.finanzas.model.TransaccionAnalisis;
+import saludfinanciera.finanzas.model.Usuario;
+import saludfinanciera.finanzas.repository.AnalisisFinancieroRepository;
+import saludfinanciera.finanzas.repository.UsuarioRepository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * SERVICIO DE ANÁLISIS FINANCIERO
- *
- * Actúa como orquestador del sistema:
- * 1. Envía los datos a Python para obtener el análisis y el resumen de gastos.
- * 2. Calcula el promedio de las 3 probabilidades devueltas por los modelos de IA.
- * 3. Compila el perfil financiero, la probabilidad promedio y recomendaciones finales para el Frontend.
- */
 @Service
 public class AnalisisService {
 
-    // Cliente HTTP para conectarse con el microservicio de FastAPI / Python
     private final PythonDataScienceClient pythonClient;
+    private final AnalisisFinancieroRepository analisisRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    /**
-     * Inyección de dependencias por constructor (Buena práctica en Spring)
-     */
-    public AnalisisService(PythonDataScienceClient pythonClient) {
+    public AnalisisService(
+            PythonDataScienceClient pythonClient,
+            AnalisisFinancieroRepository analisisRepository,
+            UsuarioRepository usuarioRepository
+    ) {
         this.pythonClient = pythonClient;
+        this.analisisRepository = analisisRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    /**
-     * PROCESO PRINCIPAL: Procesa el análisis de finanzas personales.
-     *
-     * @param input Objeto con ingresoMensual, nivelEndeudamiento, frecuenciaAhorro y la lista de transacciones.
-     * @return AnalisisOutputDTO listo para enviarse como JSON al Frontend.
-     */
+    @Transactional
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO input) {
 
-        // Validar datos mínimos de entrada
         if (input == null || input.transacciones() == null || input.transacciones().isEmpty()) {
             throw new ResourceNotFoundException("No se proporcionaron transacciones válidas para realizar el análisis.");
         }
 
-        // 1. SOLICITAR ANÁLISIS AL SERVICIO DE PYTHON
         RespuestaPythonDTO dsResponse = pythonClient.obtenerAnalisisDesdePython(input);
 
         if (dsResponse == null) {
             throw new ResourceNotFoundException("No se pudo obtener una respuesta válida del motor de análisis.");
         }
 
-        // 2. CÁLCULO DEL PROMEDIO DE PROBABILIDADES
         Double probabilidadPromedio = calcularPromedioProbabilidades(
                 dsResponse.probabilidadCategoria(),
                 dsResponse.probabilidadPerfilFinanciero(),
                 dsResponse.probabilidadRecomendaciones()
         );
 
-        // 3. OBTENER RESUMEN DE GASTOS
         Map<String, Double> resumenGastosPorCategoria = new HashMap<>();
-
         if (dsResponse.resumenGastos() != null && !dsResponse.resumenGastos().isEmpty()) {
             resumenGastosPorCategoria.putAll(dsResponse.resumenGastos());
         } else {
-            // Fallback por seguridad
             for (TransaccionDTO t : input.transacciones()) {
                 resumenGastosPorCategoria.merge("Ocio", t.valor(), Double::sum);
             }
         }
 
-        // 4. EXTRAER RECOMENDACIONES
         List<String> recomendaciones = dsResponse.recomendaciones();
         if (recomendaciones == null || recomendaciones.isEmpty()) {
             recomendaciones = List.of("Mantener un control regular de tus gastos.");
         }
 
-        // 5. CONSTRUCCIÓN Y RETORNO DEL DTO FINAL
+        Usuario usuario = usuarioRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema."));
+
+        AnalisisFinanciero analisis = AnalisisFinanciero.builder()
+                .usuario(usuario)
+                .perfilFinanciero(dsResponse.perfilFinanciero())
+                .recomendaciones(new ArrayList<>(recomendaciones))
+                .build();
+
+        List<TransaccionAnalisis> listaTransaccionesBD = new ArrayList<>();
+        if (input.transacciones() != null) {
+            for (TransaccionDTO tDto : input.transacciones()) {
+                TransaccionAnalisis tEntity = TransaccionAnalisis.builder()
+                        .descripcion(tDto.descripcion())
+                        .valor(tDto.valor())
+                        .fechaTransaccion(tDto.fechaTransaccion())
+                        .analisisFinanciero(analisis)
+                        .build();
+                listaTransaccionesBD.add(tEntity);
+            }
+        }
+        analisis.setTransacciones(listaTransaccionesBD);
+
+        List<CategoriaAnalisis> listaCategoriasBD = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : resumenGastosPorCategoria.entrySet()) {
+            CategoriaAnalisis catEntity = CategoriaAnalisis.builder()
+                    .categoria(entry.getKey())
+                    .analisisFinanciero(analisis)
+                    .build();
+            listaCategoriasBD.add(catEntity);
+        }
+        analisis.setCategorias(listaCategoriasBD);
+
+        analisisRepository.save(analisis);
+
         return new AnalisisOutputDTO(
                 dsResponse.perfilFinanciero(),
                 probabilidadPromedio,
@@ -87,37 +113,39 @@ public class AnalisisService {
         );
     }
 
-    /**
-     * CLASIFICACIÓN INDIVIDUAL DE UNA TRANSACCIÓN
-     */
     public RespuestaPythonDTO clasificarTransaccion(TransaccionDTO transaccionDTO) {
         if (transaccionDTO == null) {
             throw new ResourceNotFoundException("Los datos de la transacción no pueden ser nulos.");
         }
-
         RespuestaPythonDTO respuesta = pythonClient.obtenerClasificacionDesdePython(transaccionDTO);
-
         if (respuesta == null) {
             throw new ResourceNotFoundException("No se obtuvo respuesta para la clasificación de la transacción.");
         }
-
         return respuesta;
     }
 
-    /**
-     * Funcion auxiliar para calcular el promedio de probabilidades.
-     */
+    public List<AnalisisFinanciero> obtenerHistorialPorUsuario(Long usuarioId) {
+        return analisisRepository.findByUsuarioIdOrderByFechaAnalisisDesc(usuarioId);
+    }
+
+    // NUEVO: Obtiene el historial del primer usuario encontrado en la base de datos
+    public List<AnalisisFinanciero> obtenerHistorialGeneral() {
+        Usuario usuario = usuarioRepository.findAll().stream().findFirst().orElse(null);
+        if (usuario == null) {
+            return List.of();
+        }
+        return analisisRepository.findByUsuarioIdOrderByFechaAnalisisDesc(usuario.getId());
+    }
+
     private Double calcularPromedioProbabilidades(Double... probs) {
         double suma = 0.0;
         int count = 0;
-
         for (Double p : probs) {
             if (p != null) {
                 suma += p;
                 count++;
             }
         }
-
         return count > 0 ? (suma / count) : 0.0;
     }
 }

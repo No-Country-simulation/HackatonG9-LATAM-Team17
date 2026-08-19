@@ -37,8 +37,8 @@ public record TransaccionDTO(
                 type = "string",
                 format = "date-time"
         )
-        // 👇 ESTA ES LA LÍNEA CORREGIDA PARA ACEPTAR LA 'Z' Y LOS MILISEGUNDOS DEL NAVEGADOR
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+        // Patrón flexible para aceptar milisegundos opcionales y la terminación 'Z' sin romper la app
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]['Z']", timezone = "UTC")
         @JsonProperty("fecha_transaccion")
         LocalDateTime fechaTransaccion
 ) {}

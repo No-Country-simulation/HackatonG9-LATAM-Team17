@@ -1,6 +1,6 @@
 package saludfinanciera.finanzas.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore; // <-- Asegúrate de importar esto
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,7 +29,7 @@ public class TransaccionAnalisis {
     @Column(name = "fecha_transaccion")
     private LocalDateTime fechaTransaccion;
 
-    @JsonIgnore // <--- AÑADE ESTO AQUÍ
+    @JsonBackReference(value = "analisis-transacciones")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analisis_financiero_id", nullable = false)
     private AnalisisFinanciero analisisFinanciero;

@@ -2,6 +2,7 @@ package saludfinanciera.finanzas.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +27,7 @@ public class AnalisisFinanciero {
     @EqualsAndHashCode.Include
     private Long id;
 
-    // Relación con el usuario que hizo el análisis
+    // Relación con el usuario (mantenemos JsonIgnore para no exponer los datos sensibles del usuario en el historial)
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -39,13 +40,15 @@ public class AnalisisFinanciero {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime fechaAnalisis;
 
-    // Relación Uno a Muchos con las transacciones de este análisis específico
+    // Relación Uno a Muchos con transacciones (Permite serializar sin ignorar)
     @OneToMany(mappedBy = "analisisFinanciero", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference(value = "analisis-transacciones")
     @Builder.Default
     private List<TransaccionAnalisis> transacciones = new ArrayList<>();
 
-    // Nueva relación: Uno a Muchos con las categorías asociadas al análisis
+    // Relación Uno a Muchos con categorías (Permite serializar sin ignorar)
     @OneToMany(mappedBy = "analisisFinanciero", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference(value = "analisis-categorias")
     @Builder.Default
     private List<CategoriaAnalisis> categorias = new ArrayList<>();
 
@@ -56,7 +59,6 @@ public class AnalisisFinanciero {
     @Builder.Default
     private List<String> recomendaciones = new ArrayList<>();
 
-    // Callback de JPA para asignar la fecha exacta antes de guardar
     @PrePersist
     protected void prePersist() {
         this.fechaAnalisis = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
