@@ -27,64 +27,75 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
   onDeleteAccount,
 }) => {
   // Basic info form state
-  const [fullName, setFullName] = useState(userProfile.name);
-  const [email, setEmail] = useState(userProfile.email);
-  const [currentPassword, setCurrentPassword] = useState('password123');
-  const [newPassword, setNewPassword] = useState('');
-  const [showCurrentPass, setShowCurrentPass] = useState(false);
-  const [showNewPass, setShowNewPass] = useState(false);
-  const [savedBasicSuccess, setSavedBasicSuccess] = useState(false);
+  const [nombreCompleto, setNombreCompleto] = useState(userProfile.name);
+  const [correo, setCorreo] = useState(userProfile.correo);
+  const [contrasenaActual, setContrasenaActual] = useState('password123');
+  const [nuevaContrasena, setNuevaContrasena] = useState('');
+  const [mostrarContrasenaActual, setMostrarContrasenaActual] = useState(false);
+  const [mostrarNuevaContrasena, setMostrarNuevaContrasena] = useState(false);
+  const [exitoGuardadoBasico, setExitoGuardadoBasico] = useState(false);
 
   // Financial profile form state
-  const [incomeTotal, setIncomeTotal] = useState(String(userProfile.monthlyIncome || 5200));
-  const [debtRatio, setDebtRatio] = useState(userProfile.debtRatio || 35);
-  const [savingsFreq, setSavingsFreq] = useState<SavingsFrequency>(userProfile.savingsFrequency || 'Mensual');
-  const [totalDebts, setTotalDebts] = useState(String(userProfile.totalDebts || 875000));
-  const [monthlyDebtPay, setMonthlyDebtPay] = useState(String(userProfile.monthlyDebtPayment || 350000));
-  const [emergencyFund, setEmergencyFund] = useState(String(userProfile.emergencyFund || 1500000));
-  const [savedFinSuccess, setSavedFinSuccess] = useState(false);
+  const [ingresoTotal, setIngresoTotal] = useState(String(userProfile.monthlyIncome || 5200));
+  const [nivelEndeudamiento, setNivelEndeudamiento] = useState(userProfile.nivelEndeudamiento || 35);
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>(userProfile.savingsFrequency || 'Mensual');
+  const [deudasTotales, setDeudasTotales] = useState(String(userProfile.deudasTotales || 875000));
+  const [pagoMensualDeuda, setPagoMensualDeuda] = useState(String(userProfile.monthlyDebtPayment || 350000));
+  const [fondoEmergencia, setFondoEmergencia] = useState(String(userProfile.fondoEmergencia || 1500000));
+  const [exitoGuardadoFinanciero, setExitoGuardadoFinanciero] = useState(false);
 
   // Delete account modal state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deletedNotice, setDeletedNotice] = useState(false);
+  const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
+  const [textoConfirmacionEliminar, setTextoConfirmacionEliminar] = useState('');
+  const [estaEliminando, setEstaEliminando] = useState(false);
+  const [avisoEliminado, setAvisoEliminado] = useState(false);
 
-  const handleSaveBasic = (e: React.FormEvent) => {
+  const manejarGuardarBasico = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateProfile({ name: fullName, email });
-    setSavedBasicSuccess(true);
-    setTimeout(() => setSavedBasicSuccess(false), 2000);
+    onUpdateProfile({ name: nombreCompleto, correo });
+    setExitoGuardadoBasico(true);
+    setTimeout(() => setExitoGuardadoBasico(false), 2000);
   };
 
-  const handleSaveFinancial = (e: React.FormEvent) => {
+  const manejarGuardarFinanciero = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateProfile({
-      monthlyIncome: parsePositiveFloat(incomeTotal, 5200),
-      debtRatio: Math.max(0, debtRatio),
-      savingsFrequency: savingsFreq,
-      totalDebts: parsePositiveFloat(totalDebts, 0),
-      monthlyDebtPayment: parsePositiveFloat(monthlyDebtPay, 0),
-      emergencyFund: parsePositiveFloat(emergencyFund, 0),
+      monthlyIncome: parsePositiveFloat(ingresoTotal, 5200),
+      nivelEndeudamiento: Math.max(0, nivelEndeudamiento),
+      savingsFrequency: frecuenciaAhorro,
+      deudasTotales: parsePositiveFloat(deudasTotales, 0),
+      monthlyDebtPayment: parsePositiveFloat(pagoMensualDeuda, 0),
+      fondoEmergencia: parsePositiveFloat(fondoEmergencia, 0),
     });
-    setSavedFinSuccess(true);
-    setTimeout(() => setSavedFinSuccess(false), 2000);
+    setExitoGuardadoFinanciero(true);
+    setTimeout(() => setExitoGuardadoFinanciero(false), 2000);
   };
 
-  const handleConfirmDeleteAccount = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setIsDeleting(false);
-      setDeletedNotice(true);
-      setTimeout(() => {
-        setShowDeleteModal(false);
-        setDeletedNotice(false);
-        setDeleteConfirmText('');
-        if (onDeleteAccount) {
-          onDeleteAccount();
-        }
-      }, 1500);
-    }, 800);
+  const manejarConfirmarEliminarCuenta = async () => {
+    setEstaEliminando(true);
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/auth/eliminar?email=${correo}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setAvisoEliminado(true);
+        setTimeout(() => {
+          setMostrarModalEliminar(false);
+          setAvisoEliminado(false);
+          setTextoConfirmacionEliminar('');
+          if (onDeleteAccount) {
+            onDeleteAccount();
+          }
+        }, 1500);
+      } else {
+        console.error('Error al eliminar la cuenta:', response.status);
+      }
+    } catch (error) {
+      console.error('Error de red al eliminar la cuenta:', error);
+    } finally {
+      setEstaEliminando(false);
+    }
   };
 
   return (
@@ -130,15 +141,15 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
               </span>
             </div>
 
-            <form onSubmit={handleSaveBasic} className="space-y-4">
+            <form onSubmit={manejarGuardarBasico} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-semibold text-[#464554] mb-1.5">
                   Nombre Completo
                 </label>
                 <input
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={nombreCompleto}
+                  onChange={(e) => setNombreCompleto(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] focus:ring-2 focus:ring-[#4648d4]/10 transition-all"
                   required
                 />
@@ -149,9 +160,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                   Correo Electrónico
                 </label>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="correo"
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] focus:ring-2 focus:ring-[#4648d4]/10 transition-all"
                   required
                 />
@@ -163,17 +174,17 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 </label>
                 <div className="relative">
                   <input
-                    type={showCurrentPass ? 'text' : 'password'}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    type={mostrarContrasenaActual ? 'text' : 'password'}
+                    value={contrasenaActual}
+                    onChange={(e) => setContrasenaActual(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-9"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowCurrentPass(!showCurrentPass)}
+                    onClick={() => setMostrarContrasenaActual(!mostrarContrasenaActual)}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#767586] hover:text-[#191c1d]"
                   >
-                    {showCurrentPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {mostrarContrasenaActual ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
@@ -184,18 +195,18 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 </label>
                 <div className="relative">
                   <input
-                    type={showNewPass ? 'text' : 'password'}
+                    type={mostrarNuevaContrasena ? 'text' : 'password'}
                     placeholder="Mínimo 8 caracteres"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    value={nuevaContrasena}
+                    onChange={(e) => setNuevaContrasena(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-9"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowNewPass(!showNewPass)}
+                    onClick={() => setMostrarNuevaContrasena(!mostrarNuevaContrasena)}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#767586] hover:text-[#191c1d]"
                   >
-                    {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {mostrarNuevaContrasena ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
@@ -204,7 +215,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 type="submit"
                 className="w-full py-2.5 bg-[#4648d4] hover:bg-[#393bb8] text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_14px_rgba(70,72,212,0.3)] active:scale-[0.99] flex items-center justify-center gap-2"
               >
-                {savedBasicSuccess ? (
+                {exitoGuardadoBasico ? (
                   <>
                     <Check className="w-4 h-4" />
                     <span>¡Información Guardada!</span>
@@ -236,11 +247,11 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
               </div>
 
               <span className="text-xs font-bold text-[#4648d4] font-mono-val bg-[#e0e7ff]/70 px-2.5 py-1 rounded-lg">
-                ${parsePositiveFloat(incomeTotal, 0).toLocaleString()}/mes
+                ${parsePositiveFloat(ingresoTotal, 0).toLocaleString()}/mes
               </span>
             </div>
 
-            <form onSubmit={handleSaveFinancial} className="space-y-4">
+            <form onSubmit={manejarGuardarFinanciero} className="space-y-4">
               {/* Nivel de Endeudamiento Slider */}
               <div className="bg-[#f8f9fa] p-4 rounded-xl border border-[#e1e3e4]">
                 <div className="flex items-center justify-between mb-2">
@@ -248,7 +259,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     Nivel de Endeudamiento Máximo
                   </label>
                   <span className="text-xs font-bold text-[#4648d4] font-mono-val">
-                    {debtRatio}%
+                    {nivelEndeudamiento}%
                   </span>
                 </div>
                 <div className="relative flex items-center">
@@ -256,8 +267,8 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     type="range"
                     min="0"
                     max="100"
-                    value={debtRatio}
-                    onChange={(e) => setDebtRatio(Number(e.target.value))}
+                    value={nivelEndeudamiento}
+                    onChange={(e) => setNivelEndeudamiento(Number(e.target.value))}
                     className="w-full accent-[#4648d4] cursor-pointer"
                   />
                 </div>
@@ -277,9 +288,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     <button
                       key={freq}
                       type="button"
-                      onClick={() => setSavingsFreq(freq)}
+                      onClick={() => setFrecuenciaAhorro(freq)}
                       className={`py-2 text-xs font-semibold rounded-xl transition-all ${
-                        savingsFreq === freq
+                        frecuenciaAhorro === freq
                           ? 'bg-[#4648d4] text-white shadow-sm'
                           : 'bg-[#f3f4f5] text-[#464554] hover:bg-[#e7e8e9]'
                       }`}
@@ -302,9 +313,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                       type="number"
                       min="0"
                       step="any"
-                      value={incomeTotal}
+                      value={ingresoTotal}
                       onKeyDown={preventNegativeKeys}
-                      onChange={(e) => setIncomeTotal(sanitizePositiveNumber(e.target.value))}
+                      onChange={(e) => setIngresoTotal(sanitizePositiveNumber(e.target.value))}
                       className="w-full pl-7 pr-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val font-bold focus:outline-none focus:border-[#4648d4]"
                     />
                   </div>
@@ -320,9 +331,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     min="0"
                     step="any"
                     placeholder="Ej. 1500000"
-                    value={emergencyFund}
+                    value={fondoEmergencia}
                     onKeyDown={preventNegativeKeys}
-                    onChange={(e) => setEmergencyFund(sanitizePositiveNumber(e.target.value))}
+                    onChange={(e) => setFondoEmergencia(sanitizePositiveNumber(e.target.value))}
                     className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                   />
                 </div>
@@ -337,9 +348,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     min="0"
                     step="any"
                     placeholder="Ej. 875000"
-                    value={totalDebts}
+                    value={deudasTotales}
                     onKeyDown={preventNegativeKeys}
-                    onChange={(e) => setTotalDebts(sanitizePositiveNumber(e.target.value))}
+                    onChange={(e) => setDeudasTotales(sanitizePositiveNumber(e.target.value))}
                     className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                   />
                 </div>
@@ -354,9 +365,9 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                     min="0"
                     step="any"
                     placeholder="Ej. 350000"
-                    value={monthlyDebtPay}
+                    value={pagoMensualDeuda}
                     onKeyDown={preventNegativeKeys}
-                    onChange={(e) => setMonthlyDebtPay(sanitizePositiveNumber(e.target.value))}
+                    onChange={(e) => setPagoMensualDeuda(sanitizePositiveNumber(e.target.value))}
                     className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                   />
                 </div>
@@ -366,7 +377,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 type="submit"
                 className="w-full py-2.5 bg-[#4648d4] hover:bg-[#393bb8] text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_14px_rgba(70,72,212,0.3)] active:scale-[0.99] flex items-center justify-center gap-2"
               >
-                {savedFinSuccess ? (
+                {exitoGuardadoFinanciero ? (
                   <>
                     <Check className="w-4 h-4" />
                     <span>¡Perfil Financiero Actualizado!</span>
@@ -413,7 +424,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
           <button
             type="button"
             id="btn-open-delete-account-modal"
-            onClick={() => setShowDeleteModal(true)}
+            onClick={() => setMostrarModalEliminar(true)}
             className="w-full sm:w-auto px-5 py-2.5 bg-[#ba1a1a] hover:bg-[#93000a] text-white text-xs font-bold rounded-xl shadow-[0_4px_12px_rgba(186,26,26,0.25)] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -423,7 +434,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
       </div>
 
       {/* Confirmation Modal for Delete Account */}
-      {showDeleteModal && (
+      {mostrarModalEliminar && (
         <div 
           id="modal-delete-account-overlay"
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
@@ -433,7 +444,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
             className="bg-white rounded-3xl max-w-md w-full border border-[#ffdad6] shadow-2xl p-6 relative animate-in zoom-in-95 space-y-5"
           >
             <button
-              onClick={() => setShowDeleteModal(false)}
+              onClick={() => setMostrarModalEliminar(false)}
               className="absolute top-4 right-4 p-2 text-[#767586] hover:text-[#191c1d] hover:bg-[#f3f4f5] rounded-full transition-colors"
             >
               <X className="w-4 h-4" />
@@ -461,12 +472,12 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 id="input-delete-confirm-text"
                 type="text"
                 placeholder="Escribe ELIMINAR para confirmar"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                value={textoConfirmacionEliminar}
+                onChange={(e) => setTextoConfirmacionEliminar(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-xs text-center font-bold rounded-xl bg-[#f8f9fa] border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#ba1a1a] tracking-wider"
               />
 
-              {deletedNotice ? (
+              {avisoEliminado ? (
                 <div className="p-3 rounded-xl bg-[#10b981]/15 border border-[#10b981]/30 text-xs font-bold text-[#0d9468] text-center flex items-center justify-center gap-2">
                   <Check className="w-4 h-4" />
                   <span>Tu cuenta ha sido eliminada con éxito.</span>
@@ -475,7 +486,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowDeleteModal(false)}
+                    onClick={() => setMostrarModalEliminar(false)}
                     className="flex-1 py-2.5 bg-[#f3f4f5] hover:bg-[#e7e8e9] text-[#191c1d] rounded-xl text-xs font-bold transition-all"
                   >
                     Cancelar
@@ -483,11 +494,11 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                   <button
                     type="button"
                     id="btn-confirm-delete-account-action"
-                    disabled={deleteConfirmText.trim().toUpperCase() !== 'ELIMINAR' || isDeleting}
-                    onClick={handleConfirmDeleteAccount}
+                    disabled={textoConfirmacionEliminar.trim().toUpperCase() !== 'ELIMINAR' || estaEliminando}
+                    onClick={manejarConfirmarEliminarCuenta}
                     className="flex-1 py-2.5 bg-[#ba1a1a] hover:bg-[#93000a] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
                   >
-                    {isDeleting ? (
+                    {estaEliminando ? (
                       <span>Eliminando...</span>
                     ) : (
                       <>
