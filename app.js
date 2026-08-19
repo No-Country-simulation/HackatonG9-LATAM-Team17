@@ -75,13 +75,16 @@ document.getElementById("loginForm").addEventListener("submit", async function (
             body: JSON.stringify({ email, password })
         });
         if (!response.ok) throw new Error("Credenciales inválidas.");
+        
         const data = await response.json();
         usuarioIdLogueado = data.id;
         correoUsuarioLogueado = email;
         document.getElementById("labelUsuarioEmail").textContent = email;
 
+        // Ocultar login y mostrar el dashboard con su pantalla principal
         loginScreen.classList.add("hidden");
         dashboardLayout.classList.remove("hidden");
+        appScreen.classList.remove("hidden");
     } catch (error) {
         alert("Error: " + error.message);
     }
@@ -105,6 +108,12 @@ document.getElementById("btnIrHistorial").addEventListener("click", async () => 
 
 document.getElementById("btnCerrarSesion").addEventListener("click", () => {
     location.reload();
+});
+
+// Botón volver desde historial a app
+document.getElementById("btnVolverApp").addEventListener("click", () => {
+    historialScreen.classList.add("hidden");
+    appScreen.classList.remove("hidden");
 });
 
 // ==========================================
@@ -161,6 +170,7 @@ document.getElementById("finanzasForm").addEventListener("submit", async functio
 
     const payload = {
         ingreso_mensual: parseFloat(document.getElementById("ingresoMensual").value) || 0,
+        nivel_endeudamiento: 30,
         deuda_total: parseFloat(document.getElementById("deudaTotal").value) || 0,
         frecuencia_ahorro: document.getElementById("frecuenciaAhorro").value || "MENSUAL",
         monto_inversion: parseFloat(document.getElementById("montoInversion").value) || 0,
@@ -192,7 +202,6 @@ function mostrarResultadoFinanzas(data) {
     const prob = data.probabilidadCategoria !== undefined ? data.probabilidadCategoria : (data.probabilidad || 0);
     document.getElementById("resProbabilidad").textContent = (prob * 100).toFixed(0);
     
-    // 1. Mostrar Recomendaciones
     const recContainer = document.getElementById("resRecomendaciones");
     if (data.recomendaciones && data.recomendaciones.length > 0) {
         recContainer.innerHTML = `<ul class="list-disc pl-5 space-y-1">${data.recomendaciones.map(r => `<li>${r}</li>`).join('')}</ul>`;
@@ -200,7 +209,6 @@ function mostrarResultadoFinanzas(data) {
         recContainer.textContent = "Sin recomendaciones.";
     }
 
-    // 2. Mostrar Categorías Detectadas desde "resumen_gastos"
     const categoriasContainer = document.getElementById("resCategoriasContainer");
     const resumen = data.resumen_gastos || data.resumenGastos || data.categorias || {};
     
@@ -208,17 +216,15 @@ function mostrarResultadoFinanzas(data) {
     if (Array.isArray(resumen)) {
         listaNombres = resumen.map(c => typeof c === 'string' ? c : (c.categoria || c.nombre || "Categoría"));
     } else if (typeof resumen === 'object' && resumen !== null) {
-        listaNombres = Object.keys(resumen); // Lee las llaves "Transporte", "Alimentación", "Suscripciones"
+        listaNombres = Object.keys(resumen);
     }
 
     if (listaNombres.length > 0) {
         let catHtml = `<h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Categorías Detectadas:</h4>`;
         catHtml += `<div class="flex flex-wrap gap-1.5">`;
-        
         listaNombres.forEach(nombreCat => {
             catHtml += `<span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-semibold">${nombreCat}</span>`;
         });
-        
         catHtml += `</div>`;
         categoriasContainer.innerHTML = catHtml;
     } else {
@@ -314,7 +320,6 @@ window.abrirDetalleTransacciones = function(analisisId) {
 
     document.getElementById("detalleInfoAnalisis").textContent = `Detalle del análisis del: ${new Date(item.fechaAnalisis).toLocaleString()}`;
 
-    // 1. Tabla Superior para Categorías
     const cuerpoTablaCategorias = document.getElementById("cuerpoTablaCategorias");
     if (cuerpoTablaCategorias) {
         cuerpoTablaCategorias.innerHTML = "";
@@ -335,7 +340,6 @@ window.abrirDetalleTransacciones = function(analisisId) {
         }
     }
 
-    // 2. Tabla Inferior para Transacciones
     const cuerpoTablaTransacciones = document.getElementById("cuerpoTablaDetalleTransacciones");
     if (cuerpoTablaTransacciones) {
         cuerpoTablaTransacciones.innerHTML = "";
@@ -354,7 +358,6 @@ window.abrirDetalleTransacciones = function(analisisId) {
         }
     }
 
-    // 3. Gráfico Tipo Pie
     if (miGraficoPastel) miGraficoPastel.destroy();
     const ctx = document.getElementById('graficoPastelTransacciones').getContext('2d');
     
@@ -376,11 +379,6 @@ window.abrirDetalleTransacciones = function(analisisId) {
 document.getElementById("btnVolverHistorial").addEventListener("click", () => {
     detalleTransaccionesScreen.classList.add("hidden");
     historialScreen.classList.remove("hidden");
-});
-
-document.getElementById("btnVolverApp").addEventListener("click", () => {
-    historialScreen.classList.add("hidden");
-    appScreen.classList.remove("hidden");
 });
 
 document.getElementById("btnEliminarCuenta").addEventListener("click", async function () {

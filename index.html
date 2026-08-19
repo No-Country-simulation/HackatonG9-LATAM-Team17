@@ -15,7 +15,7 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 antialiased">
 
     <!-- ========================================== -->
-    <!-- PANTALLA 1: INICIO DE SESIÓN              -->
+    <!-- PANTALLA 1: INICIO DE SESIÓN -->
     <!-- ========================================== -->
     <div id="loginScreen" class="min-h-screen w-full relative flex items-center justify-center p-4">
         <img src="naturaleza.jpg" alt="Fondo de naturaleza" class="absolute inset-0 w-full h-full object-cover">
@@ -42,14 +42,12 @@
 
             <div class="text-center space-y-1 pt-1 text-sm">
                 <a href="#" id="linkMostrarRegistro" class="text-blue-600 hover:underline font-medium block text-xs">¿No tienes cuenta? Regístrate aquí</a>
-                <a href="#" id="linkOlvidoPassword" class="text-slate-400 hover:underline block text-[11px]">¿Olvidaste tu contraseña?</a>
             </div>
         </div>
     </div>
 
-
     <!-- ========================================== -->
-    <!-- PANTALLA 2: REGISTRO                      -->
+    <!-- PANTALLA 2: REGISTRO -->
     <!-- ========================================== -->
     <div id="registroScreen" class="min-h-screen w-full relative flex items-center justify-center p-4 hidden">
         <img src="naturaleza.jpg" alt="Fondo de naturaleza" class="absolute inset-0 w-full h-full object-cover">
@@ -84,9 +82,8 @@
         </div>
     </div>
 
-
     <!-- ========================================== -->
-    <!-- DISEÑO DE DASHBOARD CON SIDEBAR FIJA       -->
+    <!-- DISEÑO DE DASHBOARD CON SIDEBAR FIJA -->
     <!-- ========================================== -->
     <div id="dashboardLayout" class="min-h-screen flex hidden w-full">
         
@@ -132,9 +129,7 @@
         <main class="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
             <div class="max-w-6xl w-full mx-auto space-y-6">
 
-                <!-- ========================================== -->
-                <!-- PANTALLA 3: FORMULARIO FINANCIERO          -->
-                <!-- ========================================== -->
+                <!-- PANTALLA 3: FORMULARIO FINANCIERO -->
                 <div id="appScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Análisis de Salud Financiera</h2>
@@ -155,9 +150,11 @@
                                 <label for="frecuenciaAhorro" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Frecuencia de Ahorro</label>
                                 <select id="frecuenciaAhorro" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none transition" required>
                                     <option value="" disabled selected>Selecciona una opción...</option>
-                                    <option value="Bajo">Bajo</option>
-                                    <option value="Medio">Medio</option>
-                                    <option value="Alto">Alto</option>
+                                    <option value="MENSUAL">Mensual</option>
+                                    <option value="QUINCENAL">Quincenal</option>
+                                    <option value="SEMANAL">Semanal</option>
+                                    <option value="OCASIONAL">Ocasional</option>
+                                    <option value="NUNCA">Nunca</option>
                                 </select>
                             </div>
                             <div>
@@ -227,17 +224,13 @@
                             <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Recomendaciones:</h4>
                             <div id="resRecomendaciones" class="text-sm text-slate-600 space-y-1"></div>
                         </div>
-                        <!-- Espacio fijo para las categorías detectadas -->
                         <div id="resCategoriasContainer" class="pt-3 border-t border-slate-200"></div>
                     </div>
 
                     <div id="errorContainer" class="mt-4 p-4 bg-rose-50 text-rose-600 text-sm rounded-2xl border border-rose-200 hidden"></div>
                 </div>
 
-
-                <!-- ========================================== -->
-                <!-- PANTALLA 4: HISTORIAL DE ANÁLISIS          -->
-                <!-- ========================================== -->
+                <!-- PANTALLA 4: HISTORIAL DE ANÁLISIS -->
                 <div id="historialScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6 hidden">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                         <div>
@@ -252,10 +245,7 @@
                     </div>
                 </div>
 
-
-                <!-- ========================================== -->
-                <!-- PANTALLA 5: DETALLE DE TRANSACCIONES & CHART-->
-                <!-- ========================================== -->
+                <!-- PANTALLA 5: DETALLE DE TRANSACCIONES & CHART -->
                 <div id="detalleTransaccionesScreen" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6 hidden">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                         <div>
@@ -266,7 +256,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Gráfico de Pastel -->
                         <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
                             <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Distribución de Gastos</h3>
                             <div class="w-full max-w-[240px] h-60">
@@ -274,7 +263,6 @@
                             </div>
                         </div>
 
-                        <!-- Tabla Superior: Categorías -->
                         <div class="border border-slate-200 rounded-2xl bg-white">
                             <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
                                 Categorías
@@ -286,14 +274,11 @@
                                         <th class="p-3.5 text-right">Fecha</th>
                                     </tr>
                                 </thead>
-                                <tbody id="cuerpoTablaCategorias" class="divide-y divide-slate-100">
-                                    <!-- Dinámico -->
-                                </tbody>
+                                <tbody id="cuerpoTablaCategorias" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Tabla Inferior: Transacciones (Ocupando todo el ancho abajo, como el recuadro rojo) -->
                     <div class="border border-slate-200 rounded-2xl bg-white">
                         <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
                             Transacciones
@@ -306,12 +291,9 @@
                                     <th class="p-3.5 text-right">Fecha</th>
                                 </tr>
                             </thead>
-                            <tbody id="cuerpoTablaDetalleTransacciones" class="divide-y divide-slate-100">
-                                <!-- Dinámico -->
-                            </tbody>
+                            <tbody id="cuerpoTablaDetalleTransacciones" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
-
                 </div>
 
             </div>
