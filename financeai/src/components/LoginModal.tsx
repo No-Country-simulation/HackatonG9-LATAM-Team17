@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, X, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, X, ArrowRight, Activity } from 'lucide-react';
 import { MASCOTS } from '../assets/mascots';
 
 interface LoginModalProps {
@@ -13,19 +13,49 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState('alex@example.com');
-  const [name, setName] = useState('Alex Doe');
-  const [password, setPassword] = useState('••••••••');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [esRegistro, setEsRegistro] = useState(false);
+  const [correo, setCorreo] = useState('alex@example.com');
+  const [nombre, setNombre] = useState('Alex Doe');
+  const [contrasena, setContrasena] = useState('••••••••');
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
+  const [recordarme, setRecordarme] = useState(true);
+
+  const [cargandoApi, setCargandoApi] = useState(false);
+  const [errorApi, setErrorApi] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLoginSuccess(name, email);
-    onClose();
+    setErrorApi(null);
+    setCargandoApi(true);
+
+    try {
+      const endpoint = esRegistro ? '/api/v1/auth/registro' : '/api/v1/auth/login';
+      const body = esRegistro 
+        ? JSON.stringify({ nombre, email: correo, password: contrasena })
+        : JSON.stringify({ email: correo, password: contrasena });
+
+      const response = await fetch(`http://localhost:8080${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Error en la autenticación');
+      }
+
+      const nombreAUsar = esRegistro ? nombre : (data.nombre || correo.split('@')[0]);
+      onLoginSuccess(nombreAUsar, correo);
+      onClose();
+    } catch (err: any) {
+      setErrorApi(err.message);
+    } finally {
+      setCargandoApi(false);
+    }
   };
 
   return (
@@ -77,10 +107,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         <div className="md:col-span-7 p-8 flex flex-col justify-center">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-[#191c1d] font-display">
-              {isRegister ? '¡Crea tu cuenta!' : '¡Bienvenido!'}
+              {esRegistro ? '¡Crea tu cuenta!' : '¡Bienvenido!'}
             </h3>
             <p className="text-xs text-[#767586] mt-1">
-              {isRegister
+              {esRegistro
                 ? 'Comienza a transformar tu salud financiera hoy.'
                 : 'Por favor ingresa tus detalles para iniciar sesión.'}
             </p>
@@ -122,8 +152,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <div className="flex-1 border-t border-[#e1e3e4]" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
-            {isRegister && (
+          <form onSubmit={manejarEnvio} className="space-y-3.5">
+            {esRegistro && (
               <div>
                 <label className="block text-[11px] font-semibold text-[#464554] mb-1">
                   Nombre Completo
@@ -131,9 +161,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <input
                   type="text"
                   placeholder="Alex Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4]"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  disabled={cargandoApi}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] disabled:opacity-50"
                   required
                 />
               </div>
@@ -146,9 +177,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <input
                 type="email"
                 placeholder="alex@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4]"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                disabled={cargandoApi}
+                className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] disabled:opacity-50"
                 required
               />
             </div>
@@ -159,19 +191,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={mostrarContrasena ? 'text' : 'password'}
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-10"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  disabled={cargandoApi}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-10 disabled:opacity-50"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setMostrarContrasena(!mostrarContrasena)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#767586] hover:text-[#191c1d]"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {mostrarContrasena ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -180,9 +213,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <label className="flex items-center gap-2 cursor-pointer text-[#464554]">
                 <input
                   type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded text-[#4648d4] focus:ring-[#4648d4]"
+                  checked={recordarme}
+                  onChange={(e) => setRecordarme(e.target.checked)}
+                  disabled={cargandoApi}
+                  className="rounded text-[#4648d4] focus:ring-[#4648d4] disabled:opacity-50"
                 />
                 <span>Recuérdame</span>
               </label>
@@ -192,23 +226,40 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </a>
             </div>
 
+            {errorApi && (
+              <div className="text-[#ef4444] text-xs font-medium text-center bg-[#ef4444]/10 py-2 rounded-lg">
+                {errorApi}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full py-2.5 bg-[#4648d4] hover:bg-[#393bb8] text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_14px_rgba(70,72,212,0.3)] active:scale-[0.99] mt-2 flex items-center justify-center gap-2"
+              disabled={cargandoApi}
+              className="w-full py-2.5 bg-[#4648d4] hover:bg-[#393bb8] disabled:bg-[#4648d4]/70 text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_14px_rgba(70,72,212,0.3)] disabled:shadow-none active:scale-[0.99] mt-2 flex items-center justify-center gap-2"
             >
-              <span>{isRegister ? 'Crear Cuenta' : 'Iniciar Sesión'}</span>
-              <ArrowRight className="w-4 h-4" />
+              {cargandoApi ? (
+                <>
+                  <Activity className="w-4 h-4 animate-spin" />
+                  <span>Cargando...</span>
+                </>
+              ) : (
+                <>
+                  <span>{esRegistro ? 'Crear Cuenta' : 'Iniciar Sesión'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
           <p className="text-center text-xs text-[#767586] mt-5">
-            {isRegister ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}{' '}
+            {esRegistro ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}{' '}
             <button
               type="button"
-              onClick={() => setIsRegister(!isRegister)}
-              className="text-[#4648d4] font-bold hover:underline"
+              onClick={() => setEsRegistro(!esRegistro)}
+              disabled={cargandoApi}
+              className="text-[#4648d4] font-bold hover:underline disabled:opacity-50"
             >
-              {isRegister ? 'Inicia sesión' : 'Regístrate'}
+              {esRegistro ? 'Inicia sesión' : 'Regístrate'}
             </button>
           </p>
         </div>

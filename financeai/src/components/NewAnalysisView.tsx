@@ -29,90 +29,91 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   onAnalysisComplete,
 }) => {
   // Base Inputs State
-  const [monthlyIncome, setMonthlyIncome] = useState(userProfile.monthlyIncome ? String(userProfile.monthlyIncome) : '2500000');
-  const [totalDebts, setTotalDebts] = useState(userProfile.totalDebts ? String(userProfile.totalDebts) : '875000');
-  const [savingsFrequency, setSavingsFrequency] = useState<SavingsFrequency>(userProfile.savingsFrequency || 'Mensual');
+  const [ingresoMensual, setIngresoMensual] = useState(userProfile.ingresoMensual ? String(userProfile.ingresoMensual) : '2500000');
+  const [deudaTotal, setDeudaTotal] = useState(userProfile.deudaTotal ? String(userProfile.deudaTotal) : '875000');
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>(userProfile.frecuenciaAhorro || 'Mensual');
 
   // Advanced Inputs State
-  const [budgetGoal, setBudgetGoal] = useState(userProfile.budgetGoal ? String(userProfile.budgetGoal) : '3000000');
-  const [monthlyDebtPayment, setMonthlyDebtPayment] = useState(userProfile.monthlyDebtPayment ? String(userProfile.monthlyDebtPayment) : '350000');
-  const [subscriptionsCount, setSubscriptionsCount] = useState(userProfile.subscriptionsCount ? String(userProfile.subscriptionsCount) : '3');
-  const [emergencyFund, setEmergencyFund] = useState(userProfile.emergencyFund ? String(userProfile.emergencyFund) : '1500000');
+  const [objetivoPresupuesto, setObjetivoPresupuesto] = useState(userProfile.objetivoPresupuesto ? String(userProfile.objetivoPresupuesto) : '3000000');
+  const [pagoMensualDeuda, setPagoMensualDeuda] = useState(userProfile.pagoMensualDeuda ? String(userProfile.pagoMensualDeuda) : '350000');
+  const [serviciosSuscripcion, setServiciosSuscripcion] = useState(userProfile.serviciosSuscripcion ? String(userProfile.serviciosSuscripcion) : '3');
+  const [fondoEmergencia, setFondoEmergencia] = useState(userProfile.fondoEmergencia ? String(userProfile.fondoEmergencia) : '1500000');
+  const [montoInversion, setMontoInversion] = useState('0');
 
   // Tab State
-  const [inputMode, setInputMode] = useState<'manual' | 'csv'>('manual');
+  const [modoIngreso, setModoIngreso] = useState<'manual' | 'csv'>('manual');
 
   // Transactions State
-  const [transactionsList, setTransactionsList] = useState<Transaction[]>(initialTransactions || []);
-  const [txDesc, setTxDesc] = useState('');
-  const [txAmount, setTxAmount] = useState('');
-  const [txCategory, setTxCategory] = useState<ExpenseCategory>('Alimentación');
-  const [isTxModelFailed, setIsTxModelFailed] = useState(false);
-  const [manualTxOverride, setManualTxOverride] = useState(false);
+  const [listaTransacciones, setListaTransacciones] = useState<Transaction[]>(initialTransactions || []);
+  const [descTx, setDescTx] = useState('');
+  const [montoTx, setMontoTx] = useState('');
+  const [categoriaTx, setCategoriaTx] = useState<ExpenseCategory>('Alimentación');
+  const [falloModeloTx, setFalloModeloTx] = useState(false);
+  const [sobrescribirTxManual, setSobrescribirTxManual] = useState(false);
 
   // CSV Drag State
-  const [csvFileName, setCsvFileName] = useState<string | null>(null);
+  const [nombreArchivoCsv, setNombreArchivoCsv] = useState<string | null>(null);
 
   // Loading State
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [estaAnalizando, setEstaAnalizando] = useState(false);
+  const [errorAnalisis, setErrorAnalisis] = useState<string | null>(null);
 
   const handleDescChange = (text: string) => {
-    setTxDesc(text);
-    if (!manualTxOverride) {
+    setDescTx(text);
+    if (!sobrescribirTxManual) {
       const res = autoCategorizeDescription(text);
-      setTxCategory(res.category);
+      setCategoriaTx(res.category);
       if (text.trim().length > 2 && (res.failed || res.category === 'Otros')) {
-        setIsTxModelFailed(true);
+        setFalloModeloTx(true);
       } else {
-        setIsTxModelFailed(false);
+        setFalloModeloTx(false);
       }
     }
   };
 
   const handleAddTx = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!txDesc.trim() || !txAmount) return;
+    if (!descTx.trim() || !montoTx) return;
 
-    let finalCategory = txCategory;
-    let failed = isTxModelFailed;
-    if (!manualTxOverride) {
-      const autoRes = autoCategorizeDescription(txDesc);
+    let finalCategory = categoriaTx;
+    let failed = falloModeloTx;
+    if (!sobrescribirTxManual) {
+      const autoRes = autoCategorizeDescription(descTx);
       finalCategory = autoRes.category;
       failed = autoRes.failed;
     }
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
-      description: txDesc.trim(),
-      amount: parsePositiveFloat(txAmount, 0),
+      description: descTx.trim(),
+      amount: parsePositiveFloat(montoTx, 0),
       category: finalCategory,
       date: new Date().toISOString().split('T')[0],
       type: 'gasto',
-      autoCategorized: !manualTxOverride,
+      autoCategorized: !sobrescribirTxManual,
       categorizationFailed: failed,
     };
 
-    setTransactionsList([newTx, ...transactionsList]);
-    setTxDesc('');
-    setTxAmount('');
-    setIsTxModelFailed(false);
-    setManualTxOverride(false);
+    setListaTransacciones([newTx, ...listaTransacciones]);
+    setDescTx('');
+    setMontoTx('');
+    setFalloModeloTx(false);
+    setSobrescribirTxManual(false);
   };
 
   const handleUpdateTxCategory = (id: string, newCat: ExpenseCategory) => {
-    setTransactionsList(prev => prev.map(t => t.id === id ? { ...t, category: newCat, categorizationFailed: true } : t));
+    setListaTransacciones(prev => prev.map(t => t.id === id ? { ...t, category: newCat, categorizationFailed: true } : t));
   };
 
   const handleRemoveTx = (id: string) => {
-    setTransactionsList(transactionsList.filter((t) => t.id !== id));
+    setListaTransacciones(listaTransacciones.filter((t) => t.id !== id));
   };
 
   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setCsvFileName(file.name);
+    setNombreArchivoCsv(file.name);
     // Parse sample CSV data
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -139,10 +140,10 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
       });
 
       if (parsed.length > 0) {
-        setTransactionsList((prev) => [...parsed, ...prev]);
+        setListaTransacciones((prev) => [...parsed, ...prev]);
       } else {
         // Fallback sample import
-        setTransactionsList((prev) => [
+        setListaTransacciones((prev) => [
           { id: `csv-1`, description: 'Compras Supermercado', amount: 350, category: 'Alimentación', date: '2024-10-15', type: 'gasto' },
           { id: `csv-2`, description: 'Combustible', amount: 120, category: 'Transporte', date: '2024-10-14', type: 'gasto' },
           { id: `csv-3`, description: 'Servicio Streaming', amount: 25, category: 'Entretenimiento', date: '2024-10-13', type: 'gasto' },
@@ -153,25 +154,35 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
     reader.readAsText(file);
   };
 
-  const handleGenerateAnalysis = async () => {
-    if (transactionsList.length === 0) return;
+  const manejarGenerarAnalisis = async () => {
+    if (listaTransacciones.length === 0) return;
 
-    setIsAnalyzing(true);
-    setAnalysisError(null);
+    setEstaAnalizando(true);
+    setErrorAnalisis(null);
 
     try {
+      const ingresoParseado = parseFloat(ingresoMensual) || 0;
+      const deudaParseada = parseFloat(deudaTotal) || 0;
+      const nivelEndeudamiento = ingresoParseado > 0 ? Math.round((deudaParseada / ingresoParseado) * 100) : 0;
+
       const payload = {
-        monthlyIncome: parseFloat(monthlyIncome) || 0,
-        totalDebts: parseFloat(totalDebts) || 0,
-        savingsFrequency,
-        budgetGoal: parseFloat(budgetGoal) || 0,
-        monthlyDebtPayment: parseFloat(monthlyDebtPayment) || 0,
-        subscriptionsCount: parseInt(subscriptionsCount, 10) || 0,
-        emergencyFund: parseFloat(emergencyFund) || 0,
-        recentTransactions: transactionsList,
+        ingreso_mensual: ingresoParseado,
+        nivel_endeudamiento: nivelEndeudamiento,
+        frecuencia_ahorro: frecuenciaAhorro.toLowerCase(),
+        monto_inversion: parseFloat(montoInversion) || 0,
+        deuda_total: deudaParseada,
+        objetivo_presupuesto: parseFloat(objetivoPresupuesto) || 0,
+        pago_mensual_deuda: parseFloat(pagoMensualDeuda) || 0,
+        servicios_suscripción: parseInt(serviciosSuscripcion, 10) || 0,
+        fondo_emergencia: parseFloat(fondoEmergencia) || 0,
+        transacciones: listaTransacciones.map(t => ({
+          descripcion: t.description,
+          valor: t.amount,
+          fecha_transaccion: t.date + "T00:00:00.000Z"
+        }))
       };
 
-      const res = await fetch('/api/analyze', {
+      const res = await fetch('http://localhost:8080/api/v1/finanzas/analizar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -182,15 +193,45 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
       }
 
       const data = await res.json();
-      if (data.report) {
-        onAnalysisComplete(data.report);
+      if (data.datos_analisis) {
+        const da = data.datos_analisis;
+        const report: ReporteAnalisis = {
+          id: `an-${Date.now()}`,
+          fecha: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+          marcaTiempo: Date.now(),
+          totalGastado: da.total_gastado,
+          puntajeSalud: da.puntaje_salud,
+          estadoSalud: da.estado_salud,
+          mensajeMotivador: da.mensaje_motivador,
+          logroSemanal: da.logro_semanal ? {
+            titulo: da.logro_semanal.titulo,
+            porcentajeGanancia: da.logro_semanal.porcentaje_ganancia,
+            horasRestantes: da.logro_semanal.horas_restantes,
+          } : undefined,
+          distribucionCategorias: da.distribucion_categorias.map((c: any) => ({
+            categoria: c.categoria,
+            monto: c.monto,
+            porcentaje: c.porcentaje,
+            colorHex: '#4648d4' // Default color since backend doesn't provide it
+          })),
+          recomendaciones: da.recomendaciones.map((r: any, idx: number) => ({
+            id: `rec-${idx}`,
+            titulo: r.titulo,
+            descripcion: r.descripcion,
+            categoria: r.categoria,
+            impacto: 'Calculado por motor', // Default string or mapped if provided
+            etiquetaAccion: 'Ver detalles',
+            tipoEstado: 'warning',
+          })),
+        };
+        onAnalysisComplete(report);
       }
     } catch (err: any) {
       console.error(err);
-      setAnalysisError('Ocurrió un inconveniente al procesar. Reintentando con el motor analítico local...');
+      setErrorAnalisis('Ocurrió un inconveniente al procesar. Reintentando con el motor analítico local...');
       // Fallback generate report
       setTimeout(() => {
-        const totalExp = transactionsList.reduce((acc, t) => acc + t.amount, 0);
+        const totalExp = listaTransacciones.reduce((acc, t) => acc + t.amount, 0);
         const fallbackReport: ReporteAnalisis = {
           id: `an-${Date.now()}`,
           fecha: '15 Oct, 2024',
@@ -233,15 +274,15 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
             },
           ],
         };
-        setIsAnalyzing(false);
+        setEstaAnalizando(false);
         onAnalysisComplete(fallbackReport);
       }, 1000);
     } finally {
-      setIsAnalyzing(false);
+      setEstaAnalizando(false);
     }
   };
 
-  const hasExpenses = transactionsList.length > 0;
+  const hasExpenses = listaTransacciones.length > 0;
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200" id="new-analysis-view">
@@ -275,9 +316,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   min="0"
                   step="any"
                   placeholder="Ej. 2500000"
-                  value={monthlyIncome}
+                  value={ingresoMensual}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setMonthlyIncome(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setIngresoMensual(sanitizePositiveNumber(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4]"
                 />
               </div>
@@ -291,9 +332,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   min="0"
                   step="any"
                   placeholder="Ej. 875000"
-                  value={totalDebts}
+                  value={deudaTotal}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setTotalDebts(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setDeudaTotal(sanitizePositiveNumber(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4]"
                 />
               </div>
@@ -304,8 +345,8 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                 </label>
                 <div className="relative">
                   <select
-                    value={savingsFrequency}
-                    onChange={(e) => setSavingsFrequency(e.target.value as SavingsFrequency)}
+                    value={frecuenciaAhorro}
+                    onChange={(e) => setFrecuenciaAhorro(e.target.value as SavingsFrequency)}
                     className="w-full appearance-none px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-8"
                   >
                     <option value="Mensual">Mensual</option>
@@ -334,9 +375,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   min="0"
                   step="any"
                   placeholder="Ej. 3000000"
-                  value={budgetGoal}
+                  value={objetivoPresupuesto}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setBudgetGoal(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setObjetivoPresupuesto(sanitizePositiveNumber(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                 />
               </div>
@@ -350,9 +391,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   min="0"
                   step="any"
                   placeholder="Ej. 350000"
-                  value={monthlyDebtPayment}
+                  value={pagoMensualDeuda}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setMonthlyDebtPayment(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setPagoMensualDeuda(sanitizePositiveNumber(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                 />
               </div>
@@ -366,28 +407,46 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   min="0"
                   step="1"
                   placeholder="Ej. 3"
-                  value={subscriptionsCount}
+                  value={serviciosSuscripcion}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setSubscriptionsCount(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setServiciosSuscripcion(sanitizePositiveNumber(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-semibold text-[#464554] mb-1.5">
-                Fondo de Emergencia ($)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                placeholder="Ej. 1500000"
-                value={emergencyFund}
-                onKeyDown={preventNegativeKeys}
-                onChange={(e) => setEmergencyFund(sanitizePositiveNumber(e.target.value))}
-                className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[#464554] mb-1.5">
+                  Fondo de Emergencia ($)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="Ej. 1500000"
+                  value={fondoEmergencia}
+                  onKeyDown={preventNegativeKeys}
+                  onChange={(e) => setFondoEmergencia(sanitizePositiveNumber(e.target.value))}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-[#464554] mb-1.5">
+                  Monto de Inversión ($)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="Ej. 500000"
+                  value={montoInversion}
+                  onKeyDown={preventNegativeKeys}
+                  onChange={(e) => setMontoInversion(sanitizePositiveNumber(e.target.value))}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
+                />
+              </div>
             </div>
           </div>
 
@@ -395,9 +454,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               id="btn-tab-manual-entry"
-              onClick={() => setInputMode('manual')}
+              onClick={() => setModoIngreso('manual')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                inputMode === 'manual'
+                modoIngreso === 'manual'
                   ? 'bg-[#4648d4] text-white shadow-sm'
                   : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
               }`}
@@ -406,9 +465,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
             </button>
             <button
               id="btn-tab-csv-entry"
-              onClick={() => setInputMode('csv')}
+              onClick={() => setModoIngreso('csv')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                inputMode === 'csv'
+                modoIngreso === 'csv'
                   ? 'bg-[#4648d4] text-white shadow-sm'
                   : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
               }`}
@@ -418,7 +477,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
           </div>
 
           {/* Card 3: Agregar Transacción / Carga CSV */}
-          {inputMode === 'manual' ? (
+          {modoIngreso === 'manual' ? (
             <div className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-4">
               <h3 className="text-sm font-bold text-[#191c1d] font-display">
                 Agregar Transacción
@@ -433,7 +492,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                     <input
                       type="text"
                       placeholder="ej. Compras supermercado, Renta, Gasolina..."
-                      value={txDesc}
+                      value={descTx}
                       onChange={(e) => handleDescChange(e.target.value)}
                       className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4]"
                     />
@@ -450,9 +509,9 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                         min="0"
                         step="any"
                         placeholder="0.00"
-                        value={txAmount}
+                        value={montoTx}
                         onKeyDown={preventNegativeKeys}
-                        onChange={(e) => setTxAmount(sanitizePositiveNumber(e.target.value))}
+                        onChange={(e) => setMontoTx(sanitizePositiveNumber(e.target.value))}
                         className="w-full pl-7 pr-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                       />
                     </div>
@@ -471,16 +530,16 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
 
                 {/* Real-time Categorization Status Bar */}
                 <div className="p-2.5 rounded-xl bg-[#f8f9fa] border border-[#e1e3e4] flex flex-wrap items-center justify-between gap-2">
-                  {(!isTxModelFailed && !manualTxOverride) ? (
+                  {(!falloModeloTx && !sobrescribirTxManual) ? (
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#e0e7ff] text-[#4648d4] text-xs font-semibold">
                         <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                        Categoría automática por IA: {txDesc.trim() ? txCategory : 'Esperando descripción...'}
+                        Categoría automática por IA: {descTx.trim() ? categoriaTx : 'Esperando descripción...'}
                       </span>
-                      {txDesc.trim() && (
+                      {descTx.trim() && (
                         <button
                           type="button"
-                          onClick={() => setManualTxOverride(true)}
+                          onClick={() => setSobrescribirTxManual(true)}
                           className="text-[11px] text-[#767586] hover:text-[#ba1a1a] underline cursor-pointer"
                         >
                           ¿El modelo falló? Seleccionar manualmente
@@ -495,8 +554,8 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                       </span>
                       {/* Exact dropdown from screenshot */}
                       <select
-                        value={txCategory}
-                        onChange={(e) => setTxCategory(e.target.value as ExpenseCategory)}
+                        value={categoriaTx}
+                        onChange={(e) => setCategoriaTx(e.target.value as ExpenseCategory)}
                         className="px-3 py-1.5 text-xs bg-white border-2 border-[#4648d4] rounded-lg text-[#191c1d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
                       >
                         <option value="Vivienda">Vivienda</option>
@@ -510,8 +569,8 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          setManualTxOverride(false);
-                          setIsTxModelFailed(false);
+                          setSobrescribirTxManual(false);
+                          setFalloModeloTx(false);
                         }}
                         className="text-[11px] text-[#4648d4] hover:underline font-semibold"
                       >
@@ -526,13 +585,13 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
               </form>
 
               {/* Transactions List */}
-              {transactionsList.length > 0 && (
+              {listaTransacciones.length > 0 && (
                 <div className="pt-2">
                   <p className="text-[11px] font-bold text-[#767586] uppercase tracking-wider mb-2">
-                    Transacciones para este análisis ({transactionsList.length})
+                    Transacciones para este análisis ({listaTransacciones.length})
                   </p>
                   <div className="divide-y divide-[#f3f4f5] max-h-48 overflow-y-auto pr-1">
-                    {transactionsList.map((tx) => (
+                    {listaTransacciones.map((tx) => (
                       <div key={tx.id} className="py-2 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <Coins className="w-3.5 h-3.5 text-[#4648d4]" />
@@ -583,7 +642,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                 />
                 <Upload className="w-8 h-8 text-[#4648d4] mx-auto mb-2" />
                 <p className="text-xs font-bold text-[#191c1d]">
-                  {csvFileName || 'Haz clic o arrastra tu archivo CSV aquí'}
+                  {nombreArchivoCsv || 'Haz clic o arrastra tu archivo CSV aquí'}
                 </p>
                 <p className="text-[11px] text-[#767586] mt-1">
                   Formato: Descripción, Monto, Categoría
@@ -610,7 +669,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   ¿Listo para analizar?
                 </h3>
                 <p className="text-xs text-[#464554] mt-1.5 leading-relaxed">
-                  Nuestra IA procesará estas {transactionsList.length || 3} entradas y actualizará tu narrativa financiera.
+                  Nuestra IA procesará estas {listaTransacciones.length || 3} entradas y actualizará tu narrativa financiera.
                 </p>
               </div>
 
@@ -625,16 +684,16 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                 <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/30 rounded-xl flex items-center gap-2 text-left">
                   <CheckCircle2 className="w-4 h-4 text-[#10b981] shrink-0" />
                   <span className="text-[11px] font-semibold text-[#10b981] leading-snug">
-                    {transactionsList.length} transacciones listas para procesar
+                    {listaTransacciones.length} transacciones listas para procesar
                   </span>
                 </div>
               )}
 
-              {analysisError && (
+              {errorAnalisis && (
                 <div className="p-3 bg-[#ffdad6]/40 border border-[#ffdad6] rounded-xl flex items-center gap-2 text-left mt-2">
                   <AlertCircle className="w-4 h-4 text-[#ba1a1a] shrink-0" />
                   <span className="text-[11px] font-semibold text-[#93000a] leading-snug">
-                    {analysisError}
+                    {errorAnalisis}
                   </span>
                 </div>
               )}
@@ -643,15 +702,15 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
             <div className="mt-6">
               <button
                 id="btn-submit-generate-analysis"
-                onClick={handleGenerateAnalysis}
-                disabled={!hasExpenses || isAnalyzing}
+                onClick={manejarGenerarAnalisis}
+                disabled={!hasExpenses || estaAnalizando}
                 className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
                   !hasExpenses
                     ? 'bg-[#d9dadb] text-[#767586] cursor-not-allowed'
                     : 'bg-[#767586] hover:bg-[#4648d4] text-white active:scale-98 shadow-[0_4px_14px_rgba(70,72,212,0.3)] hover:shadow-md'
                 }`}
               >
-                {isAnalyzing ? (
+                {estaAnalizando ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
                     <span>El Experto está analizando...</span>
