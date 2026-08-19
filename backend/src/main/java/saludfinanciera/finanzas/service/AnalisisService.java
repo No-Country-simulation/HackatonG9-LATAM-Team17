@@ -37,8 +37,23 @@ public class AnalisisService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    // --- VERSIÓN 1: Mantiene compatibilidad con código que solo pasa el input ---
     @Transactional
     public AnalisisOutputDTO procesarAnalisis(AnalisisInputDTO input) {
+        // Busca automáticamente al primer usuario por defecto para no romper pruebas antiguas
+        Usuario usuarioDefault = usuarioRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema."));
+        return procesarAnalisisLogica(usuarioDefault.getId(), input);
+    }
+
+    // --- VERSIÓN 2: Soporta el nuevo flujo con el usuarioId del controlador ---
+    @Transactional
+    public AnalisisOutputDTO procesarAnalisis(Long usuarioId, AnalisisInputDTO input) {
+        return procesarAnalisisLogica(usuarioId, input);
+    }
+
+    // --- LÓGICA CENTRAL COMPARTIDA (Evita código duplicado) ---
+    private AnalisisOutputDTO procesarAnalisisLogica(Long usuarioId, AnalisisInputDTO input) {
 
         if (input == null || input.transacciones() == null || input.transacciones().isEmpty()) {
             throw new ResourceNotFoundException("No se proporcionaron transacciones válidas para realizar el análisis.");
@@ -70,8 +85,9 @@ public class AnalisisService {
             recomendaciones = List.of("Mantener un control regular de tus gastos.");
         }
 
-        Usuario usuario = usuarioRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema."));
+        // Busca el usuario específico por su ID
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + usuarioId));
 
         AnalisisFinanciero analisis = AnalisisFinanciero.builder()
                 .usuario(usuario)
@@ -115,7 +131,7 @@ public class AnalisisService {
 
     public RespuestaPythonDTO clasificarTransaccion(TransaccionDTO transaccionDTO) {
         if (transaccionDTO == null) {
-            throw new ResourceNotFoundException("Los datos de la transacción no pueden ser nulos.");
+            throw new ResourceNotFoundException("Los datos de la transacción não pueden ser nulos.");
         }
         RespuestaPythonDTO respuesta = pythonClient.obtenerClasificacionDesdePython(transaccionDTO);
         if (respuesta == null) {
@@ -128,7 +144,6 @@ public class AnalisisService {
         return analisisRepository.findByUsuarioIdOrderByFechaAnalisisDesc(usuarioId);
     }
 
-    // NUEVO: Obtiene el historial del primer usuario encontrado en la base de datos
     public List<AnalisisFinanciero> obtenerHistorialGeneral() {
         Usuario usuario = usuarioRepository.findAll().stream().findFirst().orElse(null);
         if (usuario == null) {
