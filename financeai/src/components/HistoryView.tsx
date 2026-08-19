@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   History, 
   Search, 
@@ -30,24 +30,75 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   onOpenAnalysisModal,
   onNavigateToNewAnalysis,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | HealthStatus>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'score-high' | 'score-low'>('newest');
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroSalud, setFiltroSalud] = useState<'all' | HealthStatus>('all');
+  const [ordenarPor, setOrdenarPor] = useState<'newest' | 'oldest' | 'score-high' | 'score-low'>('newest');
+
+  const [historialLocal, setHistorialLocal] = useState<ReporteAnalisis[]>(analysisHistory);
+  const [cargandoHistorial, setCargandoHistorial] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/v1/finanzas/historial');
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            // Map the history payload (basic) to ReporteAnalisis format using fallbacks for missing fields
+            const mappedHistory = data.map((item: any): ReporteAnalisis => {
+              // Basic score mapping based on status since backend history doesn't return exact score
+              let defaultScore = 50;
+              if (item.perfilFinanciero === 'Saludable') defaultScore = 90;
+              if (item.perfilFinanciero === 'Estable') defaultScore = 75;
+              if (item.perfilFinanciero === 'En observación' || item.perfilFinanciero === 'Observación') defaultScore = 60;
+              if (item.perfilFinanciero === 'Riesgo') defaultScore = 40;
+
+              return {
+                id: item.id?.toString() || Math.random().toString(36).substr(2, 9),
+                fecha: item.fechaAnalisis || new Date().toISOString().split('T')[0],
+                marcaTiempo: new Date(item.fechaAnalisis || Date.now()).getTime(),
+                puntajeSalud: defaultScore,
+                estadoSalud: (item.perfilFinanciero as HealthStatus) || 'En observación',
+                mensajeMotivador: item.perfilFinanciero === 'Saludable' ? '¡Excelente trabajo!' : 'Sigue esforzándote',
+                totalGastado: item.transacciones?.reduce((sum: number, tx: any) => sum + (tx.valor || 0), 0) || 0,
+                distribucionCategorias: item.categorias || [],
+                recomendaciones: item.recomendaciones || [],
+                logroSemanal: {
+                  titulo: "Racha ahorrativa",
+                  porcentajeGanancia: 15,
+                  horasRestantes: 48
+                }
+              };
+            });
+            if (isMounted) setHistorialLocal(mappedHistory);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching history:', error);
+      } finally {
+        if (isMounted) setCargandoHistorial(false);
+      }
+    };
+
+    fetchHistory();
+    return () => { isMounted = false; };
+  }, []);
 
   // Filtered & Sorted list
-  const filteredHistory = useMemo(() => {
-    return analysisHistory
+  const historialFiltrado = useMemo(() => {
+    return historialLocal
       .filter((item) => {
         // Status filter
-        if (statusFilter !== 'all') {
+        if (filtroSalud !== 'all') {
           const itemStatusNorm = item.estadoSalud === 'Observación' ? 'En observación' : item.estadoSalud;
-          const filterNorm = statusFilter === 'Observación' ? 'En observación' : statusFilter;
+          const filterNorm = filtroSalud === 'Observación' ? 'En observación' : filtroSalud;
           if (itemStatusNorm !== filterNorm) return false;
         }
 
         // Search query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
+        if (busqueda.trim()) {
+          const q = busqueda.toLowerCase();
           const matchesDate = item.fecha.toLowerCase().includes(q);
           const matchesMsg = item.mensajeMotivador?.toLowerCase().includes(q) || false;
           const matchesStatus = item.estadoSalud.toLowerCase().includes(q);
@@ -57,27 +108,27 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'newest') return b.marcaTiempo - a.marcaTiempo;
-        if (sortBy === 'oldest') return a.marcaTiempo - b.marcaTiempo;
-        if (sortBy === 'score-high') return b.puntajeSalud - a.puntajeSalud;
-        if (sortBy === 'score-low') return a.puntajeSalud - b.puntajeSalud;
+        if (ordenarPor === 'newest') return b.marcaTiempo - a.marcaTiempo;
+        if (ordenarPor === 'oldest') return a.marcaTiempo - b.marcaTiempo;
+        if (ordenarPor === 'score-high') return b.puntajeSalud - a.puntajeSalud;
+        if (ordenarPor === 'score-low') return a.puntajeSalud - b.puntajeSalud;
         return 0;
       });
-  }, [analysisHistory, statusFilter, searchQuery, sortBy]);
+  }, [historialLocal, filtroSalud, busqueda, ordenarPor]);
 
   // Statistics calculation
-  const stats = useMemo(() => {
-    if (analysisHistory.length === 0) return { count: 0, avgScore: 0, avgSpent: 0 };
-    const totalScore = analysisHistory.reduce((acc, curr) => acc + curr.puntajeSalud, 0);
-    const totalSpent = analysisHistory.reduce((acc, curr) => acc + curr.totalGastado, 0);
+  const estadisticas = useMemo(() => {
+    if (historialLocal.length === 0) return { count: 0, avgScore: 0, avgSpent: 0 };
+    const puntajeTotal = historialLocal.reduce((acc, curr) => acc + curr.puntajeSalud, 0);
+    const gastoTotal = historialLocal.reduce((acc, curr) => acc + curr.totalGastado, 0);
     return {
-      count: analysisHistory.length,
-      avgScore: Math.round(totalScore / analysisHistory.length),
-      avgSpent: Math.round(totalSpent / analysisHistory.length),
+      count: historialLocal.length,
+      avgScore: Math.round(puntajeTotal / historialLocal.length),
+      avgSpent: Math.round(gastoTotal / historialLocal.length),
     };
-  }, [analysisHistory]);
+  }, [historialLocal]);
 
-  const getStatusBadge = (status: string) => {
+  const obtenerInsigniaSalud = (status: string) => {
     switch (status) {
       case 'Saludable':
         return (
@@ -134,7 +185,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       </div>
 
       {/* Summary Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="history-stats-bar">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="history-estadisticas-bar">
         <div className="bg-white rounded-2xl p-4 md:p-5 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-[#6063ee]/10 text-[#4648d4] flex items-center justify-center shrink-0">
             <History className="w-6 h-6" />
@@ -144,7 +195,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               TOTAL ANÁLISIS
             </p>
             <p className="text-2xl font-extrabold text-[#191c1d] font-display">
-              {stats.count} <span className="text-xs font-normal text-[#767586]">registros</span>
+              {estadisticas.count} <span className="text-xs font-normal text-[#767586]">registros</span>
             </p>
           </div>
         </div>
@@ -158,7 +209,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               SALUD PROMEDIO
             </p>
             <p className="text-2xl font-extrabold text-[#191c1d] font-display">
-              {stats.avgScore}% <span className="text-xs font-normal text-[#059669] font-medium">promedio</span>
+              {estadisticas.avgScore}% <span className="text-xs font-normal text-[#059669] font-medium">promedio</span>
             </p>
           </div>
         </div>
@@ -172,7 +223,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               GASTO PROMEDIO
             </p>
             <p className="text-2xl font-extrabold text-[#191c1d] font-mono-val">
-              ${stats.avgSpent.toLocaleString()}
+              ${estadisticas.avgSpent.toLocaleString()}
             </p>
           </div>
         </div>
@@ -187,8 +238,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             id="history-search-input"
             type="text"
             placeholder="Buscar por fecha, estado o mensaje..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[#f8f9fa] border border-[#e1e3e4] text-[#191c1d] placeholder-[#767586] focus:outline-none focus:border-[#4648d4] focus:ring-2 focus:ring-[#4648d4]/10 transition-all"
           />
         </div>
@@ -198,9 +249,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           {/* Status Filter Buttons */}
           <div className="flex items-center gap-1 bg-[#f8f9fa] p-1 rounded-xl border border-[#e1e3e4]">
             <button
-              onClick={() => setStatusFilter('all')}
+              onClick={() => setFiltroSalud('all')}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                statusFilter === 'all'
+                filtroSalud === 'all'
                   ? 'bg-white text-[#4648d4] shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
               }`}
@@ -208,9 +259,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               Todos
             </button>
             <button
-              onClick={() => setStatusFilter('Saludable')}
+              onClick={() => setFiltroSalud('Saludable')}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                statusFilter === 'Saludable'
+                filtroSalud === 'Saludable'
                   ? 'bg-[#10b981] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
               }`}
@@ -218,9 +269,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               Saludable
             </button>
             <button
-              onClick={() => setStatusFilter('En observación')}
+              onClick={() => setFiltroSalud('En observación')}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                statusFilter === 'En observación'
+                filtroSalud === 'En observación'
                   ? 'bg-[#fd933d] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
               }`}
@@ -228,9 +279,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               En observación
             </button>
             <button
-              onClick={() => setStatusFilter('Riesgo')}
+              onClick={() => setFiltroSalud('Riesgo')}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                statusFilter === 'Riesgo'
+                filtroSalud === 'Riesgo'
                   ? 'bg-[#ef4444] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
               }`}
@@ -243,8 +294,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           <div className="relative">
             <select
               id="history-sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              value={ordenarPor}
+              onChange={(e) => setOrdenarPor(e.target.value as any)}
               className="py-1.5 pl-3 pr-8 text-xs font-semibold rounded-xl bg-[#f8f9fa] border border-[#e1e3e4] text-[#464554] focus:outline-none focus:border-[#4648d4] cursor-pointer"
             >
               <option value="newest">Más recientes</option>
@@ -257,7 +308,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       </div>
 
       {/* History Items List */}
-      {filteredHistory.length === 0 ? (
+      {historialFiltrado.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 border border-[#e1e3e4] text-center space-y-4 shadow-sm" id="history-empty-state">
           <div className="w-24 h-24 mx-auto flex items-center justify-center">
             <img
@@ -272,16 +323,16 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               No se encontraron registros
             </h3>
             <p className="text-xs text-[#767586] leading-relaxed">
-              {searchQuery || statusFilter !== 'all'
+              {busqueda || filtroSalud !== 'all'
                 ? 'No hay análisis que coincidan con los criterios de búsqueda aplicados.'
                 : 'Aún no has generado ningún análisis financiero. ¡Inicia uno nuevo para que la IA evalúe tu perfil!'}
             </p>
           </div>
-          {searchQuery || statusFilter !== 'all' ? (
+          {busqueda || filtroSalud !== 'all' ? (
             <button
               onClick={() => {
-                setSearchQuery('');
-                setStatusFilter('all');
+                setBusqueda('');
+                setFiltroSalud('all');
               }}
               className="px-4 py-2 bg-[#f3f4f5] hover:bg-[#e7e8e9] text-[#191c1d] text-xs font-semibold rounded-xl transition-all"
             >
@@ -299,7 +350,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         </div>
       ) : (
         <div className="space-y-3" id="history-items-grid">
-          {filteredHistory.map((item) => (
+          {historialFiltrado.map((item) => (
             <div
               key={item.id}
               id={`history-card-${item.id}`}
@@ -318,7 +369,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                       <Calendar className="w-3.5 h-3.5 text-[#767586]" />
                       {item.fecha}
                     </span>
-                    {getStatusBadge(item.estadoSalud)}
+                    {obtenerInsigniaSalud(item.estadoSalud)}
                     <span className="text-xs font-bold text-[#4648d4] font-mono-val bg-[#e0e7ff]/60 px-2.5 py-0.5 rounded-full">
                       ${item.totalGastado.toLocaleString()} evaluados
                     </span>
