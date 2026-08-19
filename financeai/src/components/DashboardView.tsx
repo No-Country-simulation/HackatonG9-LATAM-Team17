@@ -21,6 +21,8 @@ import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 interface DashboardViewProps {
   report: ReporteAnalisis;
   userProfile: UserProfile;
@@ -43,12 +45,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [showSyncBanner, setShowSyncBanner] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncedSuccess, setSyncedSuccess] = useState(false);
-  const [quickDesc, setQuickDesc] = useState('');
-  const [quickAmount, setQuickAmount] = useState('');
-  const [quickCategory, setQuickCategory] = useState<ExpenseCategory>('Alimentación');
-  const [isModelFailed, setIsModelFailed] = useState(false);
-  const [manualOverrideActive, setManualOverrideActive] = useState(false);
-  const [activeTxTab, setActiveTxTab] = useState<'empty-state' | 'tx-list'>('tx-list');
+  const [descripcionRapida, setDescripcionRapida] = useState('');
+  const [valorRapido, setValorRapido] = useState('');
+  const [categoriaRapida, setCategoriaRapida] = useState<ExpenseCategory>('Alimentación');
+  const [modeloFallo, setModeloFallo] = useState(false);
+  const [sobreescrituraManualActiva, setSobreescrituraManualActiva] = useState(false);
+  const [pestanaActivaTx, setPestanaActivaTx] = useState<'empty-state' | 'tx-list'>('tx-list');
+  const [clasificandoAPI, setClasificandoAPI] = useState(false);
   const [recommendations, setRecommendations] = useState(report.recomendaciones || []);
   
   // Timer countdown simulation
@@ -68,15 +71,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Real-time automatic categorization as description changes
   const handleDescriptionChange = (text: string) => {
-    setQuickDesc(text);
-    if (!manualOverrideActive) {
+    setDescripcionRapida(text);
+    if (!sobreescrituraManualActiva) {
       const result = autoCategorizeDescription(text);
-      setQuickCategory(result.category);
+      setCategoriaRapida(result.category);
       // Model is considered failed if description is non-empty and failed or categorizes to Otros
       if (text.trim().length > 2 && (result.failed || result.category === 'Otros')) {
-        setIsModelFailed(true);
+        setModeloFallo(true);
       } else {
-        setIsModelFailed(false);
+        setModeloFallo(false);
       }
     }
   };
@@ -90,34 +93,66 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }, 1200);
   };
 
-  const handleQuickAdd = (e: React.FormEvent) => {
+  const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickDesc || !quickAmount) return;
+    if (!descripcionRapida || !valorRapido) return;
     
     // Determine category automatically if not manually overridden
-    let finalCategory = quickCategory;
-    let failedStatus = isModelFailed;
+    let finalCategory = categoriaRapida;
+    let failedStatus = modeloFallo;
     
-    if (!manualOverrideActive) {
-      const autoRes = autoCategorizeDescription(quickDesc);
-      finalCategory = autoRes.category;
-      failedStatus = autoRes.failed;
+    if (!sobreescrituraManualActiva) {
+      setClasificandoAPI(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/finanzas/clasificar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            descripcion: descripcionRapida,
+            valor: parsePositiveFloat(valorRapido, 0),
+            fecha_transaccion: new Date().toISOString()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al clasificar transacción');
+        }
+
+        const data = await response.json();
+        
+        if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
+          finalCategory = Object.keys(data.resumen_gastos)[0] as ExpenseCategory;
+          failedStatus = false;
+        } else {
+          // Fallback if empty
+          const autoRes = autoCategorizeDescription(descripcionRapida);
+          finalCategory = autoRes.category;
+          failedStatus = autoRes.failed;
+        }
+      } catch (err) {
+        console.error('API classification failed, using local fallback:', err);
+        const autoRes = autoCategorizeDescription(descripcionRapida);
+        finalCategory = autoRes.category;
+        failedStatus = autoRes.failed;
+      } finally {
+        setClasificandoAPI(false);
+      }
     }
 
     onAddTransaction({
-      description: quickDesc,
-      amount: parsePositiveFloat(quickAmount, 0),
+      description: descripcionRapida,
+      amount: parsePositiveFloat(valorRapido, 0),
       category: finalCategory,
       type: 'gasto',
-      autoCategorized: !manualOverrideActive,
+      autoCategorized: !sobreescrituraManualActiva,
       categorizationFailed: failedStatus,
     });
 
-    setQuickDesc('');
-    setQuickAmount('');
-    setManualOverrideActive(false);
-    setIsModelFailed(false);
-    setActiveTxTab('tx-list');
+    setDescripcionRapida('');
+    setValorRapido('');
+    setSobreescrituraManualActiva(false);
+    setModeloFallo(false);
+    setPestanaActivaTx('tx-list');
   };
 
   const toggleRecommendationComplete = (id: string) => {
@@ -334,15 +369,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveTxTab(activeTxTab === 'empty-state' ? 'tx-list' : 'empty-state')}
+              onClick={() => setPestanaActivaTx(pestanaActivaTx === 'empty-state' ? 'tx-list' : 'empty-state')}
               className="text-xs font-medium text-[#767586] hover:text-[#4648d4] px-2.5 py-1 rounded-lg hover:bg-[#f3f4f5] transition-colors"
             >
-              {activeTxTab === 'empty-state' ? 'Ver transacciones registradas' : 'Ver estado sin vincular'}
+              {pestanaActivaTx === 'empty-state' ? 'Ver transacciones registradas' : 'Ver estado sin vincular'}
             </button>
           </div>
         </div>
 
-        {activeTxTab === 'empty-state' ? (
+        {pestanaActivaTx === 'empty-state' ? (
           /* Empty state exactly matching screenshot */
           <div className="py-10 text-center flex flex-col items-center justify-center">
             <div className="w-12 h-12 rounded-2xl bg-[#f3f4f5] flex items-center justify-center text-[#464554] mb-3">
@@ -355,7 +390,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Tus gastos aparecerán aquí una vez que vincules una cuenta o agregues transacciones manuales.
             </p>
             <button
-              onClick={() => setActiveTxTab('tx-list')}
+              onClick={() => setPestanaActivaTx('tx-list')}
               className="mt-4 px-4 py-1.5 bg-[#f3f4f5] hover:bg-[#e1e3e4] text-[#191c1d] rounded-full text-xs font-semibold transition-all"
             >
               Cargar datos locales
@@ -370,7 +405,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <input
                   type="text"
                   placeholder="Descripción del gasto (ej. Supermercado, Alquiler, Gasolina)..."
-                  value={quickDesc}
+                  value={descripcionRapida}
                   onChange={(e) => handleDescriptionChange(e.target.value)}
                   className="flex-1 min-w-[180px] px-3 py-1.5 text-xs bg-white border border-[#e1e3e4] rounded-lg text-[#191c1d] focus:outline-none focus:border-[#4648d4]"
                 />
@@ -379,23 +414,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   min="0"
                   step="any"
                   placeholder="Monto ($)"
-                  value={quickAmount}
+                  value={valorRapido}
                   onKeyDown={preventNegativeKeys}
-                  onChange={(e) => setQuickAmount(sanitizePositiveNumber(e.target.value))}
+                  onChange={(e) => setValorRapido(sanitizePositiveNumber(e.target.value))}
                   className="w-24 px-3 py-1.5 text-xs bg-white border border-[#e1e3e4] rounded-lg text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                 />
 
                 {/* Categorization display: Automatic by default, Select only on Model Failure / Override */}
-                {(!isModelFailed && !manualOverrideActive) ? (
+                {(!modeloFallo && !sobreescrituraManualActiva) ? (
                   <div className="flex items-center gap-1.5 bg-[#e0e7ff]/60 border border-[#c7d2fe] px-2.5 py-1.5 rounded-lg">
                     <Sparkles className="w-3.5 h-3.5 text-[#4648d4] animate-pulse" />
                     <span className="text-xs font-semibold text-[#4648d4]">
-                      {quickDesc.trim() ? `IA: ${quickCategory}` : 'Categorización automática'}
+                      {descripcionRapida.trim() ? `IA: ${categoriaRapida}` : 'Categorización automática'}
                     </span>
-                    {quickDesc.trim() && (
+                    {descripcionRapida.trim() && (
                       <button
                         type="button"
-                        onClick={() => setManualOverrideActive(true)}
+                        onClick={() => setSobreescrituraManualActiva(true)}
                         className="text-[10px] text-[#767586] hover:text-[#ba1a1a] underline ml-1 cursor-pointer"
                         title="Seleccionar manualmente si el modelo falló"
                       >
@@ -411,8 +446,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </span>
                     {/* The exact dropdown from user request */}
                     <select
-                      value={quickCategory}
-                      onChange={(e) => setQuickCategory(e.target.value as ExpenseCategory)}
+                      value={categoriaRapida}
+                      onChange={(e) => setCategoriaRapida(e.target.value as ExpenseCategory)}
                       className="px-3 py-1.5 text-xs bg-white border-2 border-[#4648d4] rounded-lg text-[#191c1d] font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
                     >
                       <option value="Vivienda">Vivienda</option>
@@ -428,10 +463,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 <button
                   type="submit"
-                  className="px-3.5 py-1.5 bg-[#fd933d] hover:bg-[#e07d2c] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0"
+                  disabled={clasificandoAPI}
+                  className={`px-3.5 py-1.5 ${clasificandoAPI ? 'bg-[#e07d2c] opacity-80' : 'bg-[#fd933d] hover:bg-[#e07d2c]'} text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0`}
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Agregar</span>
+                  {clasificandoAPI ? (
+                    <>
+                      <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Clasificando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Agregar</span>
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -441,12 +486,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <Sparkles className="w-3 h-3 text-[#4648d4]" />
                   La categorización es automática por IA. La selección manual solo se habilita si el modelo falla.
                 </span>
-                {(isModelFailed || manualOverrideActive) && (
+                {(modeloFallo || sobreescrituraManualActiva) && (
                   <button
                     type="button"
                     onClick={() => {
-                      setManualOverrideActive(false);
-                      setIsModelFailed(false);
+                      setSobreescrituraManualActiva(false);
+                      setModeloFallo(false);
                     }}
                     className="text-[#4648d4] hover:underline font-semibold"
                   >
