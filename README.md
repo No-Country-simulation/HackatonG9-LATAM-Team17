@@ -1,34 +1,92 @@
 ## 🛠️ Entorno de Desarrollo y Flujo de Trabajo
+El proyecto utiliza una arquitectura distribuida multi-repositorio que permite trabajar cada módulo en su entorno de desarrollo ideal, orquestando todo el ecosistema local mediante Docker Desktop y Docker Compose.
 
-El proyecto utiliza una arquitectura distribuida que permite trabajar cada módulo en su IDE ideal, orquestando todo el ecosistema mediante **Docker Desktop**.
+🔀 Integración VSC + IntelliJ IDEA + Docker
 
----
+| Herramienta        | Contenedor (container_name) | Módulo / Función           | Descripción                                                                                                   |
+| ------------------ | --------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Visual Studio Code | financeai_python_api        | Microservicio Python (NLP) | API en FastAPI para análisis NLP, lógica de recomendaciones y uso de modelos .pkl.                            |
+| Visual Studio Code | financeai_frontend_app      | Frontend                   | Interfaz de usuario expuesta mediante Nginx.                                                                  |
+| IntelliJ IDEA      | financeai_spring_backend    | Backend Java (Spring Boot) | API REST principal, lógica de negocio, integración con PostgreSQL y orquestación mediante docker-compose.yml. |
+| Docker Desktop     | financeai_postgres_db       | Base de datos PostgreSQL   | Instancia relacional de PostgreSQL versión 16, aislada para el almacenamiento persistente.                    |
+## 📂 Estructura de Repositorios Locales
+Para que el orquestador detecte todos los módulos, la estructura de carpetas en tu máquina (**C:\Desarrollo**) debe ser la siguiente:
 
-### 🔀 Integración VSC + IntelliJ IDEA + Docker
+````text
+C:\Desarrollo\
+├── financeai\                                   # Proyecto Backend / Docker Compose
+│   ├── backend\                                 # Código fuente Spring Boot
+│   └── docker-compose.yml                       # Orquestador global
+├── HackatonG9-LATAM-Team17-feature-back-python-prueba\  # API Python NLP
+└── frontend-financeai\                          # Aplicación Frontend
+````
+## Diagrama de la orquestación
 
-| Herramienta | Módulo / Función | Descripción |
-| :--- | :--- | :--- |
-| **Visual Studio Code** | Microservicio Python (NLP) | Desarrollo de la API en FastAPI, lógica de recomendaciones y modelos `.pkl`. Cuenta con su propio `Dockerfile`. |
-| **IntelliJ IDEA** | Backend Java (Spring Boot) | Desarrollo de la API Gateway, modelos de datos relacionales y orquestación general con `docker-compose.yml`. |
-| **Docker Desktop** | Motor y Monitoreo | Ejecuta los contenedores isolados (`postgres_db`, `python_nlp_api`, `spring_backend`) y permite la lectura de logs en tiempo real. |
+```mermaid
 
----
+graph TD
+    subgraph Host ["Máquina Local (C:\Desarrollo)"]
+        F[frontend-financeai]
+        B[financeai / backend]
+        P[HackatonG9-LATAM-Team17-feature-back-python-prueba]
+    end
 
-### 🖥️ Uso Diario del Entorno
+    subgraph Docker ["Docker Network (app-network)"]
+        FrontC["financeai_frontend_app\n(Port 8080:80)"]
+        BackC["financeai_spring_backend\n(Port 8008:8008)"]
+        PyC["financeai_python_api\n(Port 8000:8000)"]
+        DBC[("financeai_postgres_db\n(Port 5432:5432)")]
+    end
 
-1. **Abrir Docker Desktop:** Asegúrate de que el motor de Docker esté iniciado antes de ejecutar la aplicación.
-2. **Levantar los servicios:** Desde la terminal integrada en la raíz del proyecto, ejecuta:
+    F -->|build context: ../frontend-financeai| FrontC
+    B -->|build context: ./backend| BackC
+    P -->|build context: ../HackatonG...| PyC
+
+    FrontC -->|HTTP / API Requests| BackC
+    BackC -->|HTTP / FastAPI| PyC
+    BackC -->|JDBC Connection| DBC
+```
+
+## 🖥️ Uso Diario del Entorno
+1. Iniciar el motor: Asegúrate de que Docker Desktop esté iniciado antes de levantar el proyecto.
+
+2. Levantar todos los servicios: Desde la terminal integrada en **C:\Desarrollo\financeai**, ejecuta:
 
 ````bash
-docker compose up -d --build
+docker compose up --build -d
 ````
-1. Monitorear y Controlar: Utiliza la interfaz visual de Docker Desktop para verificar la salud de los contenedores y validar los puertos expuestos:
+1. Verificar estado de contenedores: Comprueba que los 4 servicios estén corriendo con:
 
-Python NLP API: **http://localhost:8000**
+````bash
+docker ps
+````
+1. Monitorear y Validar: Accede a las distintas aplicaciones mediante sus puertos expuestos:
 
-Spring Boot Backend: **http://localhost:8008**
+* 🌐 Frontend App: http://localhost:8080
 
-PostgreSQL Database: **localhost:5432**
+* ⚙️ Spring Boot Backend: http://localhost:8008
+
+* 🧠 Python NLP API: http://localhost:8000
+
+* 🗄️ PostgreSQL Database: localhost:5432
+
+## 🛠️ Comandos Útiles de Mantenimiento
+* Ver logs en tiempo real (ej. Backend):
+
+````bash
+docker logs -f financeai_spring_backend
+````
+
+* Detener los servicios sin borrar datos:
+
+````bash
+docker compose down
+````
+* Limpiar contenedores viejos o en conflicto:
+
+````bash
+docker rm -f financeai_postgres_db financeai_spring_backend financeai_python_api financeai_frontend_app
+````
 
 ## 📥 Requisitos de Instalación
 Para colaborar en el proyecto es imprescindible contar con el motor de Docker instalado localmente:
