@@ -2,7 +2,7 @@
 schemas.py - Contratos de datos (Pydantic DTOs)
 """
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class TransaccionDTO(BaseModel):
     descripcion: str
@@ -10,7 +10,7 @@ class TransaccionDTO(BaseModel):
 
 class AnalisisInputDTO(BaseModel):
     ingreso_mensual: float
-    nivel_endeudamiento: float
+    nivel_endeudamiento: Optional[float] = 0.0  # <-- Ahora es opcional y por defecto 0.0
     frecuencia_ahorro: str
     monto_inversion: float
     deuda_total: float
