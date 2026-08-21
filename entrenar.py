@@ -1,7 +1,7 @@
 """Entrena, calibra y evalua el unico modelo entregable del hackathon.
 
 Este es el archivo que se debe abrir para exhibir el entrenamiento. El flujo es:
-datos -> TF-IDF -> comparacion de algoritmos -> regresion logistica ->
+datos -> TF-IDF -> comparacion de algoritmos -> clasificador seleccionado ->
 calibracion de confianza -> evaluacion final -> PKL y reportes JSON.
 """
 
@@ -61,19 +61,28 @@ from clasificador.datos import (
     cargar_csv_etiquetado,
     cargar_datos_entrenamiento,
     cargar_datos_entrenamiento_ampliado,
+    generar_variantes_ortograficas,
     validar_separacion_splits,
 )
-from clasificador.modelo import crear_caracteristicas, crear_estimador_base
+from clasificador.modelo import (
+    crear_caracteristicas,
+    crear_estimador_base,
+    crear_estimador_svm,
+)
 
 
 DATOS_ENTRENAMIENTO = RAIZ / "datos" / "entrenamiento.csv"
 DATOS_VALIDACION = RAIZ / "datos" / "validacion.csv"
 DATOS_HOLDOUT = RAIZ / "datos" / "holdout_final.csv"
+CASOS_REGRESION = RAIZ / "datos" / "casos_regresion.json"
 MODELO = RAIZ / "modelos" / "clasificador_gastos.pkl"
+MANIFIESTO_MODELO = RAIZ / "modelos" / "manifiesto_modelo.json"
 RESUMEN = RAIZ / "resultados" / "resumen_entrenamiento.json"
 COMPARACION = RAIZ / "resultados" / "comparacion_modelos.json"
 EVALUACION = RAIZ / "resultados" / "evaluacion_final.json"
+EVALUACION_REGRESION = RAIZ / "resultados" / "evaluacion_regresion.json"
 PREDICCIONES = RAIZ / "resultados" / "predicciones_holdout.json"
+CANDIDATO_RECHAZADO = RAIZ / "resultados" / "ultimo_candidato_rechazado.json"
 OBJETIVO_EJEMPLOS = 100_000
 
 
@@ -151,14 +160,24 @@ def comparar_familias_modelos(df: pd.DataFrame) -> list[dict[str, object]]:
     return ranking
 
 
-def seleccionar_regularizacion(df: pd.DataFrame) -> tuple[float, list[dict[str, float]]]:
-    """Ajusta C sin permitir que variantes del mismo concepto crucen folds."""
+def seleccionar_regularizacion(
+    df: pd.DataFrame, familia: str
+) -> tuple[float, list[dict[str, float]]]:
+    """Ajusta C para la familia elegida sin cruzar conceptos entre folds."""
 
     cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
     resultados: list[dict[str, float]] = []
-    for c_regularizacion in (0.75, 1.5, 3.0, 6.0):
+    valores_c = (
+        (0.1, 0.25, 0.5, 1.0, 2.0)
+        if familia == "svm_lineal"
+        else (0.75, 1.5, 3.0, 6.0)
+    )
+    fabrica = (
+        crear_estimador_svm if familia == "svm_lineal" else crear_estimador_base
+    )
+    for c_regularizacion in valores_c:
         metricas = cross_validate(
-            crear_estimador_base(c_regularizacion),
+            fabrica(c_regularizacion),
             df["descripcion"],
             df["categoria"],
             groups=df["grupo"],
@@ -335,19 +354,160 @@ def evaluar_holdout(
     return reporte, {"predicciones": salida.to_dict(orient="records")}
 
 
+def evaluar_regresion_semantica(modelo: ClasificadorGastos) -> dict[str, object]:
+    """Valida categorias inequívocas y ruido común de estados de cuenta."""
+
+    contenido = json.loads(CASOS_REGRESION.read_text(encoding="utf-8"))
+    casos = contenido["casos"]
+    errores_base: list[dict[str, object]] = []
+    detalles_base: list[dict[str, object]] = []
+    for caso in casos:
+        prediccion = modelo.predecir(caso["descripcion"], umbral=0.0)
+        correcta = (
+            prediccion["categoria_modelo"] == caso["categoria_esperada"]
+        )
+        detalles_base.append(
+            {
+                "descripcion": caso["descripcion"],
+                "categoria_esperada": caso["categoria_esperada"],
+                "categoria_obtenida": prediccion["categoria_modelo"],
+                "confiabilidad": prediccion["confianza"],
+                "correcta": correcta,
+            }
+        )
+        if not correcta:
+            errores_base.append(detalles_base[-1])
+
+    transformaciones = (
+        ("original", lambda texto: texto),
+        ("mayusculas", lambda texto: texto.upper()),
+        ("prefijo_pos", lambda texto: f"PAGO POS {texto} LIMA"),
+        ("formato_trx", lambda texto: f"TRX-8842 {texto.replace(' ', '-')} REF"),
+        (
+            "contexto_bancario",
+            lambda texto: f"cargo bancario {texto} operacion confirmada",
+        ),
+    )
+    errores_ruido: list[dict[str, str]] = []
+    total_ruido = 0
+    for caso in casos:
+        for nombre, transformar in transformaciones:
+            total_ruido += 1
+            descripcion = transformar(caso["descripcion"])
+            obtenida = str(
+                modelo.predecir(descripcion, umbral=0.0)["categoria_modelo"]
+            )
+            if obtenida != caso["categoria_esperada"]:
+                errores_ruido.append(
+                    {
+                        "transformacion": nombre,
+                        "descripcion": descripcion,
+                        "categoria_esperada": caso["categoria_esperada"],
+                        "categoria_obtenida": obtenida,
+                    }
+                )
+
+    almuerzo = next(
+        detalle for detalle in detalles_base if detalle["descripcion"] == "almuerzo"
+    )
+    errores_ortograficos: list[dict[str, object]] = []
+    total_ortografico = 0
+    for caso in casos:
+        for nombre, descripcion in generar_variantes_ortograficas(
+            caso["descripcion"]
+        ).items():
+            total_ortografico += 1
+            prediccion = modelo.predecir(descripcion, umbral=0.0)
+            obtenida = prediccion["categoria_modelo"]
+            if obtenida != caso["categoria_esperada"]:
+                errores_ortograficos.append(
+                    {
+                        "transformacion": nombre,
+                        "descripcion_original": caso["descripcion"],
+                        "descripcion_alterada": descripcion,
+                        "categoria_esperada": caso["categoria_esperada"],
+                        "categoria_obtenida": obtenida,
+                        "confiabilidad": prediccion["confianza"],
+                    }
+                )
+    casos_dirigidos = contenido.get("casos_ortograficos_dirigidos", [])
+    errores_dirigidos: list[dict[str, object]] = []
+    for caso in casos_dirigidos:
+        prediccion = modelo.predecir(caso["descripcion"], umbral=0.0)
+        if prediccion["categoria_modelo"] != caso["categoria_esperada"]:
+            errores_dirigidos.append(
+                {
+                    "descripcion": caso["descripcion"],
+                    "categoria_esperada": caso["categoria_esperada"],
+                    "categoria_obtenida": prediccion["categoria_modelo"],
+                    "confiabilidad": prediccion["confianza"],
+                }
+            )
+    return {
+        "archivo_fuente": str(CASOS_REGRESION.relative_to(RAIZ)),
+        "casos_base": len(casos),
+        "exactitud_base": round(1.0 - len(errores_base) / len(casos), 4),
+        "errores_base": errores_base,
+        "variantes_con_ruido": total_ruido,
+        "exactitud_con_ruido": round(1.0 - len(errores_ruido) / total_ruido, 4),
+        "errores_con_ruido": errores_ruido,
+        "variantes_ortograficas": total_ortografico,
+        "exactitud_ortografica": round(
+            1.0 - len(errores_ortograficos) / total_ortografico, 4
+        ),
+        "errores_ortograficos": errores_ortograficos,
+        "casos_ortograficos_dirigidos": len(casos_dirigidos),
+        "exactitud_ortografica_dirigida": round(
+            1.0 - len(errores_dirigidos) / len(casos_dirigidos), 4
+        ),
+        "errores_ortograficos_dirigidos": errores_dirigidos,
+        "caso_almuerzo": almuerzo,
+        "nota": "Este conjunto es una prueba de regresion, no un holdout independiente.",
+    }
+
+
+def verificar_estandares(
+    evaluacion: dict[str, object], regresion: dict[str, object]
+) -> dict[str, object]:
+    """Impide publicar un PKL que degrade métricas mínimas acordadas."""
+
+    metricas = evaluacion["metricas_modelo_sin_rechazo"]
+    almuerzo = regresion["caso_almuerzo"]
+    criterios = {
+        "holdout_exactitud_minima_0_90": float(metricas["exactitud"]) >= 0.90,
+        "holdout_f1_macro_minimo_0_90": float(metricas["f1_macro"]) >= 0.90,
+        "ece_maximo_0_08": float(metricas["ece_top"]) <= 0.08,
+        "regresion_base_100_por_ciento": (
+            float(regresion["exactitud_base"]) == 1.0
+        ),
+        "regresion_ruido_minima_0_99": (
+            float(regresion["exactitud_con_ruido"]) >= 0.99
+        ),
+        "robustez_ortografica_100_por_ciento": (
+            float(regresion["exactitud_ortografica"]) == 1.0
+        ),
+        "ortografia_dirigida_100_por_ciento": (
+            float(regresion["exactitud_ortografica_dirigida"]) == 1.0
+        ),
+        "almuerzo_es_alimentacion": almuerzo["categoria_obtenida"] == "Alimentacion",
+        "almuerzo_confianza_minima_0_90": float(almuerzo["confiabilidad"]) >= 0.90,
+    }
+    return {"cumple": all(criterios.values()), "criterios": criterios}
+
+
 def escribir_json(ruta: Path, contenido: object) -> None:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     ruta.write_text(json.dumps(contenido, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> None:
-    print("1/6 Cargando particiones y comprobando fugas...")
+    print("1/7 Cargando particiones y comprobando fugas...")
     compacto = cargar_datos_entrenamiento(DATOS_ENTRENAMIENTO)
     validacion = cargar_csv_etiquetado(DATOS_VALIDACION)
     holdout = cargar_csv_etiquetado(DATOS_HOLDOUT)
     validar_separacion_splits(compacto, validacion, holdout)
 
-    print("2/6 Comparando familias con validacion cruzada agrupada...")
+    print("2/7 Comparando familias con validacion cruzada agrupada...")
     ranking = comparar_familias_modelos(compacto)
     escribir_json(
         COMPARACION,
@@ -358,34 +518,46 @@ def main() -> None:
                 "grupos_semanticos": int(compacto["grupo"].nunique()),
                 "metrica_principal": "F1 macro",
                 "regla_de_decision": (
-                    "Se prefiere regresion logistica si queda a menos de 1 punto "
-                    "de la mejor, porque entrega probabilidad nativa y un PKL mas simple."
+                    "Se elige la mayor F1 macro agrupada entre las familias con "
+                    "flujo probabilistico aprobado."
                 ),
             },
             "ranking": ranking,
         },
     )
-    mejor_f1 = float(ranking[0]["f1_macro_promedio"])
-    logistica = next(fila for fila in ranking if fila["modelo"] == "Regresion logistica")
-    if mejor_f1 - float(logistica["f1_macro_promedio"]) > 0.01:
-        raise RuntimeError("Otra familia supera a logistica por mas de un punto; revisar seleccion")
+    if ranking[0]["modelo"] == "SVM lineal":
+        familia_elegida = "svm_lineal"
+        nombre_familia = "SVM lineal calibrada"
+    elif ranking[0]["modelo"] == "Regresion logistica":
+        familia_elegida = "regresion_logistica"
+        nombre_familia = "Regresion logistica"
+    else:
+        raise RuntimeError(
+            "La mejor familia no tiene todavía un flujo probabilistico aprobado: "
+            + str(ranking[0]["modelo"])
+        )
 
-    print("3/6 Ajustando regularizacion y generando exactamente 100 000 ejemplos...")
-    c_elegido, resultados_c = seleccionar_regularizacion(compacto)
+    print("3/7 Ajustando regularizacion y generando exactamente 100 000 ejemplos...")
+    c_elegido, resultados_c = seleccionar_regularizacion(compacto, familia_elegida)
     entrenamiento = cargar_datos_entrenamiento_ampliado(
         DATOS_ENTRENAMIENTO, objetivo_total=OBJETIVO_EJEMPLOS
     )
     validar_separacion_splits(entrenamiento, validacion, holdout)
 
-    print("4/6 Entrenando regresion logistica multiclase...")
+    print(f"4/7 Entrenando {nombre_familia}...")
     modelo = ClasificadorGastos(
         umbral_confianza=0.0,
         margen_minimo=0.08,
         cobertura_minima=0.20,
         c_regularizacion=c_elegido,
-    ).entrenar(entrenamiento["descripcion"], entrenamiento["categoria"])
+        algoritmo=familia_elegida,
+    ).entrenar(
+        entrenamiento["descripcion"],
+        entrenamiento["categoria"],
+        grupos=entrenamiento["grupo"],
+    )
 
-    print("5/6 Calibrando confiabilidad y politica de rechazo...")
+    print("5/7 Calibrando confiabilidad y politica de rechazo...")
     temperatura, curva_temperatura = seleccionar_temperatura(modelo, validacion)
     umbral, curva_umbral = seleccionar_umbral(modelo, validacion)
     modelo.metadatos.update(
@@ -396,10 +568,19 @@ def main() -> None:
                 "aumentados_reproducibles": int(
                     (entrenamiento["fuente"] == "aumentacion_sintetica_reproducible").sum()
                 ),
+                "ortograficos_lexicos": int(
+                    (entrenamiento["fuente"] == "aumentacion_ortografica_lexica").sum()
+                ),
                 "descripciones_unicas": int(entrenamiento["descripcion_normalizada"].nunique()),
                 "distribucion_categorias": {
                     clave: int(valor)
                     for clave, valor in entrenamiento["categoria"].value_counts().sort_index().items()
+                },
+                "distribucion_ruido_ortografico": {
+                    clave: int(valor)
+                    for clave, valor in entrenamiento[
+                        "ruido_ortografico"
+                    ].value_counts().sort_index().items()
                 },
                 "advertencia": (
                     "La aumentacion sintetica mejora invariancia de redaccion, pero no equivale "
@@ -408,10 +589,10 @@ def main() -> None:
             },
             "seleccion_modelo": {
                 "comparacion": str(COMPARACION.relative_to(RAIZ)),
-                "familia_elegida": "Regresion logistica",
+                "familia_elegida": nombre_familia,
                 "razon": (
-                    "Mejor F1 macro o diferencia menor a 1 punto frente al mejor; "
-                    "probabilidad nativa y despliegue mas simple que SVM calibrada."
+                    "Mayor F1 macro agrupada entre las familias que ofrecen un "
+                    "flujo de confianza calibrado y aprobado."
                 ),
                 "regularizacion": resultados_c,
                 "c_elegido": c_elegido,
@@ -428,12 +609,60 @@ def main() -> None:
             },
         }
     )
-    modelo.guardar(MODELO)
-
-    print("6/6 Evaluando holdout y escribiendo exclusivamente reportes JSON...")
+    print("6/7 Evaluando holdout y regresiones semanticas...")
     evaluacion, predicciones = evaluar_holdout(modelo, holdout)
+    regresion = evaluar_regresion_semantica(modelo)
+    estandares = verificar_estandares(evaluacion, regresion)
+    modelo.metadatos["control_calidad"] = estandares
+    if not estandares["cumple"]:
+        incumplidos = [
+            nombre
+            for nombre, cumple in estandares["criterios"].items()
+            if not cumple
+        ]
+        escribir_json(
+            CANDIDATO_RECHAZADO,
+            {
+                "familia": nombre_familia,
+                "c_regularizacion": c_elegido,
+                "estandares": estandares,
+                "evaluacion_holdout": evaluacion,
+                "evaluacion_regresion": regresion,
+            },
+        )
+        raise RuntimeError(
+            "El candidato no reemplaza el PKL vigente. Estandares incumplidos: "
+            + ", ".join(incumplidos)
+        )
+
+    print("7/7 Publicando PKL, checksum, manifiesto y reportes JSON...")
+    CANDIDATO_RECHAZADO.unlink(missing_ok=True)
     escribir_json(EVALUACION, evaluacion)
+    escribir_json(EVALUACION_REGRESION, regresion)
     escribir_json(PREDICCIONES, predicciones)
+    modelo.guardar(MODELO)
+    checksum = MODELO.with_suffix(".pkl.sha256").read_text(encoding="ascii").split()[0]
+    escribir_json(
+        MANIFIESTO_MODELO,
+        {
+            "archivo": MODELO.name,
+            "version_artefacto": modelo.metadatos["version_artefacto"],
+            "sha256": checksum,
+            "numero_ejemplos": len(entrenamiento),
+            "familia_modelo": modelo.metadatos["familia_modelo"],
+            "c_regularizacion": modelo.metadatos["c_regularizacion"],
+            "temperatura_calibracion": modelo.metadatos["temperatura_calibracion"],
+            "umbral_confianza": modelo.metadatos["configuracion"]["umbral_confianza"],
+            "algoritmo": modelo.metadatos["algoritmo"],
+            "python": modelo.metadatos["python"],
+            "scikit_learn": modelo.metadatos["scikit_learn"],
+            "control_calidad": estandares,
+            "integracion": (
+                "El backend debe desplegar este PKL y verificar que su SHA-256 "
+                "coincida con este manifiesto."
+            ),
+        },
+    )
     escribir_json(
         RESUMEN,
         {
@@ -441,7 +670,7 @@ def main() -> None:
             "checksum": str(MODELO.with_suffix(".pkl.sha256").relative_to(RAIZ)),
             "ejemplos_entrenamiento": len(entrenamiento),
             "categorias": list(CATEGORIAS),
-            "familia_elegida": "Regresion logistica multiclase",
+            "familia_elegida": nombre_familia,
             "c_elegido": c_elegido,
             "temperatura_elegida": temperatura,
             "umbral_elegido": umbral,
@@ -450,6 +679,22 @@ def main() -> None:
             "curva_umbral": curva_umbral,
             "metricas_holdout": evaluacion["metricas_modelo_sin_rechazo"],
             "metricas_politica_confianza": evaluacion["metricas_politica_confianza"],
+            "metricas_regresion": {
+                "casos_base": regresion["casos_base"],
+                "exactitud_base": regresion["exactitud_base"],
+                "variantes_con_ruido": regresion["variantes_con_ruido"],
+                "exactitud_con_ruido": regresion["exactitud_con_ruido"],
+                "variantes_ortograficas": regresion["variantes_ortograficas"],
+                "exactitud_ortografica": regresion["exactitud_ortografica"],
+                "casos_ortograficos_dirigidos": regresion[
+                    "casos_ortograficos_dirigidos"
+                ],
+                "exactitud_ortografica_dirigida": regresion[
+                    "exactitud_ortografica_dirigida"
+                ],
+                "caso_almuerzo": regresion["caso_almuerzo"],
+            },
+            "control_calidad": estandares,
             "metadatos_modelo": modelo.metadatos,
         },
     )
@@ -458,7 +703,7 @@ def main() -> None:
     politica = evaluacion["metricas_politica_confianza"]
     print("\nENTRENAMIENTO COMPLETADO")
     print(f"Ejemplos: {len(entrenamiento):,}")
-    print(f"Modelo: Regresion logistica multiclase (C={c_elegido:g})")
+    print(f"Modelo: {nombre_familia} (C={c_elegido:g})")
     print(f"Exactitud holdout: {metricas['exactitud']:.1%}")
     print(f"F1 macro holdout: {metricas['f1_macro']:.1%}")
     print(f"Precision aceptada: {politica['precision_entre_aceptadas']:.1%}")

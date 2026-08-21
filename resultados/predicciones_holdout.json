@@ -5,27 +5,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Alimentacion",
       "categoria_modelo": "Alimentacion",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9974,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9953,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Alimentacion",
-          "probabilidad": 1.0
+          "probabilidad": 0.9974
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0021
         },
         {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0002
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -34,27 +34,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Alimentacion",
       "categoria_modelo": "Alimentacion",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9998,
+      "confianza": 0.9972,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9963,
       "cobertura_lexica": 0.6,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.9999
+          "probabilidad": 0.9972
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0001
+          "categoria": "Servicios",
+          "probabilidad": 0.0009
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0007
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -63,27 +63,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Alimentacion",
       "categoria_modelo": "Alimentacion",
-      "confianza": 0.9997,
+      "confianza": 0.9996,
       "confianza_porcentaje": 100.0,
-      "margen": 0.9994,
+      "margen": 0.9993,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.9997
+          "probabilidad": 0.9996
         },
         {
-          "categoria": "Gastos Hormiga",
+          "categoria": "Servicios",
           "probabilidad": 0.0003
         },
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0001
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -92,27 +92,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Alimentacion",
       "categoria_modelo": "Alimentacion",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9977,
+      "confianza_porcentaje": 99.8,
+      "margen": 0.9967,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Alimentacion",
-          "probabilidad": 1.0
+          "probabilidad": 0.9977
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.001
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0005
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -121,27 +121,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Alimentacion",
       "categoria_modelo": "Alimentacion",
-      "confianza": 0.9997,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9994,
+      "confianza": 0.9932,
+      "confianza_porcentaje": 99.3,
+      "margen": 0.988,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.9997
+          "probabilidad": 0.9932
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0003
+          "categoria": "Servicios",
+          "probabilidad": 0.0051
         },
         {
-          "categoria": "Otros",
-          "probabilidad": 0.0
+          "categoria": "Educacion",
+          "probabilidad": 0.0008
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -150,27 +150,27 @@
       "categoria_real": "Alimentacion",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 0.9991,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9986,
+      "confianza": 0.6225,
+      "confianza_porcentaje": 62.2,
+      "margen": 0.2603,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.9991
-        },
-        {
-          "categoria": "Transporte",
-          "probabilidad": 0.0005
+          "probabilidad": 0.6225
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0002
+          "probabilidad": 0.3622
+        },
+        {
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0119
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": false,
       "correcta_modelo": false
     },
@@ -179,27 +179,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 0.9995,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9989,
+      "confianza": 0.9863,
+      "confianza_porcentaje": 98.6,
+      "margen": 0.9798,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.9995
+          "probabilidad": 0.9863
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0005
+          "categoria": "Servicios",
+          "probabilidad": 0.0065
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Ocio",
+          "probabilidad": 0.0027
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -208,27 +208,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 0.9994,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9989,
+      "confianza": 0.9585,
+      "confianza_porcentaje": 95.8,
+      "margen": 0.9247,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.9994
+          "probabilidad": 0.9585
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0006
+          "probabilidad": 0.0338
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Otros",
+          "probabilidad": 0.0034
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -237,27 +237,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9952,
+      "confianza_porcentaje": 99.5,
+      "margen": 0.9929,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 1.0
+          "probabilidad": 0.9952
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0023
         },
         {
-          "categoria": "Otros",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0023
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -266,27 +266,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 0.994,
-      "confianza_porcentaje": 99.4,
-      "margen": 0.9881,
+      "confianza": 0.9809,
+      "confianza_porcentaje": 98.1,
+      "margen": 0.9735,
       "cobertura_lexica": 0.25,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.994
+          "probabilidad": 0.9809
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0059
+          "probabilidad": 0.0073
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Salud",
+          "probabilidad": 0.0036
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -295,27 +295,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.994,
+      "confianza_porcentaje": 99.4,
+      "margen": 0.9905,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 1.0
+          "probabilidad": 0.994
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0035
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
-        },
-        {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "probabilidad": 0.0011
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -324,27 +324,27 @@
       "categoria_real": "Aporte Inversiones",
       "categoria": "Aporte Inversiones",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
-      "cobertura_lexica": 0.75,
+      "confianza": 0.9914,
+      "confianza_porcentaje": 99.1,
+      "margen": 0.9873,
+      "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.9999
-        },
-        {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0001
+          "probabilidad": 0.9914
         },
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0041
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0025
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -353,27 +353,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 0.8643,
-      "confianza_porcentaje": 86.4,
-      "margen": 0.8401,
+      "confianza": 0.9047,
+      "confianza_porcentaje": 90.5,
+      "margen": 0.8668,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 0.8643
+          "probabilidad": 0.9047
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0242
+          "probabilidad": 0.038
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0194
+          "probabilidad": 0.0286
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -382,27 +382,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 0.999,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9985,
+      "confianza": 0.9881,
+      "confianza_porcentaje": 98.8,
+      "margen": 0.983,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 0.999
+          "probabilidad": 0.9881
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0005
+          "categoria": "Servicios",
+          "probabilidad": 0.0051
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0003
+          "categoria": "Vivienda",
+          "probabilidad": 0.0028
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -411,27 +411,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.9843,
+      "confianza_porcentaje": 98.4,
+      "margen": 0.9755,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 0.9999
+          "probabilidad": 0.9843
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0001
+          "categoria": "Vivienda",
+          "probabilidad": 0.0087
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0059
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -440,27 +440,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9954,
+      "confianza_porcentaje": 99.5,
+      "margen": 0.9937,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 1.0
+          "probabilidad": 0.9954
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0
+          "categoria": "Vivienda",
+          "probabilidad": 0.0017
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0015
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -469,27 +469,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 0.9997,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9995,
+      "confianza": 0.8901,
+      "confianza_porcentaje": 89.0,
+      "margen": 0.8366,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 0.9997
+          "probabilidad": 0.8901
         },
         {
           "categoria": "Salud",
-          "probabilidad": 0.0002
+          "probabilidad": 0.0535
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0001
+          "categoria": "Vivienda",
+          "probabilidad": 0.0524
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -498,27 +498,27 @@
       "categoria_real": "Educacion",
       "categoria": "Educacion",
       "categoria_modelo": "Educacion",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.984,
+      "confianza_porcentaje": 98.4,
+      "margen": 0.9697,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Educacion",
-          "probabilidad": 1.0
+          "probabilidad": 0.984
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0
+          "categoria": "Vivienda",
+          "probabilidad": 0.0143
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0009
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -527,27 +527,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9821,
+      "confianza_porcentaje": 98.2,
+      "margen": 0.9765,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
+          "probabilidad": 0.9821
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0056
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0032
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -556,27 +556,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
-      "cobertura_lexica": 0.5,
+      "confianza": 0.9967,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9952,
+      "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "probabilidad": 0.9967
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0015
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.001
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -585,27 +585,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9665,
+      "confianza_porcentaje": 96.6,
+      "margen": 0.9461,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
+          "probabilidad": 0.9665
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.0204
         },
         {
           "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "probabilidad": 0.0053
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -614,27 +614,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9918,
+      "confianza_porcentaje": 99.2,
+      "margen": 0.988,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
+          "probabilidad": 0.9918
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0038
         },
         {
           "categoria": "Ocio",
-          "probabilidad": 0.0
+          "probabilidad": 0.0019
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -643,27 +643,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9709,
+      "confianza_porcentaje": 97.1,
+      "margen": 0.9539,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
+          "probabilidad": 0.9709
         },
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.0
+          "probabilidad": 0.017
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0053
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -672,27 +672,27 @@
       "categoria_real": "Gastos Hormiga",
       "categoria": "Gastos Hormiga",
       "categoria_modelo": "Gastos Hormiga",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9906,
+      "confianza_porcentaje": 99.1,
+      "margen": 0.9873,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 1.0
+          "probabilidad": 0.9906
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0033
         },
         {
-          "categoria": "Educacion",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0032
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -701,27 +701,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9897,
+      "confianza_porcentaje": 99.0,
+      "margen": 0.9804,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
+          "probabilidad": 0.9897
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.0093
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0005
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -730,27 +730,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
-      "cobertura_lexica": 0.75,
+      "confianza": 0.9986,
+      "confianza_porcentaje": 99.9,
+      "margen": 0.9981,
+      "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
+          "probabilidad": 0.9986
         },
         {
           "categoria": "Educacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0005
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0004
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -759,27 +759,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9967,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9958,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.9967
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0009
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0008
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -788,27 +788,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9947,
+      "confianza_porcentaje": 99.5,
+      "margen": 0.993,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
+          "probabilidad": 0.9947
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0017
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0014
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -817,27 +817,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
-      "cobertura_lexica": 0.75,
+      "confianza": 0.9968,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9958,
+      "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
+          "probabilidad": 0.9968
         },
         {
-          "categoria": "Ocio",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0011
         },
         {
-          "categoria": "Educacion",
-          "probabilidad": 0.0
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0007
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -846,27 +846,27 @@
       "categoria_real": "Ingresos",
       "categoria": "Ingresos",
       "categoria_modelo": "Ingresos",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
-      "cobertura_lexica": 0.5,
+      "confianza": 0.9968,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9957,
+      "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ingresos",
-          "probabilidad": 1.0
+          "probabilidad": 0.9968
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0011
         },
         {
-          "categoria": "Educacion",
-          "probabilidad": 0.0
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0006
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -875,27 +875,27 @@
       "categoria_real": "Ocio",
       "categoria": "Ocio",
       "categoria_modelo": "Ocio",
-      "confianza": 0.9976,
-      "confianza_porcentaje": 99.8,
-      "margen": 0.9962,
+      "confianza": 0.8241,
+      "confianza_porcentaje": 82.4,
+      "margen": 0.6545,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ocio",
-          "probabilidad": 0.9976
+          "probabilidad": 0.8241
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0014
+          "categoria": "Vivienda",
+          "probabilidad": 0.1696
         },
         {
-          "categoria": "Suscripciones",
-          "probabilidad": 0.0007
+          "categoria": "Educacion",
+          "probabilidad": 0.0021
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -904,27 +904,27 @@
       "categoria_real": "Ocio",
       "categoria": "Ocio",
       "categoria_modelo": "Ocio",
-      "confianza": 0.9972,
-      "confianza_porcentaje": 99.7,
-      "margen": 0.9957,
+      "confianza": 0.9706,
+      "confianza_porcentaje": 97.1,
+      "margen": 0.9626,
       "cobertura_lexica": 0.6667,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ocio",
-          "probabilidad": 0.9972
+          "probabilidad": 0.9706
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.008
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0016
-        },
-        {
-          "categoria": "Suscripciones",
-          "probabilidad": 0.0009
+          "probabilidad": 0.0065
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -933,27 +933,27 @@
       "categoria_real": "Ocio",
       "categoria": "Otros",
       "categoria_modelo": "Aporte Inversiones",
-      "confianza": 0.2106,
-      "confianza_porcentaje": 21.1,
-      "margen": 0.0825,
+      "confianza": 0.4735,
+      "confianza_porcentaje": 47.3,
+      "margen": 0.3233,
       "cobertura_lexica": 0.75,
       "aceptada": false,
       "motivo": "confianza_baja",
       "top_3": [
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.2106
+          "probabilidad": 0.4735
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.1282
+          "categoria": "Alimentacion",
+          "probabilidad": 0.1502
         },
         {
-          "categoria": "Otros",
-          "probabilidad": 0.117
+          "categoria": "Ocio",
+          "probabilidad": 0.094
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": false,
       "correcta_modelo": false
     },
@@ -962,27 +962,27 @@
       "categoria_real": "Ocio",
       "categoria": "Ocio",
       "categoria_modelo": "Ocio",
-      "confianza": 0.8842,
-      "confianza_porcentaje": 88.4,
-      "margen": 0.846,
+      "confianza": 0.8668,
+      "confianza_porcentaje": 86.7,
+      "margen": 0.7627,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ocio",
-          "probabilidad": 0.8842
+          "probabilidad": 0.8668
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0381
+          "probabilidad": 0.1042
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0143
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0144
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -991,27 +991,27 @@
       "categoria_real": "Ocio",
       "categoria": "Ocio",
       "categoria_modelo": "Ocio",
-      "confianza": 0.9997,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9997,
+      "confianza": 0.9744,
+      "confianza_porcentaje": 97.4,
+      "margen": 0.9676,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ocio",
-          "probabilidad": 0.9997
+          "probabilidad": 0.9744
         },
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0068
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0061
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1020,27 +1020,27 @@
       "categoria_real": "Ocio",
       "categoria": "Ocio",
       "categoria_modelo": "Ocio",
-      "confianza": 0.9998,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9996,
+      "confianza": 0.9397,
+      "confianza_porcentaje": 94.0,
+      "margen": 0.9004,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Ocio",
-          "probabilidad": 0.9998
+          "probabilidad": 0.9397
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0002
+          "probabilidad": 0.0393
         },
         {
-          "categoria": "Suscripciones",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0108
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1049,27 +1049,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 0.9221,
-      "confianza_porcentaje": 92.2,
-      "margen": 0.8637,
+      "confianza": 0.7937,
+      "confianza_porcentaje": 79.4,
+      "margen": 0.6139,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 0.9221
+          "probabilidad": 0.7937
         },
         {
           "categoria": "Ocio",
-          "probabilidad": 0.0584
+          "probabilidad": 0.1799
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0041
+          "probabilidad": 0.0153
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1078,27 +1078,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 0.9994,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9989,
+      "confianza": 0.9899,
+      "confianza_porcentaje": 99.0,
+      "margen": 0.9862,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 0.9994
+          "probabilidad": 0.9899
         },
         {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0006
+          "categoria": "Ocio",
+          "probabilidad": 0.0037
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0023
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1107,27 +1107,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 0.9914,
-      "confianza_porcentaje": 99.1,
-      "margen": 0.9889,
+      "confianza": 0.978,
+      "confianza_porcentaje": 97.8,
+      "margen": 0.9697,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 0.9914
+          "probabilidad": 0.978
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0025
+          "probabilidad": 0.0083
         },
         {
-          "categoria": "Salud",
-          "probabilidad": 0.0009
+          "categoria": "Servicios",
+          "probabilidad": 0.0051
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1136,27 +1136,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9952,
+      "confianza_porcentaje": 99.5,
+      "margen": 0.9936,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 1.0
+          "probabilidad": 0.9952
         },
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0016
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0009
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1165,27 +1165,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 0.9937,
-      "confianza_porcentaje": 99.4,
-      "margen": 0.9883,
+      "confianza": 0.9064,
+      "confianza_porcentaje": 90.6,
+      "margen": 0.8222,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 0.9937
+          "probabilidad": 0.9064
         },
         {
           "categoria": "Transporte",
-          "probabilidad": 0.0054
+          "probabilidad": 0.0842
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0002
+          "categoria": "Servicios",
+          "probabilidad": 0.0029
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1194,27 +1194,27 @@
       "categoria_real": "Otros",
       "categoria": "Otros",
       "categoria_modelo": "Otros",
-      "confianza": 0.9992,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9988,
+      "confianza": 0.9619,
+      "confianza_porcentaje": 96.2,
+      "margen": 0.9396,
       "cobertura_lexica": 0.2,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Otros",
-          "probabilidad": 0.9992
+          "probabilidad": 0.9619
         },
         {
           "categoria": "Educacion",
-          "probabilidad": 0.0003
+          "probabilidad": 0.0224
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0001
+          "categoria": "Servicios",
+          "probabilidad": 0.0064
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1223,27 +1223,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9926,
+      "confianza_porcentaje": 99.3,
+      "margen": 0.9896,
       "cobertura_lexica": 0.6667,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 1.0
+          "probabilidad": 0.9926
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.003
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0011
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1252,27 +1252,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.9801,
+      "confianza_porcentaje": 98.0,
+      "margen": 0.9716,
       "cobertura_lexica": 0.6667,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 0.9999
-        },
-        {
-          "categoria": "Servicios",
-          "probabilidad": 0.0001
+          "probabilidad": 0.9801
         },
         {
           "categoria": "Ocio",
-          "probabilidad": 0.0
+          "probabilidad": 0.0085
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0045
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1281,27 +1281,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9578,
+      "confianza_porcentaje": 95.8,
+      "margen": 0.9222,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.9578
         },
         {
           "categoria": "Educacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.0356
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0023
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1310,27 +1310,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9926,
+      "confianza_porcentaje": 99.3,
+      "margen": 0.99,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.9926
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0027
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0019
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1339,27 +1339,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 0.9997,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9994,
+      "confianza": 0.9533,
+      "confianza_porcentaje": 95.3,
+      "margen": 0.9144,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 0.9997
+          "probabilidad": 0.9533
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0003
+          "probabilidad": 0.0389
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0024
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1368,27 +1368,27 @@
       "categoria_real": "Salud",
       "categoria": "Salud",
       "categoria_modelo": "Salud",
-      "confianza": 0.9963,
-      "confianza_porcentaje": 99.6,
-      "margen": 0.9948,
+      "confianza": 0.9112,
+      "confianza_porcentaje": 91.1,
+      "margen": 0.8375,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Salud",
-          "probabilidad": 0.9963
+          "probabilidad": 0.9112
         },
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0015
+          "probabilidad": 0.0737
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0004
+          "categoria": "Servicios",
+          "probabilidad": 0.0032
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1397,27 +1397,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 1.0,
+      "confianza": 0.9995,
       "confianza_porcentaje": 100.0,
-      "margen": 1.0,
-      "cobertura_lexica": 0.75,
+      "margen": 0.9993,
+      "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 1.0
+          "probabilidad": 0.9995
         },
         {
-          "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0002
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0002
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1426,27 +1426,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 0.8531,
-      "confianza_porcentaje": 85.3,
-      "margen": 0.8346,
+      "confianza": 0.9348,
+      "confianza_porcentaje": 93.5,
+      "margen": 0.9068,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 0.8531
-        },
-        {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0185
+          "probabilidad": 0.9348
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0184
+          "probabilidad": 0.028
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.0084
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1455,27 +1455,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 0.9992,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9991,
+      "confianza": 0.9667,
+      "confianza_porcentaje": 96.7,
+      "margen": 0.9545,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 0.9992
+          "probabilidad": 0.9667
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0001
+          "categoria": "Ingresos",
+          "probabilidad": 0.0122
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0001
+          "probabilidad": 0.0106
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1484,27 +1484,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 0.9998,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9997,
+      "confianza": 0.9633,
+      "confianza_porcentaje": 96.3,
+      "margen": 0.9417,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 0.9998
-        },
-        {
-          "categoria": "Transporte",
-          "probabilidad": 0.0001
+          "probabilidad": 0.9633
         },
         {
           "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0215
+        },
+        {
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0036
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1513,27 +1513,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.9631,
+      "confianza_porcentaje": 96.3,
+      "margen": 0.9377,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 0.9999
+          "probabilidad": 0.9631
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0255
         },
         {
-          "categoria": "Suscripciones",
-          "probabilidad": 0.0
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0037
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1542,27 +1542,27 @@
       "categoria_real": "Servicios",
       "categoria": "Servicios",
       "categoria_modelo": "Servicios",
-      "confianza": 0.9973,
-      "confianza_porcentaje": 99.7,
-      "margen": 0.9961,
+      "confianza": 0.9771,
+      "confianza_porcentaje": 97.7,
+      "margen": 0.9636,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Servicios",
-          "probabilidad": 0.9973
+          "probabilidad": 0.9771
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0012
+          "probabilidad": 0.0135
         },
         {
-          "categoria": "Ingresos",
-          "probabilidad": 0.0005
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0037
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1571,27 +1571,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 0.9991,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9987,
+      "confianza": 0.9914,
+      "confianza_porcentaje": 99.1,
+      "margen": 0.9886,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.9991
-        },
-        {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0005
+          "probabilidad": 0.9914
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0004
+          "probabilidad": 0.0028
+        },
+        {
+          "categoria": "Otros",
+          "probabilidad": 0.0022
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1600,27 +1600,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9962,
+      "confianza_porcentaje": 99.6,
+      "margen": 0.994,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.9962
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0022
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0008
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1629,27 +1629,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9963,
+      "confianza_porcentaje": 99.6,
+      "margen": 0.9942,
       "cobertura_lexica": 0.8,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 1.0
+          "probabilidad": 0.9963
         },
         {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "categoria": "Vivienda",
+          "probabilidad": 0.002
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0008
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1658,27 +1658,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.9744,
+      "confianza_porcentaje": 97.4,
+      "margen": 0.9545,
       "cobertura_lexica": 0.8,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 1.0
+          "probabilidad": 0.9744
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0199
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
-        },
-        {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.0027
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1687,27 +1687,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 0.9815,
-      "confianza_porcentaje": 98.1,
-      "margen": 0.9639,
+      "confianza": 0.9776,
+      "confianza_porcentaje": 97.8,
+      "margen": 0.9708,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.9815
+          "probabilidad": 0.9776
+        },
+        {
+          "categoria": "Servicios",
+          "probabilidad": 0.0068
         },
         {
           "categoria": "Ocio",
-          "probabilidad": 0.0176
-        },
-        {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0008
+          "probabilidad": 0.0047
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1716,27 +1716,27 @@
       "categoria_real": "Suscripciones",
       "categoria": "Suscripciones",
       "categoria_modelo": "Suscripciones",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9999,
+      "confianza": 0.9906,
+      "confianza_porcentaje": 99.1,
+      "margen": 0.9871,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Suscripciones",
-          "probabilidad": 0.9999
-        },
-        {
-          "categoria": "Aporte Inversiones",
-          "probabilidad": 0.0
+          "probabilidad": 0.9906
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0034
+        },
+        {
+          "categoria": "Aporte Inversiones",
+          "probabilidad": 0.0032
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1745,27 +1745,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 0.9999,
-      "confianza_porcentaje": 100.0,
-      "margen": 0.9998,
+      "confianza": 0.9699,
+      "confianza_porcentaje": 97.0,
+      "margen": 0.9534,
       "cobertura_lexica": 0.8,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 0.9999
+          "probabilidad": 0.9699
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0001
+          "categoria": "Gastos Hormiga",
+          "probabilidad": 0.0165
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0074
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1774,27 +1774,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9923,
+      "confianza_porcentaje": 99.2,
+      "margen": 0.9901,
       "cobertura_lexica": 0.4,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 1.0
+          "probabilidad": 0.9923
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "categoria": "Vivienda",
+          "probabilidad": 0.0022
         },
         {
-          "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "categoria": "Servicios",
+          "probabilidad": 0.0014
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1803,27 +1803,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 0.9992,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9989,
+      "confianza": 0.9688,
+      "confianza_porcentaje": 96.9,
+      "margen": 0.9568,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 0.9992
+          "probabilidad": 0.9688
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0003
+          "probabilidad": 0.012
         },
         {
           "categoria": "Alimentacion",
-          "probabilidad": 0.0001
+          "probabilidad": 0.0072
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1832,27 +1832,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9782,
+      "confianza_porcentaje": 97.8,
+      "margen": 0.9682,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 1.0
+          "probabilidad": 0.9782
         },
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "categoria": "Vivienda",
+          "probabilidad": 0.0099
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.0054
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1861,27 +1861,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9851,
+      "confianza_porcentaje": 98.5,
+      "margen": 0.9745,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.9851
         },
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.0
+          "probabilidad": 0.0106
+        },
+        {
+          "categoria": "Ocio",
+          "probabilidad": 0.0017
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1890,27 +1890,27 @@
       "categoria_real": "Transporte",
       "categoria": "Transporte",
       "categoria_modelo": "Transporte",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9404,
+      "confianza_porcentaje": 94.0,
+      "margen": 0.8914,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Transporte",
-          "probabilidad": 1.0
-        },
-        {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.0
+          "probabilidad": 0.9404
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0
+          "probabilidad": 0.049
+        },
+        {
+          "categoria": "Vivienda",
+          "probabilidad": 0.0061
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -1919,85 +1919,85 @@
       "categoria_real": "Vivienda",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 0.9448,
-      "confianza_porcentaje": 94.5,
-      "margen": 0.9251,
+      "confianza": 0.7367,
+      "confianza_porcentaje": 73.7,
+      "margen": 0.502,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.9448
+          "probabilidad": 0.7367
         },
         {
           "categoria": "Gastos Hormiga",
-          "probabilidad": 0.0197
+          "probabilidad": 0.2348
         },
         {
           "categoria": "Ingresos",
-          "probabilidad": 0.0105
+          "probabilidad": 0.0122
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
     {
       "descripcion": "cuota del prestamo hipotecario familiar",
       "categoria_real": "Vivienda",
-      "categoria": "Alimentacion",
-      "categoria_modelo": "Alimentacion",
-      "confianza": 0.4716,
-      "confianza_porcentaje": 47.2,
-      "margen": 0.202,
+      "categoria": "Vivienda",
+      "categoria_modelo": "Vivienda",
+      "confianza": 0.6173,
+      "confianza_porcentaje": 61.7,
+      "margen": 0.2385,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
-          "categoria": "Alimentacion",
-          "probabilidad": 0.4716
+          "categoria": "Vivienda",
+          "probabilidad": 0.6173
         },
         {
-          "categoria": "Vivienda",
-          "probabilidad": 0.2695
+          "categoria": "Alimentacion",
+          "probabilidad": 0.3788
         },
         {
           "categoria": "Otros",
-          "probabilidad": 0.1681
+          "probabilidad": 0.0025
         }
       ],
-      "version_modelo": "3.0.0",
-      "correcta_final": false,
-      "correcta_modelo": false
+      "version_modelo": "3.3.0",
+      "correcta_final": true,
+      "correcta_modelo": true
     },
     {
       "descripcion": "reparacion de tuberias hecha por el plomero",
       "categoria_real": "Vivienda",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9974,
+      "confianza_porcentaje": 99.7,
+      "margen": 0.9958,
       "cobertura_lexica": 0.5,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 1.0
+          "probabilidad": 0.9974
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0016
         },
         {
-          "categoria": "Servicios",
-          "probabilidad": 0.0
+          "categoria": "Educacion",
+          "probabilidad": 0.0005
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -2006,27 +2006,27 @@
       "categoria_real": "Vivienda",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 0.9993,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9987,
+      "confianza": 0.8894,
+      "confianza_porcentaje": 88.9,
+      "margen": 0.7825,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.9993
+          "probabilidad": 0.8894
         },
         {
           "categoria": "Transporte",
-          "probabilidad": 0.0006
+          "probabilidad": 0.107
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0
+          "probabilidad": 0.0008
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -2035,27 +2035,27 @@
       "categoria_real": "Vivienda",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 0.9985,
-      "confianza_porcentaje": 99.9,
-      "margen": 0.9971,
+      "confianza": 0.943,
+      "confianza_porcentaje": 94.3,
+      "margen": 0.8878,
       "cobertura_lexica": 0.75,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 0.9985
+          "probabilidad": 0.943
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0015
+          "probabilidad": 0.0552
         },
         {
-          "categoria": "Transporte",
-          "probabilidad": 0.0
+          "categoria": "Suscripciones",
+          "probabilidad": 0.0006
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     },
@@ -2064,27 +2064,27 @@
       "categoria_real": "Vivienda",
       "categoria": "Vivienda",
       "categoria_modelo": "Vivienda",
-      "confianza": 1.0,
-      "confianza_porcentaje": 100.0,
-      "margen": 1.0,
+      "confianza": 0.9933,
+      "confianza_porcentaje": 99.3,
+      "margen": 0.9893,
       "cobertura_lexica": 1.0,
       "aceptada": true,
       "motivo": "aceptada",
       "top_3": [
         {
           "categoria": "Vivienda",
-          "probabilidad": 1.0
+          "probabilidad": 0.9933
+        },
+        {
+          "categoria": "Alimentacion",
+          "probabilidad": 0.0041
         },
         {
           "categoria": "Servicios",
-          "probabilidad": 0.0
-        },
-        {
-          "categoria": "Transporte",
-          "probabilidad": 0.0
+          "probabilidad": 0.001
         }
       ],
-      "version_modelo": "3.0.0",
+      "version_modelo": "3.3.0",
       "correcta_final": true,
       "correcta_modelo": true
     }

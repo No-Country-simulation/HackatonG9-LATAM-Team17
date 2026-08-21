@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import copy
+import hashlib
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -10,8 +13,10 @@ from clasificador.datos import (
     CATEGORIAS,
     cargar_csv_etiquetado,
     cargar_datos_entrenamiento_ampliado,
+    generar_variantes_ortograficas,
     validar_separacion_splits,
 )
+from clasificador.modelo import normalizar_texto_modelo
 
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -32,8 +37,38 @@ def datos_ampliados():
     )
 
 
+@pytest.fixture(scope="session")
+def casos_regresion():
+    contenido = json.loads(
+        (RAIZ / "datos" / "casos_regresion.json").read_text(encoding="utf-8")
+    )
+    return contenido["casos"]
+
+
+@pytest.fixture(scope="session")
+def casos_ortograficos_dirigidos():
+    contenido = json.loads(
+        (RAIZ / "datos" / "casos_regresion.json").read_text(encoding="utf-8")
+    )
+    return contenido["casos_ortograficos_dirigidos"]
+
+
 def test_normalizacion_conserva_digitos_y_quita_acentos() -> None:
     assert normalizar_texto("  PAGO Clínico #2026!! ") == "pago clinico 2026"
+
+
+@pytest.mark.parametrize(
+    ("texto", "normalizado"),
+    [
+        ("spootify", "spotify"),
+        ("hipoetca", "hipoteca"),
+        ("compradezapatos", "zapatos"),
+        ("transferenciaparacomprarETF", "etf"),
+        ("serviciodeinternetdelhogar", "serviciodeinternetdelhogar"),
+    ],
+)
+def test_normalizacion_ortografica_es_conservadora(texto, normalizado) -> None:
+    assert normalizar_texto_modelo(texto) == normalizado
 
 
 def test_contrato_incluye_las_doce_categorias() -> None:
@@ -52,8 +87,84 @@ def test_dataset_ampliado_tiene_100000_textos_unicos_y_balanceados(datos_ampliad
 
 def test_pkl_declara_modelo_y_datos_entrenados(modelo) -> None:
     assert modelo.metadatos["numero_ejemplos"] == 100_000
-    assert modelo.modelo.named_steps["clasificador"].__class__.__name__ == "LogisticRegression"
+    assert modelo.metadatos["familia_modelo"] == "svm_lineal"
+    assert modelo.algoritmo == "svm_lineal"
     assert modelo.metadatos["datos"]["descripciones_unicas"] == 100_000
+    assert modelo.metadatos["version_artefacto"] == "3.3.0"
+
+
+def test_regresion_semantica_incluye_almuerzo(modelo, casos_regresion) -> None:
+    errores = []
+    for caso in casos_regresion:
+        resultado = modelo.predecir(caso["descripcion"], umbral=0.0)
+        if resultado["categoria_modelo"] != caso["categoria_esperada"]:
+            errores.append(
+                {
+                    "descripcion": caso["descripcion"],
+                    "esperada": caso["categoria_esperada"],
+                    "obtenida": resultado["categoria_modelo"],
+                }
+            )
+    assert not errores, errores
+
+    almuerzo = modelo.predecir("almuerzo", umbral=0.0)
+    assert almuerzo["categoria_modelo"] == "Alimentacion"
+    assert almuerzo["confianza"] >= 0.90
+
+
+def test_regresion_resiste_ruido_bancario(modelo, casos_regresion) -> None:
+    transformaciones = (
+        lambda texto: texto,
+        lambda texto: texto.upper(),
+        lambda texto: f"PAGO POS {texto} LIMA",
+        lambda texto: f"TRX-8842 {texto.replace(' ', '-')} REF",
+        lambda texto: f"cargo bancario {texto} operacion confirmada",
+    )
+    errores = []
+    total = 0
+    for caso in casos_regresion:
+        for transformar in transformaciones:
+            total += 1
+            descripcion = transformar(caso["descripcion"])
+            obtenida = modelo.predecir(descripcion, umbral=0.0)["categoria_modelo"]
+            if obtenida != caso["categoria_esperada"]:
+                errores.append((descripcion, caso["categoria_esperada"], obtenida))
+    exactitud = 1.0 - (len(errores) / total)
+    assert exactitud >= 0.99, {"exactitud": exactitud, "errores": errores[:10]}
+
+
+def test_regresion_resiste_errores_ortograficos(modelo, casos_regresion) -> None:
+    errores = []
+    total = 0
+    for caso in casos_regresion:
+        for nombre, descripcion in generar_variantes_ortograficas(
+            caso["descripcion"]
+        ).items():
+            total += 1
+            obtenida = modelo.predecir(descripcion, umbral=0.0)["categoria_modelo"]
+            if obtenida != caso["categoria_esperada"]:
+                errores.append(
+                    (nombre, descripcion, caso["categoria_esperada"], obtenida)
+                )
+    exactitud = 1.0 - (len(errores) / total)
+    assert exactitud == 1.0, {"exactitud": exactitud, "errores": errores[:20]}
+
+
+def test_errores_ortograficos_dirigidos(
+    modelo, casos_ortograficos_dirigidos
+) -> None:
+    errores = []
+    for caso in casos_ortograficos_dirigidos:
+        resultado = modelo.predecir(caso["descripcion"], umbral=0.0)
+        if resultado["categoria_modelo"] != caso["categoria_esperada"]:
+            errores.append(
+                (
+                    caso["descripcion"],
+                    caso["categoria_esperada"],
+                    resultado["categoria_modelo"],
+                )
+            )
+    assert not errores, errores
 
 
 def test_resultados_del_modelo_son_json() -> None:
@@ -188,6 +299,23 @@ def test_checksum_detecta_archivo_alterado(modelo, tmp_path: Path) -> None:
         archivo.write(b"alteracion")
     with pytest.raises(ValueError, match="checksum"):
         cargar_modelo(ruta)
+
+
+def test_version_anterior_del_pkl_se_rechaza(modelo, tmp_path: Path) -> None:
+    anterior = copy.deepcopy(modelo)
+    anterior.metadatos["version_artefacto"] = "3.0.0"
+    ruta = anterior.guardar(tmp_path / "modelo_anterior.pkl")
+    with pytest.raises(ValueError, match="se requiere exactamente 3.3.0"):
+        cargar_modelo(ruta)
+
+
+def test_manifiesto_coincide_con_pkl(modelo) -> None:
+    manifiesto = json.loads(
+        (RAIZ / "modelos" / "manifiesto_modelo.json").read_text(encoding="utf-8")
+    )
+    digest = hashlib.sha256(RUTA_MODELO.read_bytes()).hexdigest()
+    assert manifiesto["version_artefacto"] == modelo.metadatos["version_artefacto"]
+    assert manifiesto["sha256"] == digest
 
 
 def test_exactitud_minima_en_holdout(modelo) -> None:

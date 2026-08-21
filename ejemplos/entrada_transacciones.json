@@ -1,6 +1,11 @@
 {
   "transacciones": [
     {
+      "descripcion": "almuerzo",
+      "valor": 15.0,
+      "fecha": "2026-08-16"
+    },
+    {
       "descripcion": "Netflix",
       "valor": 15.0,
       "fecha": "2026-08-07"
@@ -17,4 +22,3 @@
     }
   ]
 }
-

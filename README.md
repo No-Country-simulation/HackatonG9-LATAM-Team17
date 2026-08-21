@@ -71,15 +71,15 @@ Es un clasificador supervisado multiclase, no un conjunto de reglas. El flujo es
 
 ```mermaid
 flowchart LR
-    A["JSON"] --> B["Normalización de descripción"]
+    A["JSON"] --> B["Normalización + corrección ortográfica conservadora"]
     B --> C["TF-IDF de palabras 1–2"]
     B --> D["TF-IDF de caracteres 3–5"]
     B --> E["Señales léxicas financieras"]
     C --> F["Vector disperso"]
     D --> F
     E --> F
-    F --> G["Regresión logística multiclase"]
-    G --> H["Calibración de temperatura"]
+    F --> G["SVM lineal multiclase"]
+    G --> H["Calibración sigmoide agrupada + temperatura"]
     H --> I["Categoría + confiabilidad JSON"]
 ```
 
@@ -89,16 +89,17 @@ aparecen simultáneamente en entrenamiento y prueba.
 
 | Modelo | F1 macro agrupado | Exactitud agrupada |
 |---|---:|---:|
-| SVM lineal | 75.03% | 74.74% |
-| Regresión logística | 74.87% | 73.37% |
-| SGD logístico | 74.47% | 73.58% |
-| Naive Bayes complementario | 73.22% | 74.01% |
-| Bosque aleatorio | 68.29% | 67.86% |
+| SVM lineal | **73.33%** | **73.50%** |
+| Regresión logística | 73.22% | 72.55% |
+| SGD logístico | 72.53% | 72.34% |
+| Naive Bayes complementario | 72.35% | 73.58% |
+| Bosque aleatorio | 68.23% | 68.67% |
 
-SVM aventajó a logística en solo **0.16 puntos** de F1, menos que su variación
-entre folds. Se conserva regresión logística porque entrega probabilidades
-nativas, permite calibrar `confiabilidad` sin añadir un segundo modelo y produce
-un PKL simple de aproximadamente 2 MB. El resultado reproducible está en
+La regla reproducible elige la mayor F1 macro agrupada entre las familias con
+flujo probabilístico aprobado. Por ello la versión 3.3 usa `LinearSVC` (`C=2`) y
+convierte sus márgenes en probabilidades mediante calibración sigmoide con folds
+agrupados; una calibración de temperatura independiente ajusta finalmente la
+`confiabilidad`. El PKL mide aproximadamente 15 MB. El resultado completo está en
 `resultados/comparacion_modelos.json`.
 
 ## Datos y resultados actuales
@@ -107,7 +108,8 @@ El entrenamiento final usa exactamente **100,000 descripciones únicas**, casi
 perfectamente balanceadas entre las 12 categorías:
 
 - 118 textos manuales curados;
-- 99,882 variaciones sintéticas reproducibles;
+- 4,820 variantes ortográficas sistemáticas de señales del dominio;
+- 95,062 variaciones sintéticas reproducibles de redacción y formato bancario;
 - 94 casos separados para calibración y umbral;
 - 72 casos de holdout final, nunca usados para decidir el modelo.
 
@@ -120,12 +122,24 @@ anonimizados.
 
 | Métrica en holdout final (72 casos) | Resultado |
 |---|---:|
-| Exactitud | **95.83%** |
-| F1 macro | **95.82%** |
-| Log-loss | **0.1848** |
-| Error de calibración ECE | **2.62%** |
+| Exactitud | **97.22%** |
+| F1 macro | **97.20%** |
+| Log-loss | **0.0886** |
+| Brier multiclase | **0.0360** |
+| Error de calibración ECE | **4.29%** |
 | Cobertura automática | **98.61%** |
-| Precisión entre decisiones aceptadas | **97.18%** |
+| Precisión entre decisiones aceptadas | **98.59%** |
+
+Además, `almuerzo` se clasifica como `ALIMENTACION` con 98.81% de confianza. La
+batería de regresión alcanza 120/120 casos semánticos, 600/600 variantes con
+mayúsculas, puntuación y ruido bancario, 960/960 deformaciones ortográficas
+sistemáticas y 29/29 faltas dirigidas. El entrenamiento no publica un PKL nuevo
+si incumple uno de esos controles.
+
+Estas regresiones son controles conocidos, no sustituyen un holdout real. No se
+puede garantizar que toda palabra inventada o muy deformada sea correcta: una
+descripción ambigua o fuera del vocabulario puede fallar, y el backend debe usar
+`confiabilidad` para decidir cuándo solicitar revisión humana.
 
 Todos los resultados del modelo se escriben como **JSON** en `resultados/`.
 Los tres CSV de `datos/` son únicamente particiones etiquetadas de entrada.
@@ -145,7 +159,7 @@ puntual al cine es `OCIO`.
 entrenar.py                  entrenamiento, comparación y evaluación completa
 probar_modelo_json.py        prueba de entrada JSON -> salida JSON
 clasificador/datos.py        categorías y generación reproducible de datos
-clasificador/modelo.py       TF-IDF, LogisticRegression, confianza y PKL
+clasificador/modelo.py       TF-IDF, SVM lineal calibrada, confianza y PKL
 clasificador/contrato_json.py validación del contrato del backend
 datos/                       train, validación y holdout etiquetados
 modelos/                     PKL final y checksum SHA-256
@@ -163,14 +177,21 @@ py -3.13 -m venv .venv_hackathon
 ```
 
 Después se pueden ejecutar `probar_modelo_json.py` o `entrenar.py` con el botón
-Run de VS Code. El entrenamiento completo tarda aproximadamente un minuto en la
-máquina de desarrollo y vuelve a generar el PKL y los reportes JSON.
+Run de VS Code. El entrenamiento completo tarda aproximadamente de cinco a ocho
+minutos en la máquina de desarrollo y vuelve a generar el PKL y los reportes JSON.
 
 Pruebas automáticas:
+
+La versión entregada supera **43/43 pruebas**.
 
 ```powershell
 .\.venv_hackathon\Scripts\python.exe -m pytest -q
 ```
+
+Antes de integrar una copia nueva del modelo, el backend debe comprobar versión y
+SHA-256 contra `modelos/manifiesto_modelo.json`. Esto evita desplegar por error un
+PKL anterior que tenga el mismo nombre. El cargador exige exactamente la versión
+3.3.0 y rechaza cualquier artefacto de otra versión.
 
 La explicación técnica completa, límites y lectura guiada del código están en
 [README_DATA.md](README_DATA.md).

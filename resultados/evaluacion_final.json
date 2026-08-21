@@ -2,24 +2,24 @@
   "numero_casos": 72,
   "nota": "El holdout no se uso para elegir algoritmo, C, temperatura ni umbral.",
   "metricas_modelo_sin_rechazo": {
-    "exactitud": 0.9583,
-    "f1_macro": 0.9582,
-    "log_loss": 0.1848,
-    "brier_multiclase": 0.0533,
-    "ece_top": 0.0262
+    "exactitud": 0.9722,
+    "f1_macro": 0.972,
+    "log_loss": 0.0886,
+    "brier_multiclase": 0.036,
+    "ece_top": 0.0429
   },
   "metricas_politica_confianza": {
-    "exactitud_final": 0.9583,
-    "f1_macro_final": 0.9582,
+    "exactitud_final": 0.9722,
+    "f1_macro_final": 0.972,
     "cobertura_automatica": 0.9861,
-    "precision_entre_aceptadas": 0.9718,
+    "precision_entre_aceptadas": 0.9859,
     "casos_rechazados": 1
   },
   "reporte_por_categoria_final": {
     "Alimentacion": {
-      "precision": 0.8333333333333334,
+      "precision": 1.0,
       "recall": 0.8333333333333334,
-      "f1-score": 0.8333333333333334,
+      "f1-score": 0.9090909090909091,
       "support": 6.0
     },
     "Aporte Inversiones": {
@@ -83,22 +83,22 @@
       "support": 6.0
     },
     "Vivienda": {
-      "precision": 0.8333333333333334,
-      "recall": 0.8333333333333334,
-      "f1-score": 0.8333333333333334,
+      "precision": 0.8571428571428571,
+      "recall": 1.0,
+      "f1-score": 0.9230769230769231,
       "support": 6.0
     },
-    "accuracy": 0.9583333333333334,
+    "accuracy": 0.9722222222222222,
     "macro avg": {
-      "precision": 0.9603174603174603,
-      "recall": 0.9583333333333335,
-      "f1-score": 0.9582362082362083,
+      "precision": 0.9761904761904763,
+      "recall": 0.9722222222222223,
+      "f1-score": 0.9720279720279721,
       "support": 72.0
     },
     "weighted avg": {
-      "precision": 0.9603174603174602,
-      "recall": 0.9583333333333334,
-      "f1-score": 0.9582362082362081,
+      "precision": 0.976190476190476,
+      "recall": 0.9722222222222222,
+      "f1-score": 0.9720279720279721,
       "support": 72.0
     }
   },
@@ -272,7 +272,6 @@
       0
     ],
     [
-      1,
       0,
       0,
       0,
@@ -283,12 +282,13 @@
       0,
       0,
       0,
-      5
+      0,
+      6
     ]
   ],
   "metadatos_modelo": {
-    "version_artefacto": "3.0.0",
-    "creado_utc": "2026-08-09T23:47:46.900376+00:00",
+    "version_artefacto": "3.3.0",
+    "creado_utc": "2026-08-21T00:20:29.894616+00:00",
     "numero_ejemplos": 100000,
     "categorias": [
       "Alimentacion",
@@ -305,16 +305,17 @@
       "Vivienda"
     ],
     "configuracion": {
-      "umbral_confianza": 0.35,
+      "umbral_confianza": 0.48,
       "margen_minimo": 0.08,
       "cobertura_minima": 0.2,
       "categoria_respaldo": "Otros"
     },
-    "c_regularizacion": 3.0,
-    "metodo_calibracion": "temperature_scaling",
-    "temperatura_calibracion": 1.0,
-    "hash_dataset_sha256": "14488c47ffdf5095b868cf6aeccdda8c9fa9150d304b6cb46d25f1e5769c2fb3",
-    "algoritmo": "TF-IDF de palabras y caracteres + senales lexicas; LogisticRegression multiclase balanceada + temperature scaling",
+    "c_regularizacion": 2.0,
+    "familia_modelo": "svm_lineal",
+    "metodo_calibracion": "sigmoid_grouped_cv+temperature_scaling",
+    "temperatura_calibracion": 0.7,
+    "hash_dataset_sha256": "0bb54eafad00bff52e26126764ea37f3b741348b500a445978bdbfdebcab8796",
+    "algoritmo": "TF-IDF de palabras y caracteres + senales lexicas; LinearSVC balanceada + calibracion sigmoid agrupada + temperature scaling",
     "formato_serializacion": "pickle",
     "python": "3.13.7",
     "scikit_learn": "1.9.0",
@@ -322,7 +323,8 @@
     "datos": {
       "total_entrenamiento": 100000,
       "manuales_curados": 118,
-      "aumentados_reproducibles": 99882,
+      "aumentados_reproducibles": 95062,
+      "ortograficos_lexicos": 4820,
       "descripciones_unicas": 100000,
       "distribucion_categorias": {
         "Alimentacion": 8334,
@@ -338,49 +340,80 @@
         "Transporte": 8333,
         "Vivienda": 8333
       },
+      "distribucion_ruido_ortografico": {
+        "eliminar_caracter": 7988,
+        "error_fonetico": 6593,
+        "intercambiar_caracteres": 7767,
+        "ninguno": 48556,
+        "ninguno_manual": 118,
+        "repetir_caracter": 7920,
+        "separadores_raros": 6593,
+        "sin_espacios": 6593,
+        "tecla_vecina": 7872
+      },
       "advertencia": "La aumentacion sintetica mejora invariancia de redaccion, pero no equivale a 100 000 transacciones reales independientes."
     },
     "seleccion_modelo": {
       "comparacion": "resultados\\comparacion_modelos.json",
-      "familia_elegida": "Regresion logistica",
-      "razon": "Mejor F1 macro o diferencia menor a 1 punto frente al mejor; probabilidad nativa y despliegue mas simple que SVM calibrada.",
+      "familia_elegida": "SVM lineal calibrada",
+      "razon": "Mayor F1 macro agrupada entre las familias que ofrecen un flujo de confianza calibrado y aprobado.",
       "regularizacion": [
         {
-          "c_regularizacion": 0.75,
-          "f1_macro_media": 0.7367,
-          "f1_macro_desviacion": 0.0382,
-          "exactitud_media": 0.7192
+          "c_regularizacion": 0.1,
+          "f1_macro_media": 0.7265,
+          "f1_macro_desviacion": 0.0438,
+          "exactitud_media": 0.7247
         },
         {
-          "c_regularizacion": 1.5,
-          "f1_macro_media": 0.7485,
-          "f1_macro_desviacion": 0.045,
-          "exactitud_media": 0.7328
+          "c_regularizacion": 0.25,
+          "f1_macro_media": 0.7312,
+          "f1_macro_desviacion": 0.0409,
+          "exactitud_media": 0.7317
         },
         {
-          "c_regularizacion": 3.0,
-          "f1_macro_media": 0.7487,
-          "f1_macro_desviacion": 0.0448,
-          "exactitud_media": 0.7337
+          "c_regularizacion": 0.5,
+          "f1_macro_media": 0.7333,
+          "f1_macro_desviacion": 0.0397,
+          "exactitud_media": 0.735
         },
         {
-          "c_regularizacion": 6.0,
-          "f1_macro_media": 0.7478,
-          "f1_macro_desviacion": 0.0496,
+          "c_regularizacion": 1.0,
+          "f1_macro_media": 0.7338,
+          "f1_macro_desviacion": 0.0387,
+          "exactitud_media": 0.735
+        },
+        {
+          "c_regularizacion": 2.0,
+          "f1_macro_media": 0.736,
+          "f1_macro_desviacion": 0.0354,
           "exactitud_media": 0.735
         }
       ],
-      "c_elegido": 3.0
+      "c_elegido": 2.0
     },
     "calibracion": {
       "dataset": "validacion.csv",
       "metodo": "temperature_scaling",
-      "temperatura": 1.0
+      "temperatura": 0.7
     },
     "politica_confianza": {
       "dataset": "validacion.csv",
-      "umbral": 0.35,
+      "umbral": 0.48,
       "precision_objetivo": 0.93
+    },
+    "control_calidad": {
+      "cumple": true,
+      "criterios": {
+        "holdout_exactitud_minima_0_90": true,
+        "holdout_f1_macro_minimo_0_90": true,
+        "ece_maximo_0_08": true,
+        "regresion_base_100_por_ciento": true,
+        "regresion_ruido_minima_0_99": true,
+        "robustez_ortografica_100_por_ciento": true,
+        "ortografia_dirigida_100_por_ciento": true,
+        "almuerzo_es_alimentacion": true,
+        "almuerzo_confianza_minima_0_90": true
+      }
     }
   }
 }

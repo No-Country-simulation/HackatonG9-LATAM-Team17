@@ -17,15 +17,25 @@ import numpy as np
 import sklearn
 from scipy.sparse import csr_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.svm import LinearSVC
 
-from .datos import CATEGORIAS, SENALES_LEXICAS_POR_CATEGORIA
+from .datos import (
+    CATEGORIAS,
+    PREFIJOS_AUMENTACION_GASTO,
+    PREFIJOS_AUMENTACION_INGRESO,
+    SENALES_LEXICAS_POR_CATEGORIA,
+    SUFIJOS_AUMENTACION,
+    TERMINOS_POR_CATEGORIA,
+)
 from .texto import normalizar_texto, tokens_informativos
 
 
-VERSION_ARTEFACTO = "3.0.0"
+VERSION_ARTEFACTO = "3.3.0"
 
 
 @dataclass(frozen=True)
@@ -57,10 +67,185 @@ def _construir_anclas_unicas() -> tuple[tuple[str, ...], dict[str, int]]:
 _CATEGORIAS_ANCLAS, _ANCLAS_UNICAS = _construir_anclas_unicas()
 
 
+def _construir_indice_aproximado() -> dict[str, frozenset[tuple[str, int]]]:
+    """Indexa firmas a una edición de distancia para corregir errores simples.
+
+    La firma por eliminación permite detectar, sin una búsqueda costosa, una
+    letra omitida, agregada, sustituida o dos letras adyacentes intercambiadas.
+    Solo se usan anclas de al menos cinco caracteres y una coincidencia se
+    acepta cuando todas las alternativas apuntan a la misma categoría.
+    """
+
+    firmas: dict[str, set[tuple[str, int]]] = {}
+    for ancla, indice_categoria in _ANCLAS_UNICAS.items():
+        if len(ancla) < 5:
+            continue
+        for indice in range(len(ancla)):
+            firma = ancla[:indice] + ancla[indice + 1 :]
+            firmas.setdefault(firma, set()).add((ancla, indice_categoria))
+    return {firma: frozenset(anclas) for firma, anclas in firmas.items()}
+
+
+_FIRMAS_ANCLAS = _construir_indice_aproximado()
+
+# Alias de marcas con dos errores simultáneos frecuentes. La corrección difusa
+# general se limita deliberadamente a una edición para no convertir palabras
+# válidas y genéricas (por ejemplo, "compra") en conceptos de otra categoría.
+_ALIAS_ORTOGRAFICOS: dict[str, str] = {
+    "nelfix": "netflix",
+    "netflic": "netflix",
+    "spotfy": "spotify",
+    "spootify": "spotify",
+    "farmasya": "farmacia",
+}
+_ANCLAS_CORTAS_EMBEBIBLES = frozenset({"afp", "etf", "hbo"})
+_ANCLAS_EMBEBIBLES = tuple(
+    (ancla, categoria)
+    for ancla, categoria in _ANCLAS_UNICAS.items()
+    if len(ancla) >= 5 or ancla in _ANCLAS_CORTAS_EMBEBIBLES
+)
+_VOCABULARIO_LIMPIO = {
+    token
+    for texto in (
+        *(termino for terminos in TERMINOS_POR_CATEGORIA.values() for termino in terminos),
+        *PREFIJOS_AUMENTACION_GASTO,
+        *PREFIJOS_AUMENTACION_INGRESO,
+        *SUFIJOS_AUMENTACION,
+    )
+    for token in normalizar_texto(texto).split()
+}
+_TECLAS_VECINAS = {
+    frozenset(par)
+    for par in (
+        "as", "er", "io", "op", "uy", "rt", "nm", "lk", "cv", "df",
+        "ty", "gh", "qw", "we", "sd", "fg", "hj", "jk", "zx", "xc",
+    )
+}
+_CAMBIOS_FONETICOS = {
+    frozenset(par) for par in ("bv", "cs", "sz", "kc", "ky", "iy")
+}
+
+
+def _es_una_edicion_admitida(token: str, ancla: str) -> bool:
+    """Valida una edición real y rechaza coincidencias de firma accidentales."""
+
+    diferencia_longitud = len(token) - len(ancla)
+    if abs(diferencia_longitud) > 1:
+        return False
+    if diferencia_longitud == 0:
+        diferentes = [
+            indice for indice, (actual, esperado) in enumerate(zip(token, ancla))
+            if actual != esperado
+        ]
+        if len(diferentes) == 1:
+            indice = diferentes[0]
+            cambio = frozenset((token[indice], ancla[indice]))
+            return cambio in _TECLAS_VECINAS or cambio in _CAMBIOS_FONETICOS
+        if len(diferentes) == 2:
+            primero, segundo = diferentes
+            return (
+                segundo == primero + 1
+                and token[primero] == ancla[segundo]
+                and token[segundo] == ancla[primero]
+            )
+        return False
+
+    corta, larga = (token, ancla) if diferencia_longitud < 0 else (ancla, token)
+    indice_corta = indice_larga = diferencias = 0
+    while indice_corta < len(corta) and indice_larga < len(larga):
+        if corta[indice_corta] == larga[indice_larga]:
+            indice_corta += 1
+            indice_larga += 1
+            continue
+        diferencias += 1
+        indice_larga += 1
+        if diferencias > 1:
+            return False
+    return True
+
+
+def _ancla_aproximada(token: str) -> tuple[str, int] | None:
+    """Busca un ancla inequívoca a una edición Damerau-Levenshtein."""
+
+    alias = _ALIAS_ORTOGRAFICOS.get(token)
+    if alias is not None:
+        return alias, _ANCLAS_UNICAS[alias]
+    if token in _VOCABULARIO_LIMPIO:
+        return None
+    if len(token) < 4:
+        return None
+
+    candidatas: set[tuple[str, int]] = set(_FIRMAS_ANCLAS.get(token, ()))
+    for indice in range(len(token)):
+        firma = token[:indice] + token[indice + 1 :]
+        categoria_exacta = _ANCLAS_UNICAS.get(firma)
+        if categoria_exacta is not None and len(firma) >= 5:
+            candidatas.add((firma, categoria_exacta))
+        candidatas.update(_FIRMAS_ANCLAS.get(firma, ()))
+
+    candidatas = {
+        candidata
+        for candidata in candidatas
+        if _es_una_edicion_admitida(token, candidata[0])
+    }
+
+    categorias = {categoria for _, categoria in candidatas}
+    if len(categorias) != 1:
+        return None
+    return min(candidatas, key=lambda item: (abs(len(item[0]) - len(token)), item[0]))
+
+
+def _categoria_ancla_aproximada(token: str) -> int | None:
+    """Devuelve una categoría única si ``token`` está a una edición del ancla."""
+
+    resultado = _ancla_aproximada(token)
+    return None if resultado is None else resultado[1]
+
+
+def _anclas_en_token_unido(token: str) -> tuple[str, ...]:
+    """Extrae conceptos incrustados en texto sin espacios si no son ambiguos."""
+
+    if len(token) < 8:
+        return ()
+    encontradas = {
+        (ancla, categoria)
+        for ancla, categoria in _ANCLAS_EMBEBIBLES
+        if len(token) >= len(ancla) + 3
+        and ancla in token
+        and (
+            len(ancla) >= 5
+            or token.startswith(ancla)
+            or token.endswith(ancla)
+        )
+    }
+    categorias = {categoria for _, categoria in encontradas}
+    if len(categorias) != 1:
+        return ()
+    return tuple(sorted({ancla for ancla, _ in encontradas}, key=lambda x: (-len(x), x)))
+
+
+def normalizar_texto_modelo(texto: object) -> str:
+    """Normaliza y corrige como máximo un error cuando el ancla es inequívoca."""
+
+    normalizado = normalizar_texto(texto)
+    corregidos: list[str] = []
+    for token in normalizado.split():
+        if token in _ANCLAS_UNICAS:
+            corregidos.append(token)
+            continue
+        resultado = _ancla_aproximada(token)
+        if resultado is not None:
+            corregidos.append(resultado[0])
+            continue
+        embebidas = _anclas_en_token_unido(token)
+        corregidos.extend(embebidas or (token,))
+    return " ".join(corregidos)
+
+
 class SenalesLexicas(BaseEstimator, TransformerMixin):
     """Transforma terminos financieros exclusivos en señales aprendibles.
 
-    Las señales forman parte del vector de entrada de la regresion logistica. No
+    Las señales forman parte del vector de entrada del clasificador lineal. No
     reemplazan la prediccion con una cadena de reglas posterior.
     """
 
@@ -73,10 +258,14 @@ class SenalesLexicas(BaseEstimator, TransformerMixin):
         filas: list[list[float]] = []
         for texto in X:
             puntajes = [0.0] * len(_CATEGORIAS_ANCLAS)
-            for token in set(tokens_informativos(texto)):
+            for token in set(tokens_informativos(normalizar_texto_modelo(texto))):
                 indice = _ANCLAS_UNICAS.get(token)
                 if indice is not None:
                     puntajes[indice] += 1.0
+                    continue
+                indice_aproximado = _categoria_ancla_aproximada(token)
+                if indice_aproximado is not None:
+                    puntajes[indice_aproximado] += 0.75
             filas.append(np.log1p(puntajes).tolist())
         return csr_matrix(np.asarray(filas, dtype=float))
 
@@ -89,7 +278,7 @@ def crear_caracteristicas() -> FeatureUnion:
             (
                 "palabras",
                 TfidfVectorizer(
-                    preprocessor=normalizar_texto,
+                    preprocessor=normalizar_texto_modelo,
                     ngram_range=(1, 2),
                     min_df=1,
                     max_df=0.995,
@@ -99,7 +288,7 @@ def crear_caracteristicas() -> FeatureUnion:
             (
                 "caracteres",
                 TfidfVectorizer(
-                    preprocessor=normalizar_texto,
+                    preprocessor=normalizar_texto_modelo,
                     analyzer="char_wb",
                     ngram_range=(3, 5),
                     min_df=2,
@@ -137,6 +326,25 @@ def crear_estimador_base(c_regularizacion: float = 3.0) -> Pipeline:
     )
 
 
+def crear_estimador_svm(c_regularizacion: float = 0.5) -> Pipeline:
+    """Crea una SVM lineal adecuada para vectores TF-IDF de alta dimensión."""
+
+    return Pipeline(
+        [
+            ("caracteristicas", crear_caracteristicas()),
+            (
+                "clasificador",
+                LinearSVC(
+                    C=float(c_regularizacion),
+                    class_weight="balanced",
+                    dual="auto",
+                    random_state=42,
+                ),
+            ),
+        ]
+    )
+
+
 def _hash_dataset(textos: list[str], categorias: list[str]) -> str:
     filas = sorted(f"{categoria}\t{texto}" for texto, categoria in zip(textos, categorias))
     contenido = "\n".join(filas).encode("utf-8")
@@ -151,7 +359,8 @@ class ClasificadorGastos:
         umbral_confianza: float = 0.55,
         margen_minimo: float = 0.08,
         cobertura_minima: float = 0.20,
-        c_regularizacion: float = 3.0,
+        c_regularizacion: float = 0.5,
+        algoritmo: str = "svm_lineal",
     ) -> None:
         self.configuracion = ConfiguracionDecision(
             umbral_confianza=float(umbral_confianza),
@@ -159,20 +368,33 @@ class ClasificadorGastos:
             cobertura_minima=float(cobertura_minima),
         )
         self.c_regularizacion = float(c_regularizacion)
-        self.metodo_calibracion = "temperature_scaling"
+        if algoritmo not in {"svm_lineal", "regresion_logistica"}:
+            raise ValueError("algoritmo debe ser 'svm_lineal' o 'regresion_logistica'")
+        self.algoritmo = algoritmo
+        self.metodo_calibracion = (
+            "sigmoid_grouped_cv+temperature_scaling"
+            if algoritmo == "svm_lineal"
+            else "temperature_scaling"
+        )
         self.temperatura_calibracion = 1.0
-        self.modelo: Pipeline | None = None
+        self.modelo: BaseEstimator | None = None
         self.vocabulario_conocido: set[str] = set()
         self.metadatos: dict[str, object] = {}
 
     def entrenar(
-        self, textos: Iterable[object], categorias: Iterable[object]
+        self,
+        textos: Iterable[object],
+        categorias: Iterable[object],
+        grupos: Iterable[object] | None = None,
     ) -> "ClasificadorGastos":
         textos_lista = [normalizar_texto(x) for x in textos]
         categorias_lista = [str(x).strip() for x in categorias]
+        grupos_lista = None if grupos is None else [str(x) for x in grupos]
 
         if len(textos_lista) != len(categorias_lista):
             raise ValueError("textos y categorias deben tener la misma longitud")
+        if grupos_lista is not None and len(grupos_lista) != len(textos_lista):
+            raise ValueError("grupos debe tener la misma longitud que textos")
         if not textos_lista or any(not texto for texto in textos_lista):
             raise ValueError("El dataset contiene descripciones vacias")
         if not 0.0 <= self.configuracion.umbral_confianza <= 1.0:
@@ -186,10 +408,25 @@ class ClasificadorGastos:
         if min(conteos) < 5:
             raise ValueError("Cada categoria necesita al menos cinco ejemplos")
 
-        self.modelo = crear_estimador_base(self.c_regularizacion)
+        if self.algoritmo == "svm_lineal":
+            if grupos_lista is None:
+                raise ValueError("La SVM calibrada requiere grupos para evitar fuga semantica")
+            divisor = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+            folds = list(divisor.split(textos_lista, categorias_lista, grupos_lista))
+            self.modelo = CalibratedClassifierCV(
+                estimator=crear_estimador_svm(self.c_regularizacion),
+                method="sigmoid",
+                cv=folds,
+                ensemble=False,
+                n_jobs=-1,
+            )
+        else:
+            self.modelo = crear_estimador_base(self.c_regularizacion)
         self.modelo.fit(textos_lista, categorias_lista)
         self.vocabulario_conocido = {
-            token for texto in textos_lista for token in tokens_informativos(texto)
+            token
+            for texto in textos_lista
+            for token in tokens_informativos(normalizar_texto_modelo(texto))
         }
         self.metadatos = {
             "version_artefacto": VERSION_ARTEFACTO,
@@ -198,11 +435,15 @@ class ClasificadorGastos:
             "categorias": clases.tolist(),
             "configuracion": asdict(self.configuracion),
             "c_regularizacion": self.c_regularizacion,
+            "familia_modelo": self.algoritmo,
             "metodo_calibracion": self.metodo_calibracion,
             "temperatura_calibracion": self.temperatura_calibracion,
             "hash_dataset_sha256": _hash_dataset(textos_lista, categorias_lista),
             "algoritmo": (
                 "TF-IDF de palabras y caracteres + senales lexicas; "
+                "LinearSVC balanceada + calibracion sigmoid agrupada + temperature scaling"
+                if self.algoritmo == "svm_lineal"
+                else "TF-IDF de palabras y caracteres + senales lexicas; "
                 "LogisticRegression multiclase balanceada + temperature scaling"
             ),
             "formato_serializacion": "pickle",
@@ -212,13 +453,13 @@ class ClasificadorGastos:
         }
         return self
 
-    def _verificar_entrenado(self) -> Pipeline:
+    def _verificar_entrenado(self) -> BaseEstimator:
         if self.modelo is None:
             raise RuntimeError("El clasificador todavia no fue entrenado")
         return self.modelo
 
     def cobertura_lexica(self, texto: object) -> float:
-        tokens = tokens_informativos(texto)
+        tokens = tokens_informativos(normalizar_texto_modelo(texto))
         if not tokens:
             return 0.0
         conocidos = sum(token in self.vocabulario_conocido for token in tokens)
@@ -380,8 +621,11 @@ def cargar_modelo(ruta: str | Path, verificar_integridad: bool = True) -> Clasif
     modelo._verificar_entrenado()
 
     version = str(modelo.metadatos.get("version_artefacto", "0.0.0"))
-    if version.split(".")[0] != VERSION_ARTEFACTO.split(".")[0]:
-        raise ValueError(f"Version de artefacto incompatible: {version}")
+    if version != VERSION_ARTEFACTO:
+        raise ValueError(
+            f"Version de artefacto incompatible: {version}; "
+            f"se requiere exactamente {VERSION_ARTEFACTO}"
+        )
     version_sklearn = str(modelo.metadatos.get("scikit_learn", ""))
     if version_sklearn and version_sklearn.split(".")[:2] != sklearn.__version__.split(".")[:2]:
         warnings.warn(
