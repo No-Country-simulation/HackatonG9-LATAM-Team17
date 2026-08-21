@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  History, 
-  Search, 
-  Filter, 
-  BarChart2, 
-  Calendar, 
-  ArrowUpRight, 
-  TrendingUp, 
-  CheckCircle2, 
-  AlertTriangle, 
-  AlertCircle, 
-  Sparkles, 
+import {
+  History,
+  Search,
+  Filter,
+  BarChart2,
+  Calendar,
+  ArrowUpRight,
+  TrendingUp,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Sparkles,
   Plus,
   ArrowUpDown,
   DollarSign,
-  Activity
+  Activity,
+  Receipt
 } from 'lucide-react';
 import { ReporteAnalisis, HealthStatus } from '../types';
 import { MASCOTS } from '../assets/mascots';
@@ -23,12 +24,14 @@ interface HistoryViewProps {
   analysisHistory: ReporteAnalisis[];
   onOpenAnalysisModal: (report: ReporteAnalisis) => void;
   onNavigateToNewAnalysis: () => void;
+  transactions?: import('../types').Transaction[];
 }
 
 export const HistoryView: React.FC<HistoryViewProps> = ({
   analysisHistory,
   onOpenAnalysisModal,
   onNavigateToNewAnalysis,
+  transactions = [],
 }) => {
   const [busqueda, setBusqueda] = useState('');
   const [filtroSalud, setFiltroSalud] = useState<'all' | HealthStatus>('all');
@@ -41,7 +44,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     let isMounted = true;
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/finanzas/historial');
+        const response = await fetch('/api/v1/finanzas/historial');
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data)) {
@@ -63,12 +66,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 mensajeMotivador: item.perfilFinanciero === 'Saludable' ? '¡Excelente trabajo!' : 'Sigue esforzándote',
                 totalGastado: item.transacciones?.reduce((sum: number, tx: any) => sum + (tx.valor || 0), 0) || 0,
                 distribucionCategorias: item.categorias || [],
-                recomendaciones: item.recomendaciones || [],
-                logroSemanal: {
-                  titulo: "Racha ahorrativa",
-                  porcentajeGanancia: 15,
-                  horasRestantes: 48
-                }
+                recomendaciones: item.recomendaciones || []
               };
             });
             if (isMounted) setHistorialLocal(mappedHistory);
@@ -87,7 +85,26 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   // Filtered & Sorted list
   const historialFiltrado = useMemo(() => {
-    return historialLocal
+    const mappedTransactions: ReporteAnalisis[] = transactions.map((tx) => ({
+      id: tx.id,
+      fecha: tx.fecha,
+      marcaTiempo: new Date(tx.fecha).getTime(),
+      puntajeSalud: 0,
+      estadoSalud: 'Observación' as HealthStatus,
+      mensajeMotivador: 'Transacción: ' + tx.descripcion,
+      totalGastado: tx.monto,
+      distribucionCategorias: [{
+        categoria: tx.categoria,
+        monto: tx.monto,
+        porcentaje: 100,
+        colorHex: '#4648d4'
+      }],
+      recomendaciones: []
+    }));
+
+    const historialCombinado = [...historialLocal, ...mappedTransactions];
+
+    return historialCombinado
       .filter((item) => {
         // Status filter
         if (filtroSalud !== 'all') {
@@ -114,7 +131,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         if (ordenarPor === 'score-low') return a.puntajeSalud - b.puntajeSalud;
         return 0;
       });
-  }, [historialLocal, filtroSalud, busqueda, ordenarPor]);
+  }, [historialLocal, busqueda, filtroSalud, ordenarPor, transactions]);
 
   // Statistics calculation
   const estadisticas = useMemo(() => {
@@ -250,41 +267,37 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           <div className="flex items-center gap-1 bg-[#f8f9fa] p-1 rounded-xl border border-[#e1e3e4]">
             <button
               onClick={() => setFiltroSalud('all')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                filtroSalud === 'all'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'all'
                   ? 'bg-white text-[#4648d4] shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
-              }`}
+                }`}
             >
               Todos
             </button>
             <button
               onClick={() => setFiltroSalud('Saludable')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                filtroSalud === 'Saludable'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'Saludable'
                   ? 'bg-[#10b981] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
-              }`}
+                }`}
             >
               Saludable
             </button>
             <button
               onClick={() => setFiltroSalud('En observación')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                filtroSalud === 'En observación'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'En observación'
                   ? 'bg-[#fd933d] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
-              }`}
+                }`}
             >
               En observación
             </button>
             <button
               onClick={() => setFiltroSalud('Riesgo')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                filtroSalud === 'Riesgo'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'Riesgo'
                   ? 'bg-[#ef4444] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
-              }`}
+                }`}
             >
               Riesgo
             </button>
@@ -359,8 +372,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               {/* Left Details */}
               <div className="flex items-start gap-4 flex-1 min-w-0">
                 <div className="w-12 h-12 rounded-2xl bg-[#f8f9fa] group-hover:bg-[#e0e7ff]/60 text-[#4648d4] flex flex-col items-center justify-center shrink-0 border border-[#e1e3e4] group-hover:border-[#6063ee]/30 transition-colors">
-                  <BarChart2 className="w-5 h-5" />
-                  <span className="text-[9px] font-bold mt-0.5">{item.puntajeSalud}%</span>
+                  {item.puntajeSalud === 0 ? (
+                    <Receipt className="w-5 h-5" />
+                  ) : (
+                    <>
+                      <BarChart2 className="w-5 h-5" />
+                      <span className="text-[9px] font-bold mt-0.5">{item.puntajeSalud}%</span>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-1">

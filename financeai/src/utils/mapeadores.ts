@@ -131,11 +131,6 @@ export function mapearAnalisisOutputDTO(
     puntajeSalud,
     estadoSalud,
     mensajeMotivador: mensajesMotivadores[estadoSalud] ?? mensajesMotivadores['En observación'],
-    logroSemanal: {
-      titulo: `Perfil financiero: ${dto.perfil_financiero}`,
-      porcentajeGanancia: puntajeSalud,
-      horasRestantes: 48,
-    },
     distribucionCategorias,
     recomendaciones,
     narrativaIa: `Tu perfil financiero ha sido clasificado como "${dto.perfil_financiero}" con una probabilidad del ${puntajeSalud}%.`,

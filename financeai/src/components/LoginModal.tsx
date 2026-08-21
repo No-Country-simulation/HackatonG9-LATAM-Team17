@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, X, ArrowRight, Activity } from 'lucide-react';
 import { MASCOTS } from '../assets/mascots';
+import { manejarRespuestaError } from '../utils/apiErrors';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (name: string, email: string) => void;
+  onLoginSuccess: (nombre: string, email: string, id?: number) => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -14,9 +15,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLoginSuccess,
 }) => {
   const [esRegistro, setEsRegistro] = useState(false);
-  const [correo, setCorreo] = useState('alex@example.com');
-  const [nombre, setNombre] = useState('Alex Doe');
-  const [contrasena, setContrasena] = useState('••••••••');
+  const [correo, setCorreo] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [recordarme, setRecordarme] = useState(true);
 
@@ -27,6 +28,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cargandoApi) return;
     setErrorApi(null);
     setCargandoApi(true);
 
@@ -36,20 +38,27 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         ? JSON.stringify({ nombre, email: correo, password: contrasena })
         : JSON.stringify({ email: correo, password: contrasena });
 
-      const response = await fetch(`http://localhost:8080${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Error en la autenticación');
+        const errorData = await manejarRespuestaError(response);
+        if (errorData.validationErrors) {
+          const joined = Object.values(errorData.validationErrors).join(' - ');
+          throw new Error(joined);
+        }
+        throw new Error(errorData.general);
       }
 
-      const nombreAUsar = esRegistro ? nombre : (data.nombre || correo.split('@')[0]);
-      onLoginSuccess(nombreAUsar, correo);
+      // If response is OK, we need to read the JSON now
+      // Note that manejarRespuestaError reads the json only if it's NOT ok.
+      const data = await response.json().catch(() => ({}));
+
+      const nombreAUsar = data.nombre || correo.split('@')[0];
+      onLoginSuccess(nombreAUsar, correo, data.id);
       onClose();
     } catch (err: any) {
       setErrorApi(err.message);
@@ -61,7 +70,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   return (
     <div 
       id="login-modal-overlay"
-      className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in"
+      className="fixed inset-0 bg-[#f8f9fa] flex items-center justify-center p-4 z-50 animate-in fade-in zoom-in-95 duration-500"
     >
       <div 
         id="login-modal-card"
@@ -120,8 +129,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <button
             type="button"
             onClick={() => {
-              onLoginSuccess('Alex Doe (Google)', 'alex.google@example.com');
-              onClose();
+              setErrorApi('El acceso con Google aún no está implementado.');
             }}
             className="w-full py-2.5 px-4 rounded-xl border border-[#e1e3e4] bg-white hover:bg-[#f8f9fa] text-xs font-semibold text-[#191c1d] flex items-center justify-center gap-2.5 transition-all shadow-2xs"
           >
@@ -221,7 +229,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <span>Recuérdame</span>
               </label>
 
-              <a href="#forgot" className="text-[#4648d4] font-semibold hover:underline">
+              <a 
+                href="#forgot" 
+                onClick={(e) => { e.preventDefault(); setErrorApi('La recuperación de contraseña aún no está implementada.'); }}
+                className="text-[#4648d4] font-semibold hover:underline"
+              >
                 ¿Olvidaste tu contraseña?
               </a>
             </div>

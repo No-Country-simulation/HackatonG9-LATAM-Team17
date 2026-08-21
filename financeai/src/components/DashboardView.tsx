@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  AlertCircle, 
-  RotateCw, 
-  Eye, 
-  Clock, 
-  Plus, 
-  Receipt, 
-  CheckCircle, 
-  Sparkles, 
+import {
+  AlertCircle,
+  RotateCw,
+  Eye,
+  Clock,
+  Plus,
+  Receipt,
+  CheckCircle,
+  Sparkles,
   ExternalLink,
   ChevronRight,
   TrendingDown,
@@ -21,14 +21,13 @@ import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 
-const API_BASE_URL = 'http://localhost:8080';
 
 interface DashboardViewProps {
-  report: ReporteAnalisis;
+  report: ReporteAnalisis | null;
   userProfile: UserProfile;
   transactions: Transaction[];
-  onAddTransaction: (tx: Partial<Transaction>) => void;
-  onDeleteTransaction: (id: string) => void;
+  onAddTransaction: (tx: Partial<Transaction>) => Promise<void>;
+  onDeleteTransaction: (id: string) => Promise<void>;
   onNavigateToNewAnalysis: () => void;
   onOpenAnalysisModal: (report: ReporteAnalisis) => void;
 }
@@ -52,8 +51,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [sobreescrituraManualActiva, setSobreescrituraManualActiva] = useState(false);
   const [pestanaActivaTx, setPestanaActivaTx] = useState<'empty-state' | 'tx-list'>('tx-list');
   const [clasificandoAPI, setClasificandoAPI] = useState(false);
-  const [recommendations, setRecommendations] = useState(report.recomendaciones || []);
-  
+  const [recommendations, setRecommendations] = useState(report?.recomendaciones || []);
+
+  useEffect(() => {
+    setRecommendations(report?.recomendaciones || []);
+  }, [report]);
+
   // Timer countdown simulation
   const [countdown, setCountdown] = useState({ hours: 48, minutes: 22, seconds: 10 });
 
@@ -96,15 +99,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descripcionRapida || !valorRapido) return;
-    
+
     // Determine category automatically if not manually overridden
     let finalCategory = categoriaRapida;
     let failedStatus = modeloFallo;
-    
+
     if (!sobreescrituraManualActiva) {
       setClasificandoAPI(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/finanzas/clasificar`, {
+        const response = await fetch(`/api/v1/finanzas/clasificar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -119,7 +122,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         }
 
         const data = await response.json();
-        
+
         if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
           finalCategory = Object.keys(data.resumen_gastos)[0] as ExpenseCategory;
           failedStatus = false;
@@ -139,20 +142,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       }
     }
 
-    onAddTransaction({
-      description: descripcionRapida,
-      amount: parsePositiveFloat(valorRapido, 0),
-      category: finalCategory,
-      type: 'gasto',
-      autoCategorized: !sobreescrituraManualActiva,
-      categorizationFailed: failedStatus,
-    });
+    try {
+      await onAddTransaction({
+        descripcion: descripcionRapida,
+        monto: parsePositiveFloat(valorRapido, 0),
+        categoria: finalCategory,
+        tipo: 'gasto',
+        autoCategorizado: !sobreescrituraManualActiva,
+        categorizacionFallida: failedStatus,
+      });
 
-    setDescripcionRapida('');
-    setValorRapido('');
-    setSobreescrituraManualActiva(false);
-    setModeloFallo(false);
-    setPestanaActivaTx('tx-list');
+      setDescripcionRapida('');
+      setValorRapido('');
+      setSobreescrituraManualActiva(false);
+      setModeloFallo(false);
+      setPestanaActivaTx('tx-list');
+    } catch (e) {
+      // Error handled by parent toast
+    }
+  };
+
+  const handleRemoveClick = async (id: string) => {
+    try {
+      await onDeleteTransaction(id);
+    } catch (e) {
+      // Error handled by parent toast
+    }
   };
 
   const toggleRecommendationComplete = (id: string) => {
@@ -168,7 +183,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     'Riesgo': { text: 'Riesgo', bg: 'bg-[#ba1a1a]/15', textCol: 'text-[#ba1a1a]', border: 'border-[#ba1a1a]/30' },
   };
 
-  const currentStatus = statusBadgeConfig[report.estadoSalud] || statusBadgeConfig['En observación'];
+  const currentStatus = report ? statusBadgeConfig[report.estadoSalud] || statusBadgeConfig['En observación'] : null;
 
   return (
     <div className="space-y-7 pb-12 animate-in fade-in duration-200" id="dashboard-view-container">
@@ -176,7 +191,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2" id="dashboard-greeting-header">
         <div>
           <h1 className="text-[26px] md:text-[28px] font-bold text-[#191c1d] tracking-tight font-display">
-            Hola, {userProfile.name.split(' ')[0]}
+            Hola, {userProfile.nombre.split(' ')[0]}
           </h1>
           <p className="text-xs font-medium text-[#767586] mt-0.5">
             15 de Octubre, 2024
@@ -194,13 +209,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Sync Error / Status Banner */}
       {showSyncBanner && (
-        <div 
+        <div
           id="sync-alert-banner"
-          className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
-            syncedSuccess 
-              ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' 
+          className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${syncedSuccess
+              ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]'
               : 'bg-[#ffdad6]/40 border-[#ffdad6] text-[#191c1d]'
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3">
             {syncedSuccess ? (
@@ -235,127 +249,120 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {/* Top 2 Primary Summary Cards: Financial Profile & Weekly Achievement */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" id="dashboard-top-cards">
-        {/* Card 1: Perfil Financiero */}
-        <div 
-          id="card-financial-profile"
-          className="lg:col-span-8 bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden group hover:border-[#6063ee]/40 transition-all"
-        >
-          <div className="flex-1 min-w-0 z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold tracking-wider text-[#767586] uppercase">
-                  PERFIL FINANCIERO
-                </span>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${currentStatus.bg} ${currentStatus.textCol} ${currentStatus.border}`}>
-                  <Eye className="w-3 h-3" />
-                  {currentStatus.text}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-baseline gap-1">
-              <span className="text-[40px] md:text-[44px] font-extrabold text-[#191c1d] tracking-tight font-display leading-none">
-                {report.puntajeSalud}%
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-[#767586] mt-1">
-              Probabilidad de mejora financiera
-            </p>
-
-            <p className="text-xs font-bold text-[#944a00] mt-3 leading-relaxed">
-              <span>{report.mensajeMotivador || '¡Vamos a mejorar tu salud financiera! 💪'}</span>
-            </p>
+      {!report ? (
+        <div className="bg-white rounded-2xl p-10 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-center flex flex-col items-center justify-center space-y-4">
+          <div className="w-20 h-20 rounded-2xl bg-[#e0e7ff]/50 text-[#4648d4] flex items-center justify-center mb-2">
+            <Sparkles className="w-10 h-10" />
           </div>
-
-          {/* Mascot placement */}
-          <div className="self-end sm:self-center shrink-0 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center pointer-events-none transition-transform group-hover:scale-105">
-            <img
-              src={MASCOTS.happyPotatoCoin}
-              alt="Mascot Potato Coin"
-              className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(253,147,61,0.25)]"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+          <h2 className="text-xl font-bold text-[#191c1d] font-display">¡Genera tu primer análisis!</h2>
+          <p className="text-sm text-[#767586] max-w-md">La inteligencia artificial necesita que agregues algunas transacciones y generes un análisis para brindarte recomendaciones, puntaje de salud y distribución de gastos.</p>
+          <button
+            onClick={onNavigateToNewAnalysis}
+            className="mt-2 px-6 py-2.5 bg-[#4648d4] hover:bg-[#393bb8] text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
+          >
+            Comenzar ahora
+          </button>
         </div>
-
-        {/* Card 2: Logro Semanal (Vibrant Indigo Card) */}
-        <div 
-          id="card-weekly-achievement"
-          className="lg:col-span-4 bg-gradient-to-br from-[#6063ee] via-[#4648d4] to-[#712ae2] text-white rounded-2xl p-6 shadow-[0_8px_24px_rgba(70,72,212,0.3)] flex flex-col justify-between relative overflow-hidden"
-        >
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-white/80 uppercase">
-              LOGRO SEMANAL
-            </span>
-
-            <h3 className="text-lg font-bold text-white mt-2 leading-snug font-display">
-              {report.logroSemanal?.titulo || '¡Ahorraste 15% más que la semana pasada! 🎉'}
-            </h3>
-          </div>
-
-          <div className="mt-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white text-xs font-mono-val font-bold">
-              <Clock className="w-3.5 h-3.5 text-[#ffdcc5]" />
-              <span>
-                {String(countdown.hours).padStart(2, '0')}:
-                {String(countdown.minutes).padStart(2, '0')}:
-                {String(countdown.seconds).padStart(2, '0')}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Distribución de Gastos (6 Cards Grid) */}
-      <div id="section-expense-distribution" className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#191c1d] font-display">
-            Distribución de Gastos
-          </h2>
-          <span className="text-xs text-[#767586] font-medium">
-            Mes actual
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {report.distribucionCategorias.map((cat) => (
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" id="dashboard-top-cards">
+            {/* Card 1: Perfil Financiero */}
             <div
-              key={cat.categoria}
-              id={`card-cat-${cat.categoria.toLowerCase()}`}
-              className="bg-white rounded-xl p-4 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-[#6063ee]/30 transition-all"
+              id="card-financial-profile"
+              className="lg:col-span-12 bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden group hover:border-[#6063ee]/40 transition-all"
             >
-              <div>
-                <p className="text-xs font-semibold text-[#464554]">
-                  {cat.categoria}
+              <div className="flex-1 min-w-0 z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold tracking-wider text-[#767586] uppercase">
+                      PERFIL FINANCIERO
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${currentStatus?.bg} ${currentStatus?.textCol} ${currentStatus?.border}`}>
+                      <Eye className="w-3 h-3" />
+                      {currentStatus?.text}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[40px] md:text-[44px] font-extrabold text-[#191c1d] tracking-tight font-display leading-none">
+                    {report.puntajeSalud}%
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-[#767586] mt-1">
+                  Probabilidad de mejora financiera
                 </p>
-                <p className="text-base font-bold text-[#191c1d] font-mono-val mt-1">
-                  ${cat.monto.toLocaleString()}
+
+                <p className="text-xs font-bold text-[#944a00] mt-3 leading-relaxed">
+                  <span>{report.mensajeMotivador || '¡Vamos a mejorar tu salud financiera! 💪'}</span>
                 </p>
               </div>
 
-              <div className="mt-3">
-                {/* Progress bar */}
-                <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(100, Math.max(8, cat.porcentaje * 2))}%`,
-                      backgroundColor: cat.colorHex,
-                    }}
-                  />
-                </div>
-                <p className="text-[10px] font-bold text-[#767586] text-right mt-1 font-mono-val">
-                  {cat.porcentaje}%
-                </p>
+              {/* Mascot placement */}
+              <div className="self-end sm:self-center shrink-0 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center pointer-events-none transition-transform group-hover:scale-105">
+                <img
+                  src={MASCOTS.happyPotatoCoin}
+                  alt="Mascot Potato Coin"
+                  className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(253,147,61,0.25)]"
+                  referrerPolicy="no-referrer"
+                />
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+
+
+          </div>
+
+          {/* Distribución de Gastos (6 Cards Grid) */}
+          <div id="section-expense-distribution" className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-[#191c1d] font-display">
+                Distribución de Gastos
+              </h2>
+              <span className="text-xs text-[#767586] font-medium">
+                Mes actual
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              {report.distribucionCategorias.map((cat) => (
+                <div
+                  key={cat.categoria}
+                  id={`card-cat-${cat.categoria.toLowerCase()}`}
+                  className="bg-white rounded-xl p-4 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-[#6063ee]/30 transition-all"
+                >
+                  <div>
+                    <p className="text-xs font-semibold text-[#464554]">
+                      {cat.categoria}
+                    </p>
+                    <p className="text-base font-bold text-[#191c1d] font-mono-val mt-1">
+                      ${cat.monto.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="mt-3">
+                    {/* Progress bar */}
+                    <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(8, cat.porcentaje * 2))}%`,
+                          backgroundColor: cat.colorHex,
+                        }}
+                      />
+                    </div>
+                    <p className="text-[10px] font-bold text-[#767586] text-right mt-1 font-mono-val">
+                      {cat.porcentaje}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Empty State / Transactions List Section */}
-      <div 
+      <div
         id="section-transactions"
         className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.02)]"
       >
@@ -501,124 +508,129 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </form>
 
-            {/* Transactions list */}
             <div className="divide-y divide-[#f3f4f5] max-h-60 overflow-y-auto">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="py-2.5 flex items-center justify-between px-2 hover:bg-[#f8f9fa] rounded-lg transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-[#4648d4]" />
-                    <div>
-                      <p className="text-xs font-semibold text-[#191c1d]">{tx.description}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-medium text-[#4648d4] bg-[#e0e7ff]/70 px-1.5 py-0.5 rounded flex items-center gap-1">
-                          <Sparkles className="w-2.5 h-2.5" />
-                          {tx.category}
-                        </span>
-                        <span className="text-[10px] text-[#767586]">• {tx.date}</span>
-                        {tx.categorizationFailed && (
-                          <span className="text-[9px] font-bold text-[#ba1a1a] bg-[#ffdad6] px-1 rounded">
-                            Fallo Corregido
+              {transactions.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-xs font-semibold text-[#767586]">No tienes transacciones registradas.</p>
+                  <p className="text-[10px] text-[#767586] mt-1">Utiliza el formulario de arriba para agregar tus primeros gastos.</p>
+                </div>
+              ) : (
+                transactions.map((tx) => (
+                  <div key={tx.id} className="py-2.5 flex items-center justify-between px-2 hover:bg-[#f8f9fa] rounded-lg transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full bg-[#4648d4]" />
+                      <div>
+                        <p className="text-xs font-semibold text-[#191c1d]">{tx.descripcion}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-medium text-[#4648d4] bg-[#e0e7ff]/70 px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            {tx.categoria}
                           </span>
-                        )}
+                          <span className="text-[10px] text-[#767586]">• {tx.fecha}</span>
+                          {tx.categorizacionFallida && (
+                            <span className="text-[9px] font-bold text-[#ba1a1a] bg-[#ffdad6] px-1 rounded">
+                              Fallo Corregido
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-[#ba1a1a] font-mono-val">
+                        -${tx.monto.toLocaleString()}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveClick(tx.id)}
+                        className="text-[#767586] hover:text-[#ba1a1a] p-1 rounded transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-[#ba1a1a] font-mono-val">
-                      -${tx.amount.toLocaleString()}
-                    </span>
-                    <button
-                      onClick={() => onDeleteTransaction(tx.id)}
-                      className="text-[#767586] hover:text-[#ba1a1a] p-1 rounded transition-colors"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
       </div>
 
       {/* Recomendaciones del Experto */}
-      <div 
-        id="section-expert-recommendations"
-        className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-4"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[#fd933d] text-base">💡</span>
-            <h3 className="text-sm font-bold text-[#191c1d] font-display">
-              Recomendaciones del Experto
-            </h3>
-          </div>
-          <button 
-            onClick={() => onOpenAnalysisModal(report)}
-            className="text-xs font-semibold text-[#4648d4] hover:underline flex items-center gap-1"
-          >
-            <span>Ver reporte completo</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="space-y-2.5">
-          {recommendations.map((rec) => {
-            const isRed = rec.tipoEstado === 'danger' || rec.titulo.toLowerCase().includes('reduce');
-            return (
-              <div
-                key={rec.id}
-                id={`rec-item-${rec.id}`}
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
-                  isRed
-                    ? 'bg-[#ffdad6]/25 border-[#ffdad6] hover:border-[#ba1a1a]/40'
-                    : 'bg-[#ffdcc5]/20 border-[#ffdcc5] hover:border-[#fd933d]/40'
-                } ${rec.completada ? 'opacity-50 line-through' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleRecommendationComplete(rec.id)}
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                      rec.completada 
-                        ? 'bg-[#10b981] border-[#10b981] text-white' 
-                        : isRed ? 'border-[#ba1a1a]' : 'border-[#fd933d]'
-                    }`}
-                  >
-                    {rec.completada && <CheckCircle className="w-3 h-3" />}
-                  </button>
-
-                  <div>
-                    <h4 className="text-xs font-bold text-[#191c1d]">
-                      {rec.titulo}
-                    </h4>
-                    <p className="text-[11px] text-[#464554] mt-0.5">
-                      {rec.descripcion}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => onOpenAnalysisModal(report)}
-                  className={`text-xs font-bold hover:underline transition-colors shrink-0 ${
-                    isRed ? 'text-[#4648d4]' : 'text-[#4648d4]'
-                  }`}
-                >
-                  {rec.etiquetaAccion || 'Ver detalles'}
-                </button>
-              </div>
-            );
-          })}
-
-          {recommendations.length === 0 && (
-            <div className="p-3 bg-[#f8f9fa] rounded-xl border border-dashed border-[#e1e3e4] text-center">
-              <p className="text-xs text-[#767586] font-medium">
-                No hay recomendaciones nuevas en este momento.
-              </p>
+      {report && (
+        <div
+          id="section-expert-recommendations"
+          className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[#fd933d] text-base">💡</span>
+              <h3 className="text-sm font-bold text-[#191c1d] font-display">
+                Recomendaciones del Experto
+              </h3>
             </div>
-          )}
+            <button
+              onClick={() => onOpenAnalysisModal(report)}
+              className="text-xs font-semibold text-[#4648d4] hover:underline flex items-center gap-1"
+            >
+              <span>Ver reporte completo</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {recommendations.map((rec) => {
+              const isRed = rec.tipoEstado === 'danger' || rec.titulo.toLowerCase().includes('reduce');
+              return (
+                <div
+                  key={rec.id}
+                  id={`rec-item-${rec.id}`}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${isRed
+                      ? 'bg-[#ffdad6]/25 border-[#ffdad6] hover:border-[#ba1a1a]/40'
+                      : 'bg-[#ffdcc5]/20 border-[#ffdcc5] hover:border-[#fd933d]/40'
+                    } ${rec.completada ? 'opacity-50 line-through' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleRecommendationComplete(rec.id)}
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${rec.completada
+                          ? 'bg-[#10b981] border-[#10b981] text-white'
+                          : isRed ? 'border-[#ba1a1a]' : 'border-[#fd933d]'
+                        }`}
+                    >
+                      {rec.completada && <CheckCircle className="w-3 h-3" />}
+                    </button>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-[#191c1d]">
+                        {rec.titulo}
+                      </h4>
+                      <p className="text-[11px] text-[#464554] mt-0.5">
+                        {rec.descripcion}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => onOpenAnalysisModal(report)}
+                    className={`text-xs font-bold hover:underline transition-colors shrink-0 ${isRed ? 'text-[#4648d4]' : 'text-[#4648d4]'
+                      }`}
+                  >
+                    {rec.etiquetaAccion || 'Ver detalles'}
+                  </button>
+                </div>
+              );
+            })}
+
+            {recommendations.length === 0 && (
+              <div className="p-3 bg-[#f8f9fa] rounded-xl border border-dashed border-[#e1e3e4] text-center">
+                <p className="text-xs text-[#767586] font-medium">
+                  No hay recomendaciones nuevas en este momento.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -15,16 +15,17 @@ export type SavingsFrequency = 'Semanal' | 'Quincenal' | 'Mensual';
 export type FrecuenciaAhorro = SavingsFrequency;
 
 export interface UserProfile {
-  name: string;
+  id?: number;
+  nombre: string;
   email: string;
-  monthlyIncome: number;
-  totalDebts: number;
-  monthlyDebtPayment: number;
-  savingsFrequency: SavingsFrequency;
-  emergencyFund: number;
-  budgetGoal: number;
-  subscriptionsCount: number;
-  debtRatio: number;
+  ingresoMensual: number;
+  deudaTotal: number;
+  pagoMensualDeuda: number;
+  frecuenciaAhorro: SavingsFrequency;
+  fondoEmergencia: number;
+  objetivoPresupuesto: number;
+  suscripciones: number;
+  ratioDeuda: number;
 }
 
 export type ExpenseCategory = 
@@ -39,13 +40,13 @@ export type CategoriaGasto = ExpenseCategory;
 
 export interface Transaction {
   id: string;
-  description: string;
-  amount: number;
-  category: ExpenseCategory;
-  date: string;
-  type: 'gasto' | 'ingreso';
-  autoCategorized?: boolean;
-  categorizationFailed?: boolean;
+  descripcion: string;
+  monto: number;
+  categoria: ExpenseCategory;
+  fecha: string;
+  tipo: 'gasto' | 'ingreso';
+  autoCategorizado?: boolean;
+  categorizacionFallida?: boolean;
 }
 
 export interface Recomendacion {
@@ -74,11 +75,7 @@ export interface ReporteAnalisis {
   puntajeSalud: number;
   estadoSalud: EstadoSalud;
   mensajeMotivador: string;
-  logroSemanal: {
-    titulo: string;
-    porcentajeGanancia: number;
-    horasRestantes: number;
-  };
+
   distribucionCategorias: DistribucionCategoria[];
   recomendaciones: Recomendacion[];
   narrativaIa?: string;

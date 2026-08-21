@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
   AlertCircle, 
@@ -16,6 +17,7 @@ import { UserProfile, Transaction, ExpenseCategory, SavingsFrequency, ReporteAna
 import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
+import { manejarRespuestaError } from '../utils/apiErrors';
 
 interface NewAnalysisViewProps {
   userProfile: UserProfile;
@@ -28,17 +30,31 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   initialTransactions,
   onAnalysisComplete,
 }) => {
+  const navigate = useNavigate();
+
   // Base Inputs State
-  const [ingresoMensual, setIngresoMensual] = useState(userProfile.ingresoMensual ? String(userProfile.ingresoMensual) : '2500000');
-  const [deudaTotal, setDeudaTotal] = useState(userProfile.deudaTotal ? String(userProfile.deudaTotal) : '875000');
-  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>(userProfile.frecuenciaAhorro || 'Mensual');
+  const [ingresoMensual, setIngresoMensual] = useState('');
+  const [deudaTotal, setDeudaTotal] = useState('');
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>('Mensual');
 
   // Advanced Inputs State
-  const [objetivoPresupuesto, setObjetivoPresupuesto] = useState(userProfile.objetivoPresupuesto ? String(userProfile.objetivoPresupuesto) : '3000000');
-  const [pagoMensualDeuda, setPagoMensualDeuda] = useState(userProfile.pagoMensualDeuda ? String(userProfile.pagoMensualDeuda) : '350000');
-  const [serviciosSuscripcion, setServiciosSuscripcion] = useState(userProfile.serviciosSuscripcion ? String(userProfile.serviciosSuscripcion) : '3');
-  const [fondoEmergencia, setFondoEmergencia] = useState(userProfile.fondoEmergencia ? String(userProfile.fondoEmergencia) : '1500000');
-  const [montoInversion, setMontoInversion] = useState('0');
+  const [objetivoPresupuesto, setObjetivoPresupuesto] = useState('');
+  const [pagoMensualDeuda, setPagoMensualDeuda] = useState('');
+  const [serviciosSuscripcion, setServiciosSuscripcion] = useState('');
+  const [fondoEmergencia, setFondoEmergencia] = useState('');
+  const [montoInversion, setMontoInversion] = useState('');
+
+  // Inicializar con datos del perfil (ej. provenientes del Onboarding o análisis previo)
+  React.useEffect(() => {
+    setIngresoMensual(userProfile.ingresoMensual ? String(userProfile.ingresoMensual) : '');
+    setDeudaTotal(userProfile.deudaTotal ? String(userProfile.deudaTotal) : '');
+    setFrecuenciaAhorro(userProfile.frecuenciaAhorro || 'Mensual');
+    setObjetivoPresupuesto(userProfile.objetivoPresupuesto ? String(userProfile.objetivoPresupuesto) : '');
+    setPagoMensualDeuda(userProfile.pagoMensualDeuda ? String(userProfile.pagoMensualDeuda) : '');
+    setServiciosSuscripcion(userProfile.suscripciones ? String(userProfile.suscripciones) : '');
+    setFondoEmergencia(userProfile.fondoEmergencia ? String(userProfile.fondoEmergencia) : '');
+    setMontoInversion('');
+  }, [userProfile]);
 
   // Tab State
   const [modoIngreso, setModoIngreso] = useState<'manual' | 'csv'>('manual');
@@ -55,43 +71,72 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   const [nombreArchivoCsv, setNombreArchivoCsv] = useState<string | null>(null);
 
   // Loading State
+  // Loading State
   const [estaAnalizando, setEstaAnalizando] = useState(false);
   const [errorAnalisis, setErrorAnalisis] = useState<string | null>(null);
+  const [estaClasificando, setEstaClasificando] = useState(false);
 
   const handleDescChange = (text: string) => {
     setDescTx(text);
-    if (!sobrescribirTxManual) {
-      const res = autoCategorizeDescription(text);
-      setCategoriaTx(res.category);
-      if (text.trim().length > 2 && (res.failed || res.category === 'Otros')) {
-        setFalloModeloTx(true);
-      } else {
-        setFalloModeloTx(false);
-      }
-    }
   };
 
-  const handleAddTx = (e?: React.FormEvent) => {
+  const handleAddTx = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!descTx.trim() || !montoTx) return;
 
     let finalCategory = categoriaTx;
     let failed = falloModeloTx;
+
     if (!sobrescribirTxManual) {
-      const autoRes = autoCategorizeDescription(descTx);
-      finalCategory = autoRes.category;
-      failed = autoRes.failed;
+      setEstaClasificando(true);
+      try {
+        const payload = {
+          descripcion: descTx.trim(),
+          valor: parsePositiveFloat(montoTx, 0),
+          fecha_transaccion: new Date().toISOString()
+        };
+        const res = await fetch('/api/v1/finanzas/clasificar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          // Map backend category to ExpenseCategory
+          if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
+            const returnedCat = Object.keys(data.resumen_gastos)[0];
+            const validCategories: ExpenseCategory[] = ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'];
+            if (validCategories.includes(returnedCat as ExpenseCategory)) {
+              finalCategory = returnedCat as ExpenseCategory;
+            } else {
+              // Map unknown categories to 'Otros'
+              finalCategory = 'Otros';
+            }
+            failed = false;
+          } else {
+            failed = true;
+          }
+        } else {
+          failed = true;
+        }
+      } catch (err) {
+        console.error('Error clasificando transacción', err);
+        failed = true;
+      } finally {
+        setEstaClasificando(false);
+      }
     }
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
-      description: descTx.trim(),
-      amount: parsePositiveFloat(montoTx, 0),
-      category: finalCategory,
-      date: new Date().toISOString().split('T')[0],
-      type: 'gasto',
-      autoCategorized: !sobrescribirTxManual,
-      categorizationFailed: failed,
+      descripcion: descTx.trim(),
+      monto: parsePositiveFloat(montoTx, 0),
+      categoria: finalCategory,
+      fecha: new Date().toISOString().split('T')[0],
+      tipo: 'gasto',
+      autoCategorizado: !sobrescribirTxManual,
+      categorizacionFallida: failed,
     };
 
     setListaTransacciones([newTx, ...listaTransacciones]);
@@ -102,7 +147,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   };
 
   const handleUpdateTxCategory = (id: string, newCat: ExpenseCategory) => {
-    setListaTransacciones(prev => prev.map(t => t.id === id ? { ...t, category: newCat, categorizationFailed: true } : t));
+    setListaTransacciones(prev => prev.map(t => t.id === id ? { ...t, categoria: newCat, categorizacionFallida: true } : t));
   };
 
   const handleRemoveTx = (id: string) => {
@@ -113,7 +158,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setNombreArchivoCsv(file.name);
+    setNombreArchivoCsv(file.nombre);
     // Parse sample CSV data
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -130,11 +175,11 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
           const cat = (parts[2]?.trim() as ExpenseCategory) || 'Alimentación';
           parsed.push({
             id: `csv-${Date.now()}-${idx}`,
-            description: desc,
-            amount: amt,
-            category: ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'].includes(cat) ? cat : 'Otros',
-            date: new Date().toISOString().split('T')[0],
-            type: 'gasto',
+            descripcion: desc,
+            monto: amt,
+            categoria: ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'].includes(cat) ? cat : 'Otros',
+            fecha: new Date().toISOString().split('T')[0],
+            tipo: 'gasto',
           });
         }
       });
@@ -142,13 +187,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
       if (parsed.length > 0) {
         setListaTransacciones((prev) => [...parsed, ...prev]);
       } else {
-        // Fallback sample import
-        setListaTransacciones((prev) => [
-          { id: `csv-1`, description: 'Compras Supermercado', amount: 350, category: 'Alimentación', date: '2024-10-15', type: 'gasto' },
-          { id: `csv-2`, description: 'Combustible', amount: 120, category: 'Transporte', date: '2024-10-14', type: 'gasto' },
-          { id: `csv-3`, description: 'Servicio Streaming', amount: 25, category: 'Entretenimiento', date: '2024-10-13', type: 'gasto' },
-          ...prev,
-        ]);
+        alert('El archivo CSV no contiene transacciones válidas.');
       }
     };
     reader.readAsText(file);
@@ -156,6 +195,11 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
 
   const manejarGenerarAnalisis = async () => {
     if (listaTransacciones.length === 0) return;
+
+    if (!objetivoPresupuesto || !fondoEmergencia || !montoInversion || !pagoMensualDeuda || !serviciosSuscripcion) {
+      setErrorAnalisis('Por favor, completa todos los Indicadores Financieros Avanzados.');
+      return;
+    }
 
     setEstaAnalizando(true);
     setErrorAnalisis(null);
@@ -176,107 +220,71 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
         servicios_suscripción: parseInt(serviciosSuscripcion, 10) || 0,
         fondo_emergencia: parseFloat(fondoEmergencia) || 0,
         transacciones: listaTransacciones.map(t => ({
-          descripcion: t.description,
-          valor: t.amount,
-          fecha_transaccion: t.date + "T00:00:00.000Z"
+          descripcion: t.descripcion,
+          valor: t.monto,
+          fecha_transaccion: t.fecha + "T00:00:00.000Z"
         }))
       };
 
-      const res = await fetch('http://localhost:8080/api/v1/finanzas/analizar', {
+      const res = await fetch('/api/v1/finanzas/analizar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        throw new Error('Error al conectar con el servidor de análisis');
+        const errorData = await manejarRespuestaError(res);
+        throw new Error(errorData.general);
       }
 
-      const data = await res.json();
-      if (data.datos_analisis) {
-        const da = data.datos_analisis;
-        const report: ReporteAnalisis = {
-          id: `an-${Date.now()}`,
-          fecha: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
-          marcaTiempo: Date.now(),
-          totalGastado: da.total_gastado,
-          puntajeSalud: da.puntaje_salud,
-          estadoSalud: da.estado_salud,
-          mensajeMotivador: da.mensaje_motivador,
-          logroSemanal: da.logro_semanal ? {
-            titulo: da.logro_semanal.titulo,
-            porcentajeGanancia: da.logro_semanal.porcentaje_ganancia,
-            horasRestantes: da.logro_semanal.horas_restantes,
-          } : undefined,
-          distribucionCategorias: da.distribucion_categorias.map((c: any) => ({
-            categoria: c.categoria,
-            monto: c.monto,
-            porcentaje: c.porcentaje,
-            colorHex: '#4648d4' // Default color since backend doesn't provide it
-          })),
-          recomendaciones: da.recomendaciones.map((r: any, idx: number) => ({
-            id: `rec-${idx}`,
-            titulo: r.titulo,
-            descripcion: r.descripcion,
-            categoria: r.categoria,
-            impacto: 'Calculado por motor', // Default string or mapped if provided
-            etiquetaAccion: 'Ver detalles',
-            tipoEstado: 'warning',
-          })),
+      const data = await res.json().catch(() => ({}));
+      
+      // Calculate totalGastado
+      const resumenGastos = data.resumen_gastos || {};
+      let totalGastado = 0;
+      Object.values(resumenGastos).forEach((val: any) => {
+        totalGastado += Number(val) || 0;
+      });
+
+      // Calculate distribucionCategorias
+      const distribucionCategorias = Object.entries(resumenGastos).map(([categoria, monto]) => {
+        const montoNum = Number(monto) || 0;
+        const porcentaje = totalGastado > 0 ? (montoNum / totalGastado) * 100 : 0;
+        return {
+          categoria: categoria as any,
+          monto: montoNum,
+          porcentaje: Math.round(porcentaje),
+          colorHex: '#4648d4'
         };
-        onAnalysisComplete(report);
-      }
+      });
+
+      const recsOriginales = Array.isArray(data.recomendaciones) ? data.recomendaciones : [];
+      const recomendaciones = recsOriginales.map((texto: string, idx: number) => ({
+        id: `rec-${idx}`,
+        titulo: `Recomendación ${idx + 1}`,
+        descripcion: texto,
+        categoria: 'General',
+        impacto: 'Calculado por motor',
+        etiquetaAccion: 'Ver detalles',
+        tipoEstado: 'warning' as const
+      }));
+
+      const report: ReporteAnalisis = {
+        id: `an-${Date.now()}`,
+        fecha: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+        marcaTiempo: Date.now(),
+        totalGastado: totalGastado,
+        puntajeSalud: Math.round((data.probabilidad || 0) * 100),
+        estadoSalud: (data.perfil_financiero || 'Observación') as any,
+        mensajeMotivador: '¡Aquí tienes tu análisis detallado!',
+        distribucionCategorias,
+        recomendaciones
+      };
+      
+      onAnalysisComplete(report);
     } catch (err: any) {
       console.error(err);
-      setErrorAnalisis('Ocurrió un inconveniente al procesar. Reintentando con el motor analítico local...');
-      // Fallback generate report
-      setTimeout(() => {
-        const totalExp = listaTransacciones.reduce((acc, t) => acc + t.amount, 0);
-        const fallbackReport: ReporteAnalisis = {
-          id: `an-${Date.now()}`,
-          fecha: '15 Oct, 2024',
-          marcaTiempo: Date.now(),
-          totalGastado: totalExp,
-          puntajeSalud: 86,
-          estadoSalud: 'Saludable',
-          mensajeMotivador: '¡Excelente progreso! Tu balance muestra un camino firme hacia tus metas de ahorro.',
-          logroSemanal: {
-            titulo: '¡Ahorraste 15% más que la semana pasada! 🎉',
-            porcentajeGanancia: 15,
-            horasRestantes: 48,
-          },
-          distribucionCategorias: [
-            { categoria: 'Vivienda', monto: 1200, porcentaje: 54.8, colorHex: '#4648d4' },
-            { categoria: 'Alimentación', monto: 420, porcentaje: 19.2, colorHex: '#fd933d' },
-            { categoria: 'Transporte', monto: 300, porcentaje: 13.7, colorHex: '#712ae2' },
-            { categoria: 'Servicios', monto: 150, porcentaje: 6.8, colorHex: '#38bdf8' },
-            { categoria: 'Salud', monto: 80, porcentaje: 3.7, colorHex: '#10b981' },
-            { categoria: 'Entretenimiento', monto: 40, porcentaje: 1.8, colorHex: '#ef4444' },
-          ],
-          recomendaciones: [
-            {
-              id: 'rec-f1',
-              titulo: 'Reduce entretenimiento',
-              descripcion: 'Monitorear gastos recurrentes de streaming',
-              categoria: 'Entretenimiento',
-              impacto: 'Ahorra $40/mes',
-              etiquetaAccion: 'Ver detalles',
-              tipoEstado: 'danger',
-            },
-            {
-              id: 'rec-f2',
-              titulo: 'Aumenta ahorro',
-              descripcion: 'Reserva +200 pesos mensuales',
-              categoria: 'Ahorro',
-              impacto: '+$2,400 al año',
-              etiquetaAccion: 'Configurar',
-              tipoEstado: 'warning',
-            },
-          ],
-        };
-        setEstaAnalizando(false);
-        onAnalysisComplete(fallbackReport);
-      }, 1000);
+      setErrorAnalisis(err.message || 'Error de conexión. Intenta nuevamente.');
     } finally {
       setEstaAnalizando(false);
     }
@@ -319,7 +327,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   value={ingresoMensual}
                   onKeyDown={preventNegativeKeys}
                   onChange={(e) => setIngresoMensual(sanitizePositiveNumber(e.target.value))}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4]"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -335,7 +343,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   value={deudaTotal}
                   onKeyDown={preventNegativeKeys}
                   onChange={(e) => setDeudaTotal(sanitizePositiveNumber(e.target.value))}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4]"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -347,7 +355,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   <select
                     value={frecuenciaAhorro}
                     onChange={(e) => setFrecuenciaAhorro(e.target.value as SavingsFrequency)}
-                    className="w-full appearance-none px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-8"
+                    className="w-full appearance-none px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-8 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="Mensual">Mensual</option>
                     <option value="Quincenal">Quincenal</option>
@@ -374,6 +382,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   type="number"
                   min="0"
                   step="any"
+                  required
                   placeholder="Ej. 3000000"
                   value={objetivoPresupuesto}
                   onKeyDown={preventNegativeKeys}
@@ -390,6 +399,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   type="number"
                   min="0"
                   step="any"
+                  required
                   placeholder="Ej. 350000"
                   value={pagoMensualDeuda}
                   onKeyDown={preventNegativeKeys}
@@ -406,6 +416,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   type="number"
                   min="0"
                   step="1"
+                  required
                   placeholder="Ej. 3"
                   value={serviciosSuscripcion}
                   onKeyDown={preventNegativeKeys}
@@ -424,6 +435,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   type="number"
                   min="0"
                   step="any"
+                  required
                   placeholder="Ej. 1500000"
                   value={fondoEmergencia}
                   onKeyDown={preventNegativeKeys}
@@ -440,6 +452,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   type="number"
                   min="0"
                   step="any"
+                  required
                   placeholder="Ej. 500000"
                   value={montoInversion}
                   onKeyDown={preventNegativeKeys}
@@ -521,9 +534,14 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                     <button
                       type="submit"
                       id="btn-add-tx-plus"
-                      className="w-full py-2 bg-[#fd933d] hover:bg-[#e07d2c] text-white rounded-xl font-bold text-sm flex items-center justify-center shadow-sm active:scale-95 transition-all"
+                      disabled={estaClasificando}
+                      className="w-full py-2 bg-[#fd933d] hover:bg-[#e07d2c] text-white rounded-xl font-bold text-sm flex items-center justify-center shadow-sm active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      <Plus className="w-5 h-5 stroke-[2.5]" />
+                      {estaClasificando ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Plus className="w-5 h-5 stroke-[2.5]" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -596,13 +614,13 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                         <div className="flex items-center gap-2.5">
                           <Coins className="w-3.5 h-3.5 text-[#4648d4]" />
                           <div>
-                            <p className="text-xs font-semibold text-[#191c1d]">{tx.description}</p>
+                            <p className="text-xs font-semibold text-[#191c1d]">{tx.descripcion}</p>
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-[#4648d4] bg-[#e0e7ff] px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
                                 <Sparkles className="w-2.5 h-2.5" />
-                                {tx.category}
+                                {tx.categoria}
                               </span>
-                              {tx.categorizationFailed && (
+                              {tx.categorizacionFallida && (
                                 <span className="text-[9px] font-bold text-[#ba1a1a] bg-[#ffdad6] px-1 rounded">
                                   Manual (Fallo IA)
                                 </span>
@@ -612,7 +630,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-bold text-[#191c1d] font-mono-val">
-                            ${tx.amount.toLocaleString()}
+                            ${tx.monto.toLocaleString()}
                           </span>
                           <button
                             onClick={() => handleRemoveTx(tx.id)}

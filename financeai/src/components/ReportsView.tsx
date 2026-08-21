@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Download, 
-  Banknote, 
-  CreditCard, 
-  RotateCw, 
-  MoreHorizontal, 
-  TrendingUp, 
-  Target, 
-  Tv, 
-  ShieldAlert, 
+import {
+  Download,
+  Banknote,
+  CreditCard,
+  RotateCw,
+  MoreHorizontal,
+  TrendingUp,
+  Target,
+  Tv,
+  ShieldAlert,
   ShieldCheck,
   CheckCircle2,
   FileText
@@ -69,7 +69,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Top 3 KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5" id="reports-top-kpis">
         {/* Card 1: Ingreso Mensual */}
-        <div 
+        <div
           id="kpi-ingreso-mensual"
           className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
         >
@@ -84,18 +84,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="my-4">
             <p className="text-[28px] font-extrabold text-[#191c1d] tracking-tight font-mono-val leading-none">
-              ${(userProfile.monthlyIncome || 5200).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${(userProfile.ingresoMensual || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
 
           <div className="flex items-center gap-1 text-xs font-bold text-[#fd933d]">
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>+4.2% vs mes anterior</span>
+            <span>$</span>
           </div>
         </div>
 
         {/* Card 2: Nivel de Endeudamiento */}
-        <div 
+        <div
           id="kpi-nivel-endeudamiento"
           className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
         >
@@ -110,7 +110,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="my-3">
             <p className="text-[28px] font-extrabold text-[#191c1d] tracking-tight font-mono-val leading-none">
-              {userProfile.debtRatio || 35}%
+              {userProfile.ratioDeuda || 0}%
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#fd933d] rounded-full transition-all duration-500"
-                style={{ width: `${userProfile.debtRatio || 35}%` }}
+                style={{ width: `${userProfile.ratioDeuda || 0}%` }}
               />
             </div>
             <div className="flex justify-between text-[11px] font-medium text-[#767586] mt-1.5">
@@ -130,7 +130,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
 
         {/* Card 3: Frecuencia de Ahorro */}
-        <div 
+        <div
           id="kpi-frecuencia-ahorro"
           className="bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
         >
@@ -145,7 +145,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="my-4">
             <p className="text-[26px] font-bold text-[#191c1d] tracking-tight font-mono-val leading-none">
-              {userProfile.savingsFrequency || 'Mensual'}
+              {userProfile.frecuenciaAhorro || 'Mensual'}
             </p>
           </div>
 
@@ -160,7 +160,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Main Grid: Distribución de Gastos (Left) + 4 Stats Cards (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5" id="reports-main-analytics">
         {/* Left Column: Distribución de Gastos Card (8 cols) */}
-        <div 
+        <div
           id="card-reports-expense-distribution"
           className="lg:col-span-8 bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
         >
@@ -202,7 +202,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   report.distribucionCategorias.map((cat, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: cat.colorHex}} />
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.colorHex }} />
                         <span className="text-xs font-medium text-[#464554]">{cat.categoria}</span>
                       </div>
                       <span className="text-xs font-bold text-[#191c1d] font-mono-val">{cat.porcentaje}%</span>
@@ -228,7 +228,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Right Column: 4 Compact Metrics Cards in 2x2 Grid (4 cols) */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-4" id="reports-secondary-kpis">
           {/* Card 1: Ahorro Total */}
-          <div 
+          <div
             id="metric-ahorro-total"
             className="bg-white rounded-2xl p-5 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
           >
@@ -236,7 +236,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Ahorro Total
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(report?.totalGastado || 12450).toLocaleString('en-US')}
+              ${(report?.totalGastado || 0).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#4648d4]">
               <TrendingUp className="w-4 h-4 stroke-[2]" />
@@ -244,7 +244,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
 
           {/* Card 2: Obj. Presupuesto */}
-          <div 
+          <div
             id="metric-obj-presupuesto"
             className="bg-white rounded-2xl p-5 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
           >
@@ -252,7 +252,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Obj. Presupuesto
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(userProfile.budgetGoal || 3000000).toLocaleString('en-US')}
+              ${(userProfile.objetivoPresupuesto || 0).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <Target className="w-4 h-4 stroke-[2]" />
@@ -260,7 +260,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
 
           {/* Card 3: Suscripciones */}
-          <div 
+          <div
             id="metric-suscripciones"
             className="bg-white rounded-2xl p-5 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
           >
@@ -268,7 +268,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Suscripciones
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              {userProfile.subscriptionsCount || 8} Activas
+              {userProfile.suscripciones || 0} Activas
             </p>
             <div className="flex justify-end text-[#fd933d]">
               <Tv className="w-4 h-4 stroke-[2]" />
@@ -276,7 +276,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
 
           {/* Card 4: Fondo Emergencia */}
-          <div 
+          <div
             id="metric-fondo-emergencia"
             className="bg-white rounded-2xl p-5 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
           >
@@ -284,7 +284,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Fondo Emergencia
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(userProfile.emergencyFund || 1500000).toLocaleString('en-US')}
+              ${(userProfile.fondoEmergencia || 0).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <ShieldCheck className="w-4 h-4 stroke-[2]" />

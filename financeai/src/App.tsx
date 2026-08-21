@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, BarChart3, History, User, Plus } from 'lucide-react';
+import { LayoutGrid, BarChart3, History, User, Plus, AlertCircle, X } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { TopNavbar } from './components/TopNavbar';
 import { DashboardView } from './components/DashboardView';
@@ -8,347 +8,296 @@ import { SettingsProfileView } from './components/SettingsProfileView';
 import { ReportsView } from './components/ReportsView';
 import { HistoryView } from './components/HistoryView';
 import { LoginModal } from './components/LoginModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { AnalysisDetailModal } from './components/AnalysisDetailModal';
 import { Footer } from './components/Footer';
-import { NavigationTab, TopSubTab, UserProfile, Transaction, ReporteAnalisis } from './types';
+import { UserProfile, Transaction, ReporteAnalisis } from './types';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { manejarRespuestaError } from './utils/apiErrors';
 
-export default function App() {
-  // Navigation State
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('tablero');
-  const [activeSubTab, setActiveSubTab] = useState<TopSubTab>('Análisis');
+function MainApp() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const path = location.pathname;
+
+  let currentTab = 'tablero';
+  if (path === '/reportes') currentTab = 'reportes';
+  else if (path === '/historial') currentTab = 'historial';
+  else if (path === '/perfil' || path === '/configuracion') currentTab = 'perfil';
+  else if (path === '/analisis/nuevo') currentTab = 'nuevo-analisis';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
 
   // Modals State
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeReportModal, setActiveReportModal] = useState<ReporteAnalisis | null>(null);
 
+  const [cargandoAuth, setCargandoAuth] = useState(true);
+
   // User Profile State
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Alex Doe',
-    email: 'alex@example.com',
-    monthlyIncome: 5200,
-    totalDebts: 875000,
-    monthlyDebtPayment: 350000,
-    savingsFrequency: 'Mensual',
-    emergencyFund: 1500000,
-    budgetGoal: 3000000,
-    subscriptionsCount: 3,
-    debtRatio: 35,
-  });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Transactions State
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 'tx-1', description: 'Alquiler de departamento', amount: 1200, category: 'Vivienda', date: '2024-10-14', type: 'gasto' },
-    { id: 'tx-2', description: 'Supermercado semanal', amount: 420, category: 'Alimentación', date: '2024-10-13', type: 'gasto' },
-    { id: 'tx-3', description: 'Gasolina y transporte público', amount: 300, category: 'Transporte', date: '2024-10-12', type: 'gasto' },
-    { id: 'tx-4', description: 'Luz, agua e internet fibra', amount: 150, category: 'Servicios', date: '2024-10-10', type: 'gasto' },
-    { id: 'tx-5', description: 'Farmacia y vitaminas', amount: 80, category: 'Salud', date: '2024-10-09', type: 'gasto' },
-    { id: 'tx-6', description: 'Suscripciones streaming y cine', amount: 40, category: 'Entretenimiento', date: '2024-10-08', type: 'gasto' },
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Current Report State
-  const [currentReport, setCurrentReport] = useState<ReporteAnalisis>({
-    id: 'an-init',
-    fecha: '15 Oct, 2024',
-    marcaTiempo: Date.now(),
-    totalGastado: 2190,
-    puntajeSalud: 82,
-    estadoSalud: 'En observación',
-    mensajeMotivador: '¡Vamos a mejorar tu salud financiera! 💪',
-    logroSemanal: {
-      titulo: '¡Ahorraste 15% más que la semana pasada! 🎉',
-      porcentajeGanancia: 15,
-      horasRestantes: 48,
-    },
-    distribucionCategorias: [
-      { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
-      { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
-      { categoria: 'Transporte', monto: 300, porcentaje: 6.7, colorHex: '#712ae2' },
-      { categoria: 'Servicios', monto: 150, porcentaje: 3.3, colorHex: '#38bdf8' },
-      { categoria: 'Salud', monto: 80, porcentaje: 1.8, colorHex: '#10b981' },
-      { categoria: 'Entretenimiento', monto: 40, porcentaje: 0.9, colorHex: '#ef4444' },
-    ],
-    recomendaciones: [
-      {
-        id: 'rec-1',
-        titulo: 'Reduce entretenimiento',
-        descripcion: 'Monitorear gastos recurrentes de streaming',
-        categoria: 'Entretenimiento',
-        impacto: 'Ahorra $40/mes',
-        etiquetaAccion: 'Ver detalles',
-        tipoEstado: 'danger',
-      },
-      {
-        id: 'rec-2',
-        titulo: 'Aumenta ahorro',
-        descripcion: 'Reserva +200 pesos mensuales',
-        categoria: 'Ahorro',
-        impacto: '+$2,400 al año',
-        etiquetaAccion: 'Configurar',
-        tipoEstado: 'warning',
-      },
-    ],
-  });
+  const [currentReport, setCurrentReport] = useState<ReporteAnalisis | null>(null);
 
   // History State
-  const [analysisHistory, setAnalysisHistory] = useState<ReporteAnalisis[]>([
-    {
-      id: 'an-1',
-      fecha: '24 Oct, 2023',
-      marcaTiempo: 1698144000000,
-      totalGastado: 12450,
-      puntajeSalud: 92,
-      estadoSalud: 'Saludable',
-      mensajeMotivador: '¡Excelente disciplina! Has mantenido tus gastos esenciales controlados.',
-      logroSemanal: {
-        titulo: '¡Ahorraste 18% más que el mes anterior!',
-        porcentajeGanancia: 18,
-        horasRestantes: 36,
-      },
-      distribucionCategorias: [
-        { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
-        { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
-        { categoria: 'Transporte', monto: 300, porcentaje: 6.7, colorHex: '#712ae2' },
-      ],
-      recomendaciones: [
-        {
-          id: 'rec-1',
-          titulo: 'Mantén el hábito de ahorro',
-          descripcion: 'Aporta consistentemente a tu fondo para crear un colchón de seguridad.',
-          categoria: 'Ahorro',
-          impacto: '+$4,800 a largo plazo',
-          etiquetaAccion: 'Ver reportes',
-          tipoEstado: 'success',
-        },
-      ],
-    },
-    {
-      id: 'an-2',
-      fecha: '15 Sep, 2023',
-      marcaTiempo: 1694774400000,
-      totalGastado: 11200,
-      puntajeSalud: 82,
-      estadoSalud: 'En observación',
-      mensajeMotivador: '¡Vamos a mejorar tu salud financiera! Pequeños ajustes marcarán la diferencia.',
-      logroSemanal: {
-        titulo: '¡Ahorraste 15% más que la semana pasada!',
-        porcentajeGanancia: 15,
-        horasRestantes: 48,
-      },
-      distribucionCategorias: [
-        { categoria: 'Vivienda', monto: 1200, porcentaje: 26.7, colorHex: '#4648d4' },
-        { categoria: 'Alimentación', monto: 420, porcentaje: 9.3, colorHex: '#fd933d' },
-      ],
-      recomendaciones: [
-        {
-          id: 'rec-2',
-          titulo: 'Reduce entretenimiento',
-          descripcion: 'Monitorear gastos recurrentes de streaming',
-          categoria: 'Entretenimiento',
-          impacto: 'Ahorra $40/mes',
-          etiquetaAccion: 'Ver detalles',
-          tipoEstado: 'danger',
-        },
-      ],
-    },
-    {
-      id: 'an-3',
-      fecha: '02 Ago, 2023',
-      marcaTiempo: 1690972800000,
-      totalGastado: 14800,
-      puntajeSalud: 68,
-      estadoSalud: 'Riesgo',
-      mensajeMotivador: 'No te desanimes, ¡cada paso cuenta! Ajustando el plan volverás a la senda verde.',
-      logroSemanal: {
-        titulo: 'Fondo de emergencia iniciado con éxito',
-        porcentajeGanancia: 8,
-        horasRestantes: 72,
-      },
-      distribucionCategorias: [
-        { categoria: 'Vivienda', monto: 1200, porcentaje: 25.0, colorHex: '#4648d4' },
-      ],
-      recomendaciones: [
-        {
-          id: 'rec-4',
-          titulo: 'Refinancia deudas',
-          descripcion: 'Consolida tus pasivos para reducir el costo financiero.',
-          categoria: 'Deudas',
-          impacto: 'Reduce 12% intereses',
-          etiquetaAccion: 'Plan de pago',
-          tipoEstado: 'danger',
-        },
-      ],
-    },
-  ]);
+  const [analysisHistory, setAnalysisHistory] = useState<ReporteAnalisis[]>([]);
 
   // Initial Data Fetch
   useEffect(() => {
-    fetch('/api/profile')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setUserProfile(data);
-      })
-      .catch(() => {});
+    const fetchConManejo = async (url: string) => {
+      const res = await fetch(url);
+      if (res.status === 401) {
+        setUserProfile(null);
+        setTransactions([]);
+        setAnalysisHistory([]);
+        throw new Error('401_UNAUTHORIZED');
+      }
+      if (!res.ok) {
+        const errorInfo = await manejarRespuestaError(res);
+        throw new Error(errorInfo.general);
+      }
+      return res.json();
+    };
 
-    fetch('/api/transactions')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && Array.isArray(data)) setTransactions(data);
-      })
-      .catch(() => {});
-
-    fetch('/api/history')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+    Promise.all([
+      fetchConManejo('/api/profile').then(data => { if (data) setUserProfile(data) }),
+      fetchConManejo('/api/transactions').then(data => { if (data && Array.isArray(data)) setTransactions(data) }),
+      fetchConManejo('/api/v1/finanzas/historial').then(data => {
         if (data && Array.isArray(data) && data.length > 0) {
           setAnalysisHistory(data);
           setCurrentReport(data[0]);
         }
       })
-      .catch(() => {});
+    ]).then(() => {
+      setCargandoAuth(false);
+    }).catch(e => {
+      if (e.message !== '401_UNAUTHORIZED') {
+         setErrorGlobal(e.message || 'Error de conexión al cargar datos iniciales');
+      }
+      setCargandoAuth(false);
+    });
   }, []);
 
   // Handlers
-  const handleAddTransaction = (newTx: Partial<Transaction>) => {
+  const handleAddTransaction = async (newTx: Partial<Transaction>) => {
     const tx: Transaction = {
       id: `tx-${Date.now()}`,
-      description: newTx.description || 'Gasto manual',
-      amount: newTx.amount || 0,
-      category: newTx.category || 'Otros',
-      date: new Date().toISOString().split('T')[0],
-      type: newTx.type || 'gasto',
-      autoCategorized: newTx.autoCategorized !== undefined ? newTx.autoCategorized : true,
-      categorizationFailed: newTx.categorizationFailed || false,
+      descripcion: newTx.descripcion || 'Gasto manual',
+      monto: newTx.monto || 0,
+      categoria: newTx.categoria || 'Otros',
+      fecha: new Date().toISOString().split('T')[0],
+      tipo: newTx.tipo || 'gasto',
+      autoCategorizado: newTx.autoCategorizado !== undefined ? newTx.autoCategorizado : true,
+      categorizacionFallida: newTx.categorizacionFallida || false,
     };
 
     setTransactions([tx, ...transactions]);
 
-    fetch('/api/transactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tx),
-    }).catch(() => {});
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tx),
+      });
+      if (!res.ok) {
+        const err = await manejarRespuestaError(res);
+        throw new Error(err.general);
+      }
+    } catch (e: any) {
+      setErrorGlobal(e.message || 'Error al agregar transacción');
+      setTransactions((prev) => prev.filter(t => t.id !== tx.id));
+      throw e;
+    }
   };
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteTransaction = async (id: string) => {
+    const txToDelete = transactions.find(t => t.id === id);
     setTransactions(transactions.filter((t) => t.id !== id));
-    fetch(`/api/transactions/${id}`, { method: 'DELETE' }).catch(() => {});
+    
+    try {
+      const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await manejarRespuestaError(res);
+        throw new Error(err.general);
+      }
+    } catch (e: any) {
+      setErrorGlobal(e.message || 'Error al eliminar transacción');
+      if (txToDelete) {
+        setTransactions(prev => [...prev, txToDelete].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+      }
+      throw e;
+    }
   };
 
-  const handleUpdateProfile = (updated: Partial<UserProfile>) => {
-    setUserProfile((prev) => ({ ...prev, ...updated }));
-    fetch('/api/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updated),
-    }).catch(() => {});
+  const handleUpdateProfile = async (updated: Partial<UserProfile>, localOnly: boolean = false) => {
+    if (!userProfile) return;
+    const oldProfile = userProfile;
+    setUserProfile((prev) => prev ? ({ ...prev, ...updated }) : prev);
+    
+    if (localOnly) return;
+    
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+      if (!res.ok) {
+        const err = await manejarRespuestaError(res);
+        throw new Error(err.general);
+      }
+    } catch (e: any) {
+      setErrorGlobal(e.message || 'Error al actualizar el perfil');
+      setUserProfile(oldProfile);
+      throw e;
+    }
   };
 
   const handleNewAnalysisComplete = (newReport: ReporteAnalisis) => {
     setCurrentReport(newReport);
     setAnalysisHistory([newReport, ...analysisHistory]);
-    setCurrentTab('tablero');
-    setActiveSubTab('Análisis');
+    navigate('/');
     setActiveReportModal(newReport);
   };
 
-  const handleLoginSuccess = (name: string, email: string) => {
-    setUserProfile((prev) => ({ ...prev, name, email }));
+  const handleLoginSuccess = (nombre: string, email: string, id?: number) => {
+    setUserProfile((prev) => prev ? ({ ...prev, nombre, email, id }) : { id, nombre, email, ingresoMensual: 0, deudaTotal: 0, pagoMensualDeuda: 0, frecuenciaAhorro: 'Mensual', fondoEmergencia: 0, objetivoPresupuesto: 0, suscripciones: 0, ratioDeuda: 0 });
   };
 
   const handleDeleteAccount = () => {
-    const defaultProfile: UserProfile = {
-      name: 'Usuario',
-      email: '',
-      monthlyIncome: 0,
-      totalDebts: 0,
-      monthlyDebtPayment: 0,
-      savingsFrequency: 'Mensual',
-      emergencyFund: 0,
-      budgetGoal: 0,
-      subscriptionsCount: 0,
-      debtRatio: 0,
-    };
-    setUserProfile(defaultProfile);
+    setUserProfile(null);
     setTransactions([]);
     setAnalysisHistory([]);
     fetch('/api/account', { method: 'DELETE' }).catch(() => {});
-    setShowLoginModal(true);
   };
+
+  if (cargandoAuth) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center animate-in fade-in duration-500">
+        <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-700">
+          <div className="w-12 h-12 border-4 border-[#4648d4] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#4648d4] font-bold text-sm">Validando sesión...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!userProfile && location.pathname === '/login') {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa]">
+        <LoginModal
+          isOpen={true}
+          onClose={() => {}}
+          onLoginSuccess={(nombre, email, id) => {
+            handleLoginSuccess(nombre, email, id);
+            navigate('/');
+          }}
+        />
+      </div>
+    );
+  }
+
+  const necesitaOnboarding = Boolean(userProfile && (!userProfile.ingresoMensual || userProfile.ingresoMensual <= 0));
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex text-[#191c1d] font-sans antialiased selection:bg-[#4648d4]/20 selection:text-[#4648d4]">
-      {/* Sidebar: Persistent on Desktop, Slide-over Drawer on Mobile */}
+      {errorGlobal && (
+        <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 shadow-lg flex items-start gap-3 max-w-sm">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="flex-1 text-sm">{errorGlobal}</div>
+            <button onClick={() => setErrorGlobal(null)} className="text-red-500 hover:text-red-700 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <Sidebar
-        currentTab={currentTab}
-        onTabChange={(tab) => {
-          setCurrentTab(tab);
-          if (tab === 'tablero') setActiveSubTab('Análisis');
-          if (tab === 'reportes') setActiveSubTab('Informes');
-        }}
-        onNewAnalysis={() => setCurrentTab('nuevo-analisis')}
-        onOpenLogin={() => setShowLoginModal(true)}
+        onOpenLogin={() => setUserProfile(null)}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
+      />
+
+      <OnboardingModal
+        isOpen={necesitaOnboarding}
+        onComplete={(datos) => {
+          handleUpdateProfile({
+            ingresoMensual: datos.ingresoMensual,
+            deudaTotal: datos.deudaTotal,
+            frecuenciaAhorro: datos.frecuenciaAhorro,
+          }, true);
+          navigate('/analisis/nuevo');
+        }}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
         <TopNavbar
-          activeSubTab={activeSubTab}
-          onSubTabChange={setActiveSubTab}
-          onNavigateTab={setCurrentTab}
           userProfile={userProfile}
-          onOpenLogin={() => setShowLoginModal(true)}
+          onOpenLogin={() => setUserProfile(null)}
           onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
 
         {/* Dynamic Page Views */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 max-w-7xl w-full mx-auto">
-          {currentTab === 'tablero' && (
-            <DashboardView
-              report={currentReport}
-              userProfile={userProfile}
-              transactions={transactions}
-              onAddTransaction={handleAddTransaction}
-              onDeleteTransaction={handleDeleteTransaction}
-              onNavigateToNewAnalysis={() => setCurrentTab('nuevo-analisis')}
-              onOpenAnalysisModal={setActiveReportModal}
-            />
-          )}
-
-          {currentTab === 'nuevo-analisis' && (
-            <NewAnalysisView
-              userProfile={userProfile}
-              initialTransactions={transactions}
-              onAnalysisComplete={handleNewAnalysisComplete}
-            />
-          )}
-
-          {currentTab === 'reportes' && (
-            <ReportsView
-              report={currentReport}
-              userProfile={userProfile}
-              onOpenAnalysisModal={setActiveReportModal}
-            />
-          )}
-
-          {currentTab === 'historial' && (
-            <HistoryView
-              analysisHistory={analysisHistory}
-              onOpenAnalysisModal={setActiveReportModal}
-              onNavigateToNewAnalysis={() => setCurrentTab('nuevo-analisis')}
-            />
-          )}
-
-          {(currentTab === 'perfil' || currentTab === 'configuracion') && (
-            <SettingsProfileView
-              userProfile={userProfile}
-              onUpdateProfile={handleUpdateProfile}
-              onDeleteAccount={handleDeleteAccount}
-            />
-          )}
+          <Routes>
+            <Route path="/" element={
+              <DashboardView
+                report={currentReport as any}
+                userProfile={userProfile}
+                transactions={transactions}
+                onAddTransaction={handleAddTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+                onNavigateToNewAnalysis={() => navigate('/analisis/nuevo')}
+                onOpenAnalysisModal={setActiveReportModal}
+              />
+            } />
+            <Route path="/analisis/nuevo" element={
+              <NewAnalysisView
+                userProfile={userProfile}
+                initialTransactions={transactions}
+                onAnalysisComplete={handleNewAnalysisComplete}
+              />
+            } />
+            <Route path="/reportes" element={
+              <ReportsView
+                report={currentReport as any}
+                userProfile={userProfile}
+                onOpenAnalysisModal={setActiveReportModal}
+              />
+            } />
+            <Route path="/historial" element={
+              <HistoryView
+                analysisHistory={analysisHistory}
+                transactions={transactions}
+                onOpenAnalysisModal={setActiveReportModal}
+                onNavigateToNewAnalysis={() => navigate('/analisis/nuevo')}
+              />
+            } />
+            <Route path="/perfil" element={
+              <SettingsProfileView
+                userProfile={userProfile}
+                onUpdateProfile={handleUpdateProfile}
+                onDeleteAccount={handleDeleteAccount}
+              />
+            } />
+            <Route path="/configuracion" element={
+              <SettingsProfileView
+                userProfile={userProfile}
+                onUpdateProfile={handleUpdateProfile}
+                onDeleteAccount={handleDeleteAccount}
+              />
+            } />
+          </Routes>
         </main>
 
         {/* Global Footer */}
@@ -363,10 +312,7 @@ export default function App() {
         >
           <button
             id="mobile-nav-tablero"
-            onClick={() => {
-              setCurrentTab('tablero');
-              setActiveSubTab('Análisis');
-            }}
+            onClick={() => navigate('/')}
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
               currentTab === 'tablero' ? 'text-[#4648d4] font-bold' : 'text-[#767586] hover:text-[#191c1d]'
             }`}
@@ -377,10 +323,7 @@ export default function App() {
 
           <button
             id="mobile-nav-reportes"
-            onClick={() => {
-              setCurrentTab('reportes');
-              setActiveSubTab('Informes');
-            }}
+            onClick={() => navigate('/reportes')}
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
               currentTab === 'reportes' ? 'text-[#4648d4] font-bold' : 'text-[#767586] hover:text-[#191c1d]'
             }`}
@@ -392,7 +335,7 @@ export default function App() {
           {/* Quick Action Center Button */}
           <button
             id="mobile-nav-new-analysis"
-            onClick={() => setCurrentTab('nuevo-analisis')}
+            onClick={() => navigate('/analisis/nuevo')}
             className="flex flex-col items-center justify-center -mt-4 bg-[#4648d4] text-white w-11 h-11 rounded-full shadow-[0_4px_16px_rgba(70,72,212,0.4)] active:scale-95 transition-transform"
             title="Nuevo Análisis"
           >
@@ -401,7 +344,7 @@ export default function App() {
 
           <button
             id="mobile-nav-historial"
-            onClick={() => setCurrentTab('historial')}
+            onClick={() => navigate('/historial')}
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
               currentTab === 'historial' ? 'text-[#4648d4] font-bold' : 'text-[#767586] hover:text-[#191c1d]'
             }`}
@@ -412,7 +355,7 @@ export default function App() {
 
           <button
             id="mobile-nav-perfil"
-            onClick={() => setCurrentTab('perfil')}
+            onClick={() => navigate('/perfil')}
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
               currentTab === 'perfil' || currentTab === 'configuracion' ? 'text-[#4648d4] font-bold' : 'text-[#767586] hover:text-[#191c1d]'
             }`}
@@ -423,18 +366,19 @@ export default function App() {
         </nav>
       </div>
 
-      {/* Login & Auth Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />
-
       {/* Analysis Details Modal */}
       <AnalysisDetailModal
         reporte={activeReportModal}
         alCerrar={() => setActiveReportModal(null)}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <MainApp />
+    </BrowserRouter>
   );
 }
