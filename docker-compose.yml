@@ -45,6 +45,16 @@ services:
     networks:
       - app-network
 
+  frontend:
+   build: ./financeai
+   container_name: frontend_app
+   ports:
+    - "8080:80"    # Mapea el puerto 8080 de tu máquina al 80 interno de Nginx
+   depends_on:
+     - backend-spring
+   networks:
+     - app-network
+
 networks:
   app-network:
     driver: bridge
