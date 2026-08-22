@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Sparkles, 
-  AlertCircle, 
-  Plus, 
-  Upload, 
-  FileText, 
-  Trash2, 
-  CheckCircle2, 
+import {
+  Sparkles,
+  AlertCircle,
+  Plus,
+  Upload,
+  FileText,
+  Trash2,
+  CheckCircle2,
   Loader2,
   ChevronDown,
   Coins,
@@ -100,7 +100,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        
+
         if (res.ok) {
           const data = await res.json();
           // Map backend category to ExpenseCategory
@@ -238,7 +238,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
       }
 
       const data = await res.json().catch(() => ({}));
-      
+
       // Calculate totalGastado
       const resumenGastos = data.resumen_gastos || {};
       let totalGastado = 0;
@@ -280,7 +280,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
         distribucionCategorias,
         recomendaciones
       };
-      
+
       onAnalysisComplete(report);
     } catch (err: any) {
       console.error(err);
@@ -468,22 +468,20 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
             <button
               id="btn-tab-manual-entry"
               onClick={() => setModoIngreso('manual')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                modoIngreso === 'manual'
-                  ? 'bg-[#4648d4] text-white shadow-sm'
-                  : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
-              }`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${modoIngreso === 'manual'
+                ? 'bg-[#4648d4] text-white shadow-sm'
+                : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
+                }`}
             >
               Entrada Manual
             </button>
             <button
               id="btn-tab-csv-entry"
               onClick={() => setModoIngreso('csv')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                modoIngreso === 'csv'
-                  ? 'bg-[#4648d4] text-white shadow-sm'
-                  : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
-              }`}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${modoIngreso === 'csv'
+                ? 'bg-[#4648d4] text-white shadow-sm'
+                : 'bg-white text-[#464554] hover:bg-[#f3f4f5] border border-[#e1e3e4]'
+                }`}
             >
               Carga de CSV
             </button>
@@ -546,60 +544,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   </div>
                 </div>
 
-                {/* Real-time Categorization Status Bar */}
-                <div className="p-2.5 rounded-xl bg-[#f8f9fa] border border-[#e1e3e4] flex flex-wrap items-center justify-between gap-2">
-                  {(!falloModeloTx && !sobrescribirTxManual) ? (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#e0e7ff] text-[#4648d4] text-xs font-semibold">
-                        <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                        Categoría automática por IA: {descTx.trim() ? categoriaTx : 'Esperando descripción...'}
-                      </span>
-                      {descTx.trim() && (
-                        <button
-                          type="button"
-                          onClick={() => setSobrescribirTxManual(true)}
-                          className="text-[11px] text-[#767586] hover:text-[#ba1a1a] underline cursor-pointer"
-                        >
-                          ¿El modelo falló? Seleccionar manualmente
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-[11px] font-bold text-[#ba1a1a] bg-[#ffdad6] px-2 py-1 rounded-md flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        Fallo de modelo: Selecciona la categoría manualmente
-                      </span>
-                      {/* Exact dropdown from screenshot */}
-                      <select
-                        value={categoriaTx}
-                        onChange={(e) => setCategoriaTx(e.target.value as ExpenseCategory)}
-                        className="px-3 py-1.5 text-xs bg-white border-2 border-[#4648d4] rounded-lg text-[#191c1d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
-                      >
-                        <option value="Vivienda">Vivienda</option>
-                        <option value="Alimentación">Alimentación</option>
-                        <option value="Transporte">Transporte</option>
-                        <option value="Servicios">Servicios</option>
-                        <option value="Salud">Salud</option>
-                        <option value="Entretenimiento">Entretenimiento</option>
-                        <option value="Otros">Otros</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSobrescribirTxManual(false);
-                          setFalloModeloTx(false);
-                        }}
-                        className="text-[11px] text-[#4648d4] hover:underline font-semibold"
-                      >
-                        Reintentar automático
-                      </button>
-                    </div>
-                  )}
-                  <span className="text-[10px] text-[#767586]">
-                    Categorización 100% automática obligatoria
-                  </span>
-                </div>
+
               </form>
 
               {/* Transactions List */}
@@ -687,7 +632,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                   ¿Listo para analizar?
                 </h3>
                 <p className="text-xs text-[#464554] mt-1.5 leading-relaxed">
-                  Nuestra IA procesará estas {listaTransacciones.length || 3} entradas y actualizará tu narrativa financiera.
+                  Nuestra IA procesará estas {listaTransacciones.length || 3} entradas y actualizará tu perfil financiero.
                 </p>
               </div>
 
@@ -722,11 +667,10 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                 id="btn-submit-generate-analysis"
                 onClick={manejarGenerarAnalisis}
                 disabled={!hasExpenses || estaAnalizando}
-                className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
-                  !hasExpenses
-                    ? 'bg-[#d9dadb] text-[#767586] cursor-not-allowed'
-                    : 'bg-[#767586] hover:bg-[#4648d4] text-white active:scale-98 shadow-[0_4px_14px_rgba(70,72,212,0.3)] hover:shadow-md'
-                }`}
+                className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${!hasExpenses
+                  ? 'bg-[#d9dadb] text-[#767586] cursor-not-allowed'
+                  : 'bg-[#767586] hover:bg-[#4648d4] text-white active:scale-98 shadow-[0_4px_14px_rgba(70,72,212,0.3)] hover:shadow-md'
+                  }`}
               >
                 {estaAnalizando ? (
                   <>

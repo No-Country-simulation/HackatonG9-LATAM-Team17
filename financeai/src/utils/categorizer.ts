@@ -66,30 +66,6 @@ export function autoCategorizeDescription(description: string): CategorizeResult
 }
 
 export async function requestAiCategorization(description: string): Promise<CategorizeResult> {
-  // First test locally for sub-millisecond response
-  const localRes = autoCategorizeDescription(description);
-  if (!localRes.failed && localRes.confidence >= 0.8) {
-    return localRes;
-  }
-
-  // If local heuristic is uncertain or failed, try server AI model
-  try {
-    const res = await fetch('/api/categorize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return {
-        category: data.category || 'Otros',
-        confidence: data.confidence ?? 0.85,
-        failed: data.failed ?? false,
-      };
-    }
-  } catch {
-    // Ignore server error and return local fallback
-  }
-
-  return localRes;
+  // Return the local categorization directly to prevent silent errors from non-existent endpoints
+  return autoCategorizeDescription(description);
 }

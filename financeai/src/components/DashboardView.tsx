@@ -16,16 +16,24 @@ import {
   HelpCircle,
   Check
 } from 'lucide-react';
-import { ReporteAnalisis, UserProfile, Transaction, ExpenseCategory } from '../types';
+import { ReporteAnalisis, UserProfile, Transaction, ExpenseCategory, Recomendacion } from '../types';
 import { MASCOTS } from '../assets/mascots';
-import { autoCategorizeDescription } from '../utils/categorizer';
-import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 
+import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
+import { AnalysisTimelineModal } from './AnalysisTimelineModal';
+import { getColorForCategory } from '../utils/colorManager';
+
+interface RecomendacionExtendida extends Recomendacion {
+  fechaAsociada?: string;
+}
 
 interface DashboardViewProps {
   report: ReporteAnalisis | null;
   userProfile: UserProfile;
   transactions: Transaction[];
+  analysisHistory: ReporteAnalisis[];
+  globalError: string | null;
+  showSuccessSync: boolean;
   onAddTransaction: (tx: Partial<Transaction>) => Promise<void>;
   onDeleteTransaction: (id: string) => Promise<void>;
   onNavigateToNewAnalysis: () => void;
@@ -36,26 +44,76 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   report,
   userProfile,
   transactions,
+  analysisHistory,
+  globalError,
+  showSuccessSync,
   onAddTransaction,
   onDeleteTransaction,
   onNavigateToNewAnalysis,
   onOpenAnalysisModal,
 }) => {
-  const [showSyncBanner, setShowSyncBanner] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncedSuccess, setSyncedSuccess] = useState(false);
+
   const [descripcionRapida, setDescripcionRapida] = useState('');
   const [valorRapido, setValorRapido] = useState('');
-  const [categoriaRapida, setCategoriaRapida] = useState<ExpenseCategory>('Alimentación');
-  const [modeloFallo, setModeloFallo] = useState(false);
-  const [sobreescrituraManualActiva, setSobreescrituraManualActiva] = useState(false);
   const [pestanaActivaTx, setPestanaActivaTx] = useState<'empty-state' | 'tx-list'>('tx-list');
-  const [clasificandoAPI, setClasificandoAPI] = useState(false);
-  const [recommendations, setRecommendations] = useState(report?.recomendaciones || []);
+  const [recommendations, setRecommendations] = useState<RecomendacionExtendida[]>([]);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
   useEffect(() => {
-    setRecommendations(report?.recomendaciones || []);
-  }, [report]);
+    if (analysisHistory.length === 0) {
+      setRecommendations(report?.recomendaciones || []);
+      return;
+    }
+
+    const recoMixtas: RecomendacionExtendida[] = [];
+    analysisHistory.forEach(rep => {
+      if (rep.recomendaciones && rep.recomendaciones.length > 0) {
+        const randomIndex = Math.floor(Math.random() * rep.recomendaciones.length);
+        const randomRec = rep.recomendaciones[randomIndex];
+        recoMixtas.push({
+          ...randomRec,
+          fechaAsociada: new Date(rep.marcaTiempo).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+        });
+      }
+    });
+    setRecommendations(recoMixtas);
+  }, [analysisHistory, report]);
+
+  // Calcular distribución mensual consolidada
+  const distribucionMensual = React.useMemo(() => {
+    const ahora = new Date();
+    const mesActual = ahora.getMonth();
+    const anioActual = ahora.getFullYear();
+
+    const reportesDelMes = analysisHistory.filter((rep) => {
+      const fechaRep = new Date(rep.marcaTiempo);
+      return fechaRep.getMonth() === mesActual && fechaRep.getFullYear() === anioActual;
+    });
+
+    if (reportesDelMes.length === 0 && report) {
+      return report.distribucionCategorias;
+    }
+
+    let totalMensual = 0;
+    const categoriasDict: Record<string, any> = {};
+
+    reportesDelMes.forEach(rep => {
+      totalMensual += rep.totalGastado;
+      rep.distribucionCategorias.forEach(cat => {
+        if (!categoriasDict[cat.categoria]) {
+          categoriasDict[cat.categoria] = { ...cat, monto: 0, porcentaje: 0 };
+        }
+        categoriasDict[cat.categoria].monto += cat.monto;
+      });
+    });
+
+    const distribucionAgregada = Object.values(categoriasDict).map(cat => ({
+      ...cat,
+      porcentaje: totalMensual > 0 ? Math.round((cat.monto / totalMensual) * 100) : 0
+    }));
+
+    return distribucionAgregada.sort((a, b) => b.monto - a.monto);
+  }, [analysisHistory, report]);
 
   // Timer countdown simulation
   const [countdown, setCountdown] = useState({ hours: 48, minutes: 22, seconds: 10 });
@@ -75,87 +133,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Real-time automatic categorization as description changes
   const handleDescriptionChange = (text: string) => {
     setDescripcionRapida(text);
-    if (!sobreescrituraManualActiva) {
-      const result = autoCategorizeDescription(text);
-      setCategoriaRapida(result.category);
-      // Model is considered failed if description is non-empty and failed or categorizes to Otros
-      if (text.trim().length > 2 && (result.failed || result.category === 'Otros')) {
-        setModeloFallo(true);
-      } else {
-        setModeloFallo(false);
-      }
-    }
   };
 
-  const handleSyncRetry = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      setSyncedSuccess(true);
-      setTimeout(() => setShowSyncBanner(false), 2500);
-    }, 1200);
-  };
+
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descripcionRapida || !valorRapido) return;
 
-    // Determine category automatically if not manually overridden
-    let finalCategory = categoriaRapida;
-    let failedStatus = modeloFallo;
-
-    if (!sobreescrituraManualActiva) {
-      setClasificandoAPI(true);
-      try {
-        const response = await fetch(`/api/v1/finanzas/clasificar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            descripcion: descripcionRapida,
-            valor: parsePositiveFloat(valorRapido, 0),
-            fecha_transaccion: new Date().toISOString()
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al clasificar transacción');
-        }
-
-        const data = await response.json();
-
-        if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
-          finalCategory = Object.keys(data.resumen_gastos)[0] as ExpenseCategory;
-          failedStatus = false;
-        } else {
-          // Fallback if empty
-          const autoRes = autoCategorizeDescription(descripcionRapida);
-          finalCategory = autoRes.category;
-          failedStatus = autoRes.failed;
-        }
-      } catch (err) {
-        console.error('API classification failed, using local fallback:', err);
-        const autoRes = autoCategorizeDescription(descripcionRapida);
-        finalCategory = autoRes.category;
-        failedStatus = autoRes.failed;
-      } finally {
-        setClasificandoAPI(false);
-      }
-    }
-
     try {
       await onAddTransaction({
         descripcion: descripcionRapida,
         monto: parsePositiveFloat(valorRapido, 0),
-        categoria: finalCategory,
+        categoria: 'Pendiente',
         tipo: 'gasto',
-        autoCategorizado: !sobreescrituraManualActiva,
-        categorizacionFallida: failedStatus,
+        autoCategorizado: false,
+        categorizacionFallida: false,
       });
 
       setDescripcionRapida('');
       setValorRapido('');
-      setSobreescrituraManualActiva(false);
-      setModeloFallo(false);
       setPestanaActivaTx('tx-list');
     } catch (e) {
       // Error handled by parent toast
@@ -194,7 +191,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Hola, {userProfile.nombre.split(' ')[0]}
           </h1>
           <p className="text-xs font-medium text-[#767586] mt-0.5">
-            15 de Octubre, 2024
+            {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
 
@@ -208,43 +205,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Sync Error / Status Banner */}
-      {showSyncBanner && (
+      {(globalError || showSuccessSync) && (
         <div
           id="sync-alert-banner"
-          className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${syncedSuccess
-              ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]'
-              : 'bg-[#ffdad6]/40 border-[#ffdad6] text-[#191c1d]'
+          className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${showSuccessSync
+            ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]'
+            : 'bg-[#ffdad6]/40 border-[#ffdad6] text-[#191c1d]'
             }`}
         >
           <div className="flex items-center gap-3">
-            {syncedSuccess ? (
+            {showSuccessSync ? (
               <CheckCircle className="w-4 h-4 text-[#10b981] shrink-0" />
             ) : (
               <AlertCircle className="w-4 h-4 text-[#ba1a1a] shrink-0" />
             )}
             <div>
               <p className="text-xs font-semibold leading-tight">
-                {syncedSuccess ? '¡Sincronización exitosa!' : 'Error de conexión'}
+                {showSuccessSync ? '¡Sincronización exitosa!' : 'Error de conexión'}
               </p>
               <p className="text-[11px] text-[#464554] mt-0.5 leading-snug">
-                {syncedSuccess
+                {showSuccessSync
                   ? 'Tus datos financieros están actualizados con tu cuenta.'
-                  : 'No pudimos sincronizar tus datos más recientes. Por favor, intenta de nuevo más tarde.'}
+                  : (globalError || 'No pudimos sincronizar tus datos más recientes. Por favor, intenta de nuevo más tarde.')}
               </p>
             </div>
           </div>
-
-          {!syncedSuccess && (
-            <button
-              id="btn-sync-retry"
-              onClick={handleSyncRetry}
-              disabled={isSyncing}
-              className="px-3.5 py-1.5 bg-[#ba1a1a] hover:bg-[#93000a] text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1.5 shrink-0"
-            >
-              <RotateCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span>{isSyncing ? 'Conectando...' : 'Reintentar'}</span>
-            </button>
-          )}
         </div>
       )}
 
@@ -290,7 +275,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-[#767586] mt-1">
-                  Probabilidad de mejora financiera
+                  Nivel de confianza del modelo
                 </p>
 
                 <p className="text-xs font-bold text-[#944a00] mt-3 leading-relaxed">
@@ -324,38 +309,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-              {report.distribucionCategorias.map((cat) => (
-                <div
-                  key={cat.categoria}
-                  id={`card-cat-${cat.categoria.toLowerCase()}`}
-                  className="bg-white rounded-xl p-4 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-[#6063ee]/30 transition-all"
-                >
-                  <div>
-                    <p className="text-xs font-semibold text-[#464554]">
-                      {cat.categoria}
-                    </p>
-                    <p className="text-base font-bold text-[#191c1d] font-mono-val mt-1">
-                      ${cat.monto.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="mt-3">
-                    {/* Progress bar */}
-                    <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(100, Math.max(8, cat.porcentaje * 2))}%`,
-                          backgroundColor: cat.colorHex,
-                        }}
-                      />
+              {distribucionMensual.map((cat) => {
+                return (
+                  <div
+                    key={cat.categoria}
+                    id={`card-cat-${cat.categoria.toLowerCase()}`}
+                    className="bg-white rounded-xl p-4 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-[#6063ee]/30 transition-all"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-[#464554]">
+                        {cat.categoria}
+                      </p>
+                      <p className="text-base font-bold text-[#191c1d] font-mono-val mt-1">
+                        ${cat.monto.toLocaleString()}
+                      </p>
                     </div>
-                    <p className="text-[10px] font-bold text-[#767586] text-right mt-1 font-mono-val">
-                      {cat.porcentaje}%
-                    </p>
+
+                    <div className="mt-3">
+                      {/* Progress bar */}
+                      <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, Math.max(8, cat.porcentaje * 2))}%`,
+                            backgroundColor: getColorForCategory(cat.categoria),
+                          }}
+                        />
+                      </div>
+                      <p className="text-[10px] font-bold text-[#767586] text-right mt-1 font-mono-val">
+                        {cat.porcentaje}%
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </>
@@ -370,7 +357,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center gap-2">
             <Receipt className="w-4 h-4 text-[#4648d4]" />
             <h3 className="text-sm font-bold text-[#191c1d] font-display">
-              Registro de Transacciones
+              Ingresa aquí tus nuevos gastos:
             </h3>
           </div>
 
@@ -379,7 +366,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setPestanaActivaTx(pestanaActivaTx === 'empty-state' ? 'tx-list' : 'empty-state')}
               className="text-xs font-medium text-[#767586] hover:text-[#4648d4] px-2.5 py-1 rounded-lg hover:bg-[#f3f4f5] transition-colors"
             >
-              {pestanaActivaTx === 'empty-state' ? 'Ver transacciones registradas' : 'Ver estado sin vincular'}
+              {pestanaActivaTx === 'empty-state' ? 'Ver nuevos gastos' : 'Ocultar sección'}
             </button>
           </div>
         </div>
@@ -427,63 +414,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className="w-24 px-3 py-1.5 text-xs bg-white border border-[#e1e3e4] rounded-lg text-[#191c1d] font-mono-val focus:outline-none focus:border-[#4648d4]"
                 />
 
-                {/* Categorization display: Automatic by default, Select only on Model Failure / Override */}
-                {(!modeloFallo && !sobreescrituraManualActiva) ? (
-                  <div className="flex items-center gap-1.5 bg-[#e0e7ff]/60 border border-[#c7d2fe] px-2.5 py-1.5 rounded-lg">
-                    <Sparkles className="w-3.5 h-3.5 text-[#4648d4] animate-pulse" />
-                    <span className="text-xs font-semibold text-[#4648d4]">
-                      {descripcionRapida.trim() ? `IA: ${categoriaRapida}` : 'Categorización automática'}
-                    </span>
-                    {descripcionRapida.trim() && (
-                      <button
-                        type="button"
-                        onClick={() => setSobreescrituraManualActiva(true)}
-                        className="text-[10px] text-[#767586] hover:text-[#ba1a1a] underline ml-1 cursor-pointer"
-                        title="Seleccionar manualmente si el modelo falló"
-                      >
-                        ¿Falló?
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-[#ba1a1a] bg-[#ffdad6]/60 px-2 py-1 rounded-md border border-[#ffdad6] flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      Fallo de IA
-                    </span>
-                    {/* The exact dropdown from user request */}
-                    <select
-                      value={categoriaRapida}
-                      onChange={(e) => setCategoriaRapida(e.target.value as ExpenseCategory)}
-                      className="px-3 py-1.5 text-xs bg-white border-2 border-[#4648d4] rounded-lg text-[#191c1d] font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
-                    >
-                      <option value="Vivienda">Vivienda</option>
-                      <option value="Alimentación">Alimentación</option>
-                      <option value="Transporte">Transporte</option>
-                      <option value="Servicios">Servicios</option>
-                      <option value="Salud">Salud</option>
-                      <option value="Entretenimiento">Entretenimiento</option>
-                      <option value="Otros">Otros</option>
-                    </select>
-                  </div>
-                )}
-
                 <button
                   type="submit"
-                  disabled={clasificandoAPI}
-                  className={`px-3.5 py-1.5 ${clasificandoAPI ? 'bg-[#e07d2c] opacity-80' : 'bg-[#fd933d] hover:bg-[#e07d2c]'} text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0`}
+                  className="px-3.5 py-1.5 bg-[#fd933d] hover:bg-[#e07d2c] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0"
                 >
-                  {clasificandoAPI ? (
-                    <>
-                      <RotateCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Clasificando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Agregar</span>
-                    </>
-                  )}
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Agregar</span>
                 </button>
               </div>
 
@@ -491,28 +427,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex items-center justify-between text-[11px] text-[#767586] px-1">
                 <span className="flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-[#4648d4]" />
-                  La categorización es automática por IA. La selección manual solo se habilita si el modelo falla.
+                  Borrador de gastos: se mantendrán a salvo en tu navegador hasta que generes tu análisis, momento en el que la IA los categorizará.
                 </span>
-                {(modeloFallo || sobreescrituraManualActiva) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSobreescrituraManualActiva(false);
-                      setModeloFallo(false);
-                    }}
-                    className="text-[#4648d4] hover:underline font-semibold"
-                  >
-                    Reintentar detección automática
-                  </button>
-                )}
               </div>
             </form>
 
             <div className="divide-y divide-[#f3f4f5] max-h-60 overflow-y-auto">
               {transactions.length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-xs font-semibold text-[#767586]">No tienes transacciones registradas.</p>
-                  <p className="text-[10px] text-[#767586] mt-1">Utiliza el formulario de arriba para agregar tus primeros gastos.</p>
+                  <p className="text-xs font-semibold text-[#767586]">No tienes nuevos gastos pendientes.</p>
+                  <p className="text-[10px] text-[#767586] mt-1">Agrega aquí los gastos recientes que quieras incluir en tu próximo análisis.</p>
                 </div>
               ) : (
                 transactions.map((tx) => (
@@ -522,16 +446,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div>
                         <p className="text-xs font-semibold text-[#191c1d]">{tx.descripcion}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[10px] font-medium text-[#4648d4] bg-[#e0e7ff]/70 px-1.5 py-0.5 rounded flex items-center gap-1">
-                            <Sparkles className="w-2.5 h-2.5" />
-                            {tx.categoria}
+                          <span className="text-[10px] font-medium text-[#767586] bg-[#f3f4f5] px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            Pendiente de análisis
                           </span>
                           <span className="text-[10px] text-[#767586]">• {tx.fecha}</span>
-                          {tx.categorizacionFallida && (
-                            <span className="text-[9px] font-bold text-[#ba1a1a] bg-[#ffdad6] px-1 rounded">
-                              Fallo Corregido
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -569,7 +488,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </h3>
             </div>
             <button
-              onClick={() => onOpenAnalysisModal(report)}
+              onClick={() => setIsTimelineOpen(true)}
               className="text-xs font-semibold text-[#4648d4] hover:underline flex items-center gap-1"
             >
               <span>Ver reporte completo</span>
@@ -585,24 +504,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   key={rec.id}
                   id={`rec-item-${rec.id}`}
                   className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${isRed
-                      ? 'bg-[#ffdad6]/25 border-[#ffdad6] hover:border-[#ba1a1a]/40'
-                      : 'bg-[#ffdcc5]/20 border-[#ffdcc5] hover:border-[#fd933d]/40'
+                    ? 'bg-[#ffdad6]/25 border-[#ffdad6] hover:border-[#ba1a1a]/40'
+                    : 'bg-[#ffdcc5]/20 border-[#ffdcc5] hover:border-[#fd933d]/40'
                     } ${rec.completada ? 'opacity-50 line-through' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleRecommendationComplete(rec.id)}
                       className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${rec.completada
-                          ? 'bg-[#10b981] border-[#10b981] text-white'
-                          : isRed ? 'border-[#ba1a1a]' : 'border-[#fd933d]'
+                        ? 'bg-[#10b981] border-[#10b981] text-white'
+                        : isRed ? 'border-[#ba1a1a]' : 'border-[#fd933d]'
                         }`}
                     >
                       {rec.completada && <CheckCircle className="w-3 h-3" />}
                     </button>
 
                     <div>
-                      <h4 className="text-xs font-bold text-[#191c1d]">
+                      <h4 className="text-xs font-bold text-[#191c1d] flex items-center gap-1.5">
                         {rec.titulo}
+                        {rec.fechaAsociada && (
+                          <span className="text-[9px] font-medium text-[#767586] bg-[#f3f4f5] px-1.5 py-0.5 rounded border border-[#e1e3e4]">
+                            {rec.fechaAsociada}
+                          </span>
+                        )}
                       </h4>
                       <p className="text-[11px] text-[#464554] mt-0.5">
                         {rec.descripcion}
@@ -631,6 +555,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       )}
+
+      <AnalysisTimelineModal
+        isOpen={isTimelineOpen}
+        onClose={() => setIsTimelineOpen(false)}
+        history={analysisHistory}
+        onSelectAnalysis={onOpenAnalysisModal}
+      />
     </div>
   );
 };

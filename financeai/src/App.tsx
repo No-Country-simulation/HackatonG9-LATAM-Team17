@@ -39,11 +39,33 @@ function MainApp() {
   // Transactions State
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  // Load transactions from localStorage on login
+  useEffect(() => {
+    if (userProfile?.email) {
+      const stored = localStorage.getItem(`financeai_pending_txs_${userProfile.email}`);
+      if (stored) {
+        try {
+          setTransactions(JSON.parse(stored));
+        } catch (e) {
+          console.error('Error al parsear transacciones de localStorage', e);
+        }
+      }
+    }
+  }, [userProfile?.email]);
+
+  // Save transactions to localStorage on change
+  useEffect(() => {
+    if (userProfile?.email) {
+      localStorage.setItem(`financeai_pending_txs_${userProfile.email}`, JSON.stringify(transactions));
+    }
+  }, [transactions, userProfile?.email]);
+
   // Current Report State
   const [currentReport, setCurrentReport] = useState<ReporteAnalisis | null>(null);
 
   // History State
   const [analysisHistory, setAnalysisHistory] = useState<ReporteAnalisis[]>([]);
+  const [showSuccessSync, setShowSuccessSync] = useState(false);
 
   // Initial Data Fetch
   useEffect(() => {
@@ -63,8 +85,6 @@ function MainApp() {
     };
 
     Promise.all([
-      fetchConManejo('/api/profile').then(data => { if (data) setUserProfile(data) }),
-      fetchConManejo('/api/transactions').then(data => { if (data && Array.isArray(data)) setTransactions(data) }),
       fetchConManejo('/api/v1/finanzas/historial').then(data => {
         if (data && Array.isArray(data) && data.length > 0) {
           setAnalysisHistory(data);
@@ -96,40 +116,14 @@ function MainApp() {
 
     setTransactions([tx, ...transactions]);
 
-    try {
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tx),
-      });
-      if (!res.ok) {
-        const err = await manejarRespuestaError(res);
-        throw new Error(err.general);
-      }
-    } catch (e: any) {
-      setErrorGlobal(e.message || 'Error al agregar transacción');
-      setTransactions((prev) => prev.filter(t => t.id !== tx.id));
-      throw e;
-    }
+    // La creación se mantiene únicamente en memoria (estado de React).
   };
 
   const handleDeleteTransaction = async (id: string) => {
     const txToDelete = transactions.find(t => t.id === id);
     setTransactions(transactions.filter((t) => t.id !== id));
     
-    try {
-      const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = await manejarRespuestaError(res);
-        throw new Error(err.general);
-      }
-    } catch (e: any) {
-      setErrorGlobal(e.message || 'Error al eliminar transacción');
-      if (txToDelete) {
-        setTransactions(prev => [...prev, txToDelete].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
-      }
-      throw e;
-    }
+    // El borrado se mantiene únicamente en memoria (estado de React).
   };
 
   const handleUpdateProfile = async (updated: Partial<UserProfile>, localOnly: boolean = false) => {
@@ -137,21 +131,26 @@ function MainApp() {
     const oldProfile = userProfile;
     setUserProfile((prev) => prev ? ({ ...prev, ...updated }) : prev);
     
-    if (localOnly) return;
+    // Si solo actualizamos métricas financieras locales o no hay nombre/email, no enviar al backend
+    if (localOnly || (!updated.nombre && !updated.email)) return;
     
+    const payload: Partial<UserProfile> = {};
+    if (updated.nombre) payload.nombre = updated.nombre;
+    if (updated.email) payload.email = updated.email;
+
     try {
-      const res = await fetch('/api/profile', {
+      const res = await fetch(`/api/v1/auth/usuarios/${oldProfile.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const err = await manejarRespuestaError(res);
         throw new Error(err.general);
       }
     } catch (e: any) {
-      setErrorGlobal(e.message || 'Error al actualizar el perfil');
-      setUserProfile(oldProfile);
+      setErrorGlobal(e.message || 'Error al actualizar el perfil en la base de datos');
+      setUserProfile(oldProfile); // Rollback visual
       throw e;
     }
   };
@@ -159,19 +158,36 @@ function MainApp() {
   const handleNewAnalysisComplete = (newReport: ReporteAnalisis) => {
     setCurrentReport(newReport);
     setAnalysisHistory([newReport, ...analysisHistory]);
+    setTransactions([]); // Vacia el "carrito" de transacciones
     navigate('/');
     setActiveReportModal(newReport);
+    
+    setShowSuccessSync(true);
+    setTimeout(() => {
+      setShowSuccessSync(false);
+    }, 3000);
   };
 
   const handleLoginSuccess = (nombre: string, email: string, id?: number) => {
     setUserProfile((prev) => prev ? ({ ...prev, nombre, email, id }) : { id, nombre, email, ingresoMensual: 0, deudaTotal: 0, pagoMensualDeuda: 0, frecuenciaAhorro: 'Mensual', fondoEmergencia: 0, objetivoPresupuesto: 0, suscripciones: 0, ratioDeuda: 0 });
   };
 
-  const handleDeleteAccount = () => {
-    setUserProfile(null);
-    setTransactions([]);
-    setAnalysisHistory([]);
-    fetch('/api/account', { method: 'DELETE' }).catch(() => {});
+  const handleDeleteAccount = async () => {
+    if (!userProfile?.email) return;
+    const emailToDelete = userProfile.email;
+
+    try {
+      const res = await fetch(`/api/v1/auth/eliminar?email=${encodeURIComponent(emailToDelete)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await manejarRespuestaError(res);
+        throw new Error(err.general);
+      }
+      setUserProfile(null);
+      setTransactions([]);
+      setAnalysisHistory([]);
+    } catch (e: any) {
+      setErrorGlobal(e.message || 'No es posible eliminar la cuenta porque ya tienes un historial asociado.');
+    }
   };
 
   if (cargandoAuth) {
@@ -255,6 +271,9 @@ function MainApp() {
                 report={currentReport as any}
                 userProfile={userProfile}
                 transactions={transactions}
+                analysisHistory={analysisHistory}
+                globalError={errorGlobal}
+                showSuccessSync={showSuccessSync}
                 onAddTransaction={handleAddTransaction}
                 onDeleteTransaction={handleDeleteTransaction}
                 onNavigateToNewAnalysis={() => navigate('/analisis/nuevo')}
@@ -272,6 +291,7 @@ function MainApp() {
               <ReportsView
                 report={currentReport as any}
                 userProfile={userProfile}
+                analysisHistory={analysisHistory}
                 onOpenAnalysisModal={setActiveReportModal}
               />
             } />

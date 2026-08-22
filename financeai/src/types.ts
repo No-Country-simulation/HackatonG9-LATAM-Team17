@@ -6,9 +6,9 @@ export type NavigationTab =
   | 'configuracion' 
   | 'nuevo-analisis';
 
-export type TopSubTab = 'Análisis' | 'Informes';
+export type TopSubTab = 'Dashboard' | 'Informes';
 
-export type HealthStatus = 'Saludable' | 'En observación' | 'Observación' | 'Riesgo';
+export type HealthStatus = 'Crítico' | 'En riesgo' | 'En observación' | 'Estable' | 'Saludable' | 'Excelente';
 export type EstadoSalud = HealthStatus;
 
 export type SavingsFrequency = 'Semanal' | 'Quincenal' | 'Mensual';

@@ -50,20 +50,18 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           if (Array.isArray(data)) {
             // Map the history payload (basic) to ReporteAnalisis format using fallbacks for missing fields
             const mappedHistory = data.map((item: any): ReporteAnalisis => {
-              // Basic score mapping based on status since backend history doesn't return exact score
-              let defaultScore = 50;
-              if (item.perfilFinanciero === 'Saludable') defaultScore = 90;
-              if (item.perfilFinanciero === 'Estable') defaultScore = 75;
-              if (item.perfilFinanciero === 'En observación' || item.perfilFinanciero === 'Observación') defaultScore = 60;
-              if (item.perfilFinanciero === 'Riesgo') defaultScore = 40;
+              // Normalize status
+              let normStatus = item.perfilFinanciero || 'En observación';
+              if (normStatus === 'Observación') normStatus = 'En observación';
+              if (normStatus === 'Riesgo') normStatus = 'En riesgo';
 
               return {
                 id: item.id?.toString() || Math.random().toString(36).substr(2, 9),
                 fecha: item.fechaAnalisis || new Date().toISOString().split('T')[0],
                 marcaTiempo: new Date(item.fechaAnalisis || Date.now()).getTime(),
-                puntajeSalud: defaultScore,
-                estadoSalud: (item.perfilFinanciero as HealthStatus) || 'En observación',
-                mensajeMotivador: item.perfilFinanciero === 'Saludable' ? '¡Excelente trabajo!' : 'Sigue esforzándote',
+                puntajeSalud: item.probabilidad ? Math.round(item.probabilidad * 100) : 50,
+                estadoSalud: normStatus as HealthStatus,
+                mensajeMotivador: normStatus === 'Excelente' ? '¡Finanzas impecables!' : 'Sigue esforzándote',
                 totalGastado: item.transacciones?.reduce((sum: number, tx: any) => sum + (tx.valor || 0), 0) || 0,
                 distribucionCategorias: item.categorias || [],
                 recomendaciones: item.recomendaciones || []
@@ -90,7 +88,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       fecha: tx.fecha,
       marcaTiempo: new Date(tx.fecha).getTime(),
       puntajeSalud: 0,
-      estadoSalud: 'Observación' as HealthStatus,
+      estadoSalud: 'En observación' as HealthStatus,
       mensajeMotivador: 'Transacción: ' + tx.descripcion,
       totalGastado: tx.monto,
       distribucionCategorias: [{
@@ -108,9 +106,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       .filter((item) => {
         // Status filter
         if (filtroSalud !== 'all') {
-          const itemStatusNorm = item.estadoSalud === 'Observación' ? 'En observación' : item.estadoSalud;
-          const filterNorm = filtroSalud === 'Observación' ? 'En observación' : filtroSalud;
-          if (itemStatusNorm !== filterNorm) return false;
+          if (item.estadoSalud !== filtroSalud) return false;
         }
 
         // Search query
@@ -136,7 +132,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   // Statistics calculation
   const estadisticas = useMemo(() => {
     if (historialLocal.length === 0) return { count: 0, avgScore: 0, avgSpent: 0 };
-    const puntajeTotal = historialLocal.reduce((acc, curr) => acc + curr.puntajeSalud, 0);
+    
+    const weights: Record<string, number> = {
+      Excelente: 100,
+      Saludable: 80,
+      Estable: 60,
+      'En observación': 40,
+      'En riesgo': 20,
+      Crítico: 0
+    };
+
+    const puntajeTotal = historialLocal.reduce((acc, curr) => acc + (weights[curr.estadoSalud] ?? 40), 0);
     const gastoTotal = historialLocal.reduce((acc, curr) => acc + curr.totalGastado, 0);
     return {
       count: historialLocal.length,
@@ -147,6 +153,13 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   const obtenerInsigniaSalud = (status: string) => {
     switch (status) {
+      case 'Excelente':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#10b981]/20 text-[#047857] border border-[#10b981]/30">
+            <Sparkles className="w-3.5 h-3.5" />
+            Excelente
+          </span>
+        );
       case 'Saludable':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#10b981]/10 text-[#059669] border border-[#10b981]/20">
@@ -154,22 +167,38 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             Saludable
           </span>
         );
+      case 'Estable':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#3b82f6]/10 text-[#2563eb] border border-[#3b82f6]/20">
+            <Activity className="w-3.5 h-3.5" />
+            Estable
+          </span>
+        );
       case 'En observación':
       case 'Observación':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#fd933d]/10 text-[#d97706] border border-[#fd933d]/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f59e0b]/10 text-[#d97706] border border-[#f59e0b]/20">
             <AlertTriangle className="w-3.5 h-3.5" />
             En observación
           </span>
         );
+      case 'En riesgo':
       case 'Riesgo':
-      default:
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#ef4444]/10 text-[#dc2626] border border-[#ef4444]/20">
             <AlertCircle className="w-3.5 h-3.5" />
-            Riesgo
+            En riesgo
           </span>
         );
+      case 'Crítico':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#991b1b]/10 text-[#7f1d1d] border border-[#991b1b]/20">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Crítico
+          </span>
+        );
+      default:
+        return null;
     }
   };
 
@@ -264,43 +293,56 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         {/* Filters and Sorter */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter Buttons */}
-          <div className="flex items-center gap-1 bg-[#f8f9fa] p-1 rounded-xl border border-[#e1e3e4]">
+          <div className="flex items-center gap-1 bg-[#f8f9fa] p-1 rounded-xl border border-[#e1e3e4] overflow-x-auto max-w-full">
             <button
               onClick={() => setFiltroSalud('all')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'all'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'all'
                   ? 'bg-white text-[#4648d4] shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
-            >
-              Todos
-            </button>
+            >Todos</button>
+            <button
+              onClick={() => setFiltroSalud('Excelente')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Excelente'
+                  ? 'bg-[#047857] text-white shadow-xs'
+                  : 'text-[#767586] hover:text-[#191c1d]'
+                }`}
+            >Excelente</button>
             <button
               onClick={() => setFiltroSalud('Saludable')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'Saludable'
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Saludable'
                   ? 'bg-[#10b981] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
-            >
-              Saludable
-            </button>
+            >Saludable</button>
             <button
-              onClick={() => setFiltroSalud('En observación')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'En observación'
-                  ? 'bg-[#fd933d] text-white shadow-xs'
+              onClick={() => setFiltroSalud('Estable')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Estable'
+                  ? 'bg-[#3b82f6] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
-            >
-              En observación
-            </button>
+            >Estable</button>
             <button
-              onClick={() => setFiltroSalud('Riesgo')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${filtroSalud === 'Riesgo'
+              onClick={() => setFiltroSalud('En observación')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'En observación'
+                  ? 'bg-[#f59e0b] text-white shadow-xs'
+                  : 'text-[#767586] hover:text-[#191c1d]'
+                }`}
+            >En observación</button>
+            <button
+              onClick={() => setFiltroSalud('En riesgo')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'En riesgo'
                   ? 'bg-[#ef4444] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
-            >
-              Riesgo
-            </button>
+            >En riesgo</button>
+            <button
+              onClick={() => setFiltroSalud('Crítico')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Crítico'
+                  ? 'bg-[#991b1b] text-white shadow-xs'
+                  : 'text-[#767586] hover:text-[#191c1d]'
+                }`}
+            >Crítico</button>
           </div>
 
           {/* Sort Selector */}

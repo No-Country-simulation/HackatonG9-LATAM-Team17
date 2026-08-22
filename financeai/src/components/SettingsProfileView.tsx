@@ -17,6 +17,12 @@ import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from 
 import { MASCOTS } from '../assets/mascots';
 import { manejarRespuestaError } from '../utils/apiErrors';
 
+export const getDebtColor = (ratio: number): string => {
+  if (ratio < 30) return '#10b981'; // Verde
+  if (ratio <= 50) return '#fd933d'; // Naranja
+  return '#ba1a1a'; // Rojo
+};
+
 interface SettingsProfileViewProps {
   userProfile: UserProfile;
   onUpdateProfile: (profile: Partial<UserProfile>) => Promise<void>;
@@ -39,7 +45,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
 
   // Financial profile form state
   const [ingresoTotal, setIngresoTotal] = useState(String(userProfile.ingresoMensual || 0));
-  const [nivelEndeudamiento, setNivelEndeudamiento] = useState(userProfile.nivelEndeudamiento || 0);
+  const ratioDeudaCalculado = userProfile.ingresoMensual > 0 ? Math.round((userProfile.deudaTotal / userProfile.ingresoMensual) * 100) : 0;
   const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>(userProfile.frecuenciaAhorro || 'Mensual');
   const [deudasTotales, setDeudasTotales] = useState(String(userProfile.deudasTotales || 0));
   const [exitoGuardadoFinanciero, setExitoGuardadoFinanciero] = useState(false);
@@ -283,14 +289,14 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
                       Nivel de Endeudamiento
                     </label>
                     <span className="text-xs font-bold text-[#4648d4] font-mono-val">
-                      {userProfile.nivelEndeudamiento || 0}%
+                      {ratioDeudaCalculado}%
                     </span>
                   </div>
                   <div className="relative mt-2">
                     <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#fd933d] rounded-full transition-all duration-500"
-                        style={{ width: `${userProfile.nivelEndeudamiento || 0}%` }}
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${ratioDeudaCalculado}%`, backgroundColor: getDebtColor(ratioDeudaCalculado) }}
                       />
                     </div>
                   </div>

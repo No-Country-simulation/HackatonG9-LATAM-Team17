@@ -18,13 +18,13 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
-  const activeSubTab = path === '/reportes' ? 'Informes' : 'Análisis';
+  const activeSubTab = path === '/reportes' ? 'Informes' : 'Dashboard';
 
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const [busqueda, setBusqueda] = useState('');
 
-  const subPestanas: TopSubTab[] = ['Análisis', 'Informes'];
+  const subPestanas: TopSubTab[] = ['Dashboard', 'Informes'];
 
   const notificaciones = [
     { id: 1, title: '¡Ahorro cumplido!', time: 'Hace 2 horas', desc: 'Completaste el 15% adicional de tu meta semanal', icon: Award },
@@ -33,7 +33,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   ];
 
   return (
-    <header 
+    <header
       id="top-navbar"
       className="h-16 border-b border-[#e1e3e4] bg-white/90 backdrop-blur-md px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 shadow-[0_2px_12px_rgba(0,0,0,0.02)]"
     >
@@ -48,15 +48,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           <Menu className="w-5 h-5 text-[#191c1d]" />
         </button>
 
-        <div 
+        <div
           onClick={() => navigate('/')}
           className="flex items-center gap-2 cursor-pointer"
         >
           <div className="w-7 h-7 rounded-full p-0.5 bg-gradient-to-tr from-[#6063ee] to-[#fd933d] flex items-center justify-center shadow-xs">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-              <img 
-                src={MASCOTS.happyPotatoCoin} 
-                alt="FinanceAI Mascot" 
+              <img
+                src={MASCOTS.happyPotatoCoin}
+                alt="FinanceAI Mascot"
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
               />
@@ -92,14 +92,13 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               key={tab}
               id={`subtab-${tab.toLowerCase()}`}
               onClick={() => {
-                if (tab === 'Análisis') navigate('/');
+                if (tab === 'Dashboard') navigate('/');
                 if (tab === 'Informes') navigate('/reportes');
               }}
-              className={`relative px-3 md:px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-150 ${
-                isActive
-                  ? 'text-[#4648d4] bg-[#4648d4]/10 shadow-sm'
-                  : 'text-[#464554] hover:text-[#191c1d] hover:bg-[#f3f4f5]'
-              }`}
+              className={`relative px-3 md:px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-150 ${isActive
+                ? 'text-[#4648d4] bg-[#4648d4]/10 shadow-sm'
+                : 'text-[#464554] hover:text-[#191c1d] hover:bg-[#f3f4f5]'
+                }`}
             >
               {tab}
               {isActive && (
@@ -129,7 +128,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
           {/* Notifications Dropdown */}
           {mostrarNotificaciones && (
-            <div 
+            <div
               id="notificaciones-popover"
               className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-[#e1e3e4] shadow-[0_12px_32px_rgba(0,0,0,0.12)] p-4 z-50 animate-in fade-in slide-in-from-top-2"
             >
@@ -188,7 +187,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
           {/* User Profile Dropdown */}
           {mostrarMenuUsuario && (
-            <div 
+            <div
               id="user-profile-dropdown"
               className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#e1e3e4] shadow-[0_12px_32px_rgba(0,0,0,0.12)] p-2 z-50 animate-in fade-in slide-in-from-top-2"
             >

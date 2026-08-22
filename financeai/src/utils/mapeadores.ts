@@ -11,23 +11,7 @@ export interface AnalisisOutputDTO {
   recomendaciones: string[];
 }
 
-/**
- * Mapa de colores predeterminados por categoría reconocida.
- * Cualquier categoría no listada recibirá el color por defecto.
- */
-const COLORES_CATEGORIA: Record<string, string> = {
-  Vivienda: '#4648d4',
-  Alimentación: '#fd933d',
-  Alimentacion: '#fd933d',
-  Transporte: '#712ae2',
-  Servicios: '#38bdf8',
-  Salud: '#10b981',
-  Entretenimiento: '#ef4444',
-  Ocio: '#ef4444',
-  Otros: '#a3a3a3',
-};
-
-const COLOR_POR_DEFECTO = '#e1e3e4';
+import { getColorForCategory } from './colorManager';
 
 /**
  * Infiere un tipoEstado para una recomendación basándose en
@@ -82,7 +66,7 @@ export function mapearAnalisisOutputDTO(
       categoria: (nombreCategoria as CategoriaGasto) || 'Otros',
       monto,
       porcentaje: totalGastado > 0 ? Math.round((monto / totalGastado) * 1000) / 10 : 0,
-      colorHex: COLORES_CATEGORIA[nombreCategoria] ?? COLOR_POR_DEFECTO,
+      colorHex: getColorForCategory(nombreCategoria),
     }),
   );
 
@@ -104,19 +88,28 @@ export function mapearAnalisisOutputDTO(
 
   // --- Estado de salud ---
   let estadoSalud: ReporteAnalisis['estadoSalud'];
-  if (puntajeSalud >= 85) {
+  if (puntajeSalud >= 90) {
+    estadoSalud = 'Excelente';
+  } else if (puntajeSalud >= 80) {
     estadoSalud = 'Saludable';
   } else if (puntajeSalud >= 60) {
+    estadoSalud = 'Estable';
+  } else if (puntajeSalud >= 40) {
     estadoSalud = 'En observación';
+  } else if (puntajeSalud >= 20) {
+    estadoSalud = 'En riesgo';
   } else {
-    estadoSalud = 'Riesgo';
+    estadoSalud = 'Crítico';
   }
 
   // --- Mensaje motivador ---
   const mensajesMotivadores: Record<string, string> = {
+    Excelente: '¡Finanzas impecables! Eres un ejemplo a seguir. 🌟',
     Saludable: '¡Excelente disciplina financiera! Sigue así, vas por buen camino. 💪',
+    Estable: 'Tus finanzas están bajo control. Con un empujoncito llegarás lejos. 📈',
     'En observación': '¡Vamos a mejorar tu salud financiera! Pequeños ajustes hacen gran diferencia. 🚀',
-    Riesgo: 'No te desanimes, ¡cada paso cuenta! Con el plan adecuado volverás a la senda verde. 🌱',
+    'En riesgo': 'Estás a tiempo de corregir el rumbo. Prioriza pagar deudas y reducir gastos. ⚠️',
+    Crítico: 'Es hora de tomar medidas urgentes. ¡Busca ayuda financiera y reestructura tus gastos! 🆘',
   };
 
   return {

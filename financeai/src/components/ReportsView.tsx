@@ -13,23 +13,52 @@ import {
   CheckCircle2,
   FileText
 } from 'lucide-react';
-import { ReporteAnalisis, UserProfile } from '../types';
+import { UserProfile, ReporteAnalisis } from '../types';
+import { getDebtColor } from './SettingsProfileView';
+import { getColorForCategory } from '../utils/colorManager';
 
 interface ReportsViewProps {
   report: ReporteAnalisis;
   userProfile: UserProfile;
+  analysisHistory?: ReporteAnalisis[];
   onOpenAnalysisModal?: (report: ReporteAnalisis) => void;
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({
   report,
   userProfile,
+  analysisHistory,
   onOpenAnalysisModal,
 }) => {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState('Octubre 2024');
   const [estaExportando, setEstaExportando] = useState(false);
   const [exportacionExitosa, setExportacionExitosa] = useState(false);
 
+  const deudas = report?.entradas?.deudas ?? userProfile.deudaTotal;
+  const ingresoMensual = report?.entradas?.ingresoMensual ?? userProfile.ingresoMensual;
+  const ratioDeudaCalculado = ingresoMensual > 0 ? Math.round((deudas / ingresoMensual) * 100) : 0;
+
+  const historicalReports = analysisHistory && analysisHistory.length > 0 ? analysisHistory : (report ? [report] : []);
+  
+  const totalCategoriesMap = new Map<string, number>();
+  let totalGastadoGeneral = 0;
+
+  historicalReports.forEach(r => {
+    totalGastadoGeneral += r.totalGastado || 0;
+    r.distribucionCategorias?.forEach(cat => {
+      const current = totalCategoriesMap.get(cat.categoria) || 0;
+      totalCategoriesMap.set(cat.categoria, current + cat.monto);
+    });
+  });
+
+  const distribucionCategoriasTotal = Array.from(totalCategoriesMap.entries()).map(([categoria, monto]) => {
+    return {
+      categoria: categoria as any,
+      monto,
+      porcentaje: totalGastadoGeneral > 0 ? Math.round((monto / totalGastadoGeneral) * 100) : 0,
+      colorHex: getColorForCategory(categoria as any)
+    };
+  }).sort((a, b) => b.monto - a.monto);
 
   const manejarExportacionPdf = () => {
     setEstaExportando(true);
@@ -42,6 +71,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     }, 800);
   };
 
+
+
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200" id="reports-view-container">
       {/* Header with Title and Export Button */}
@@ -51,7 +82,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             Informes Financieros
           </h1>
           <p className="text-xs text-[#767586] mt-0.5 font-medium">
-            Análisis detallado de tu salud financiera basada en tus parámetros.
+            {report 
+              ? (report.mensajeMotivador || 'Análisis detallado de tu salud financiera basada en tus parámetros.')
+              : 'Aún no cuentas con un análisis generado. Añade transacciones y genera uno para obtener tu informe.'}
           </p>
         </div>
 
@@ -110,7 +143,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="my-3">
             <p className="text-[28px] font-extrabold text-[#191c1d] tracking-tight font-mono-val leading-none">
-              {userProfile.ratioDeuda || 0}%
+              {ratioDeudaCalculado}%
             </p>
           </div>
 
@@ -118,8 +151,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Progress bar */}
             <div className="h-1.5 w-full bg-[#f3f4f5] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#fd933d] rounded-full transition-all duration-500"
-                style={{ width: `${userProfile.ratioDeuda || 0}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${ratioDeudaCalculado}%`, backgroundColor: getDebtColor(ratioDeudaCalculado) }}
               />
             </div>
             <div className="flex justify-between text-[11px] font-medium text-[#767586] mt-1.5">
@@ -145,7 +178,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="my-4">
             <p className="text-[26px] font-bold text-[#191c1d] tracking-tight font-mono-val leading-none">
-              {userProfile.frecuenciaAhorro || 'Mensual'}
+              {report?.entradas?.frecuenciaAhorro || userProfile.frecuenciaAhorro || 'Mensual'}
             </p>
           </div>
 
@@ -180,8 +213,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               {/* Visual Multi-bar representation */}
               <div className="md:col-span-7 space-y-4">
                 <div className="h-6 w-full bg-[#f3f4f5] rounded-xl overflow-hidden flex shadow-inner">
-                  {report?.distribucionCategorias?.length > 0 ? (
-                    report.distribucionCategorias.map((cat, idx) => (
+                  {distribucionCategoriasTotal.length > 0 ? (
+                    distribucionCategoriasTotal.map((cat, idx) => (
                       <div key={idx} style={{ width: `${cat.porcentaje}%`, backgroundColor: cat.colorHex }} className="h-full transition-all hover:opacity-90" title={`${cat.categoria}: ${cat.porcentaje}%`} />
                     ))
                   ) : (
@@ -190,7 +223,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-semibold text-[#767586] px-1">
-                  {report?.distribucionCategorias?.slice(0, 3).map((cat, idx) => (
+                  {distribucionCategoriasTotal.slice(0, 3).map((cat, idx) => (
                     <span key={idx}>{cat.categoria}: ${(cat.monto || 0).toLocaleString('en-US')}</span>
                   ))}
                 </div>
@@ -198,8 +231,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
               {/* Legend List on Right */}
               <div className="md:col-span-5 space-y-3 pl-0 md:pl-6 border-t md:border-t-0 md:border-l border-[#f3f4f5] pt-4 md:pt-0">
-                {report?.distribucionCategorias?.length > 0 ? (
-                  report.distribucionCategorias.map((cat, idx) => (
+                {distribucionCategoriasTotal.length > 0 ? (
+                  distribucionCategoriasTotal.map((cat, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.colorHex }} />
@@ -217,7 +250,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           {/* Bottom Sub-categories Bar (Exact as screenshot) */}
           <div className="pt-6 border-t border-[#f3f4f5] flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-[#464554]">
-            {report?.distribucionCategorias?.map((c) => c.categoria).map((cat) => (
+            {distribucionCategoriasTotal.map((c) => c.categoria).map((cat) => (
               <span key={cat} className="hover:text-[#4648d4] transition-colors cursor-pointer">
                 {cat}
               </span>
@@ -236,7 +269,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Ahorro Total
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(report?.totalGastado || 0).toLocaleString('en-US')}
+              ${(totalGastadoGeneral || 0).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#4648d4]">
               <TrendingUp className="w-4 h-4 stroke-[2]" />
@@ -252,7 +285,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Obj. Presupuesto
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(userProfile.objetivoPresupuesto || 0).toLocaleString('en-US')}
+              ${(report?.entradas?.objetivoPresupuesto ?? userProfile.objetivoPresupuesto).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <Target className="w-4 h-4 stroke-[2]" />
@@ -268,7 +301,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Suscripciones
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              {userProfile.suscripciones || 0} Activas
+              {report?.entradas?.suscripciones ?? userProfile.suscripciones} Activas
             </p>
             <div className="flex justify-end text-[#fd933d]">
               <Tv className="w-4 h-4 stroke-[2]" />
@@ -284,7 +317,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Fondo Emergencia
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(userProfile.fondoEmergencia || 0).toLocaleString('en-US')}
+              ${(report?.entradas?.fondoEmergencia ?? userProfile.fondoEmergencia).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#712ae2]">
               <ShieldCheck className="w-4 h-4 stroke-[2]" />
