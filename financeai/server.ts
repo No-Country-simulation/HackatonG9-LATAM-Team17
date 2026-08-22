@@ -1,15 +1,13 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import fs from "fs";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT ?? 3000);
+  const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8080";
 
   // Parse JSON bodies EXCEPT for API routes, which need the raw stream for the proxy
   const jsonParser = express.json({ limit: "10mb" });
@@ -20,6 +18,13 @@ async function startServer() {
       jsonParser(req, res, next);
     }
   });
+
+  // Proxy /api al backend en dev Y producción (el proxy de vite.config.ts solo existe en dev)
+  app.use(createProxyMiddleware({
+    pathFilter: '/api',
+    target: BACKEND_URL,
+    changeOrigin: true,
+  }));
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -32,7 +37,7 @@ async function startServer() {
     // Fallback for SPA in development
     app.use("*", async (req, res, next) => {
       try {
-        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        let template = fs.readFileSync(path.resolve(process.cwd(), "index.html"), "utf-8");
         template = await vite.transformIndexHtml(req.originalUrl, template);
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
       } catch (e: any) {
@@ -49,7 +54,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`FinanceAI Server running on http://localhost:${PORT}`);
+    console.log(`FinanceAI Server running on port ${PORT} (backend proxy → ${BACKEND_URL})`);
   });
 }
 

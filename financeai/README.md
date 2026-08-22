@@ -13,7 +13,7 @@ Plataforma inteligente de gestión financiera personal: análisis predictivo, me
 
 1. Instalar dependencias:
    `npm install`
-2. Copiar `.env.example` a `.env.local` si necesitas sobreescribir alguna variable (actualmente no hay variables obligatorias para el frontend).
+2. Copiar `.env.example` a `.env.local` si necesitas sobreescribir alguna variable (`BACKEND_URL`, `PORT` — ambas opcionales en local).
 3. Levantar el backend Spring Boot en el puerto `8080` (repositorio del backend).
 4. Correr la app:
    `npm run dev`
@@ -29,3 +29,18 @@ Plataforma inteligente de gestión financiera personal: análisis predictivo, me
 | `npm run preview` | Sirve el build de producción de Vite localmente |
 | `npm run lint` | Chequeo de tipos con `tsc --noEmit` (no hay ESLint/Prettier configurados) |
 | `npm run clean` | Elimina `dist/` y el bundle del servidor |
+
+## Despliegue a producción
+
+1. `npm run build` — genera `dist/` (frontend) y `dist/server.cjs` (servidor).
+2. Definir variables de entorno en el hosting:
+   - `BACKEND_URL` (**obligatoria**): URL pública del backend Spring Boot (ej. `https://api.midominio.com`). El servidor Express reenvía todas las llamadas `/api` hacia esa URL.
+   - `PORT` (opcional): la mayoría de plataformas lo inyectan automáticamente.
+   - `NODE_ENV=production`.
+3. `npm run start`.
+
+> ⚠️ **Bloqueantes conocidos del backend para producción con usuarios reales** (no resolubles desde este repositorio — ver "Deuda técnica conocida" en [docs/API_BACKEND_ENDPOINTS.md](docs/API_BACKEND_ENDPOINTS.md)):
+> 1. El token de sesión es simulado: no hay autenticación real ni protección de endpoints.
+> 2. `POST /analizar` guarda los análisis en el primer usuario de la BD, no en el usuario logueado — con múltiples usuarios reales los análisis se cruzan entre cuentas.
+>
+> Ambos deben resolverse en el backend antes de exponer la aplicación a usuarios públicos.
