@@ -48,7 +48,7 @@ El sistema combina tres grandes capas:
 │  Usuarios               │       │                                │
 │  Análisis               │       │  ┌──────────────────────────┐  │
 │  Transacciones          │       │  │ 🧠 Clasificador NLP      │  │
-└─────────────────────────┘       │  │ TF-IDF + LogisticReg.    │  │
+└─────────────────────────┘       │  │ TF-IDF + SVM lineal      │  │
                                   │  └────────────┬─────────────┘  │
                                   │               ▼                │
                                   │  ┌──────────────────────────┐  │
@@ -493,56 +493,57 @@ El módulo Python concentra la inteligencia del sistema:
 
 ---
 
-# 🧠 3.1 Clasificador NLP
+# 🧠 3.1 Clasificador SVM de gastos
 
-El clasificador recibe la descripción de una transacción y determina una de las **12 categorías financieras**.
+El clasificador recibe la descripción breve de una transacción —por ejemplo, `renovación mensual de Netflix`— y determina a cuál de las **12 categorías financieras** pertenece. Es un problema de **clasificación supervisada multiclase**: durante el entrenamiento se conocen las categorías correctas y el modelo aprende a separar sus patrones lingüísticos.
 
-Es un problema de **clasificación supervisada multiclase**.
+La única variable predictora es `descripcion`. Los campos `valor` y `fecha` se validan para cumplir el contrato de integración, pero no entran al modelo; así se evita aprender límites monetarios o patrones estacionales frágiles entre países, monedas y usuarios.
+
+El sistema no clasifica mediante reglas `if/else`. Combina representaciones TF-IDF con señales léxicas financieras y utiliza una **SVM lineal calibrada** para decidir la categoría. Este enfoque se adapta especialmente bien al texto porque trabaja de forma eficiente con vectores dispersos de alta dimensión.
 
 ## 🔬 Arquitectura
 
 ```text
-Descripción
-     │
-     ▼
-Normalización
-     │
-     ├───────────────────┐
-     ▼                   ▼
-TF-IDF palabras     TF-IDF caracteres
-1–2 gramos          3–5 gramos
-     │                   │
-     └─────────┬─────────┘
-               ▼
-        Señales léxicas
-               │
-               ▼
-          FeatureUnion
-               │
-               ▼
-       LogisticRegression
-               │
-               ▼
-        Temperature Scaling
-               │
-               ▼
-       Política de confianza
-               │
-               ▼
-      Categoría + confiabilidad
+Descripción de la transacción
+              │
+              ▼
+ Normalización y corrección
+  ortográfica conservadora
+              │
+      ┌───────┼────────┐
+      ▼       ▼        ▼
+ TF-IDF de  TF-IDF de  Señales léxicas
+ palabras   caracteres  financieras
+  1–2 g.      3–5 g.
+      └───────┼────────┘
+              ▼
+       Vector disperso
+              │
+              ▼
+   SVM lineal multiclase
+      LinearSVC (C = 2)
+              │
+              ▼
+ Calibración sigmoide agrupada
+              │
+              ▼
+ Ajuste de temperatura (0.70)
+              │
+              ▼
+     Categoría + confiabilidad
 ```
 
 ## ⚙️ Configuración
 
 | Componente | Configuración |
 |:---|:---|
-| TF-IDF palabras | 1–2 gramos |
-| Peso palabras | `1.0` |
-| TF-IDF caracteres | 3–5 gramos |
-| Peso caracteres | `0.8` |
-| Señales léxicas | `2.5` |
-| LogisticRegression | `C = 3.0` |
-| Balanceo | `class_weight = balanced` |
+| Normalización | Minúsculas, eliminación de acentos y puntuación, conservación de dígitos y compactación de espacios |
+| Corrección ortográfica | Conservadora y condicionada a que la señal apunte a una sola categoría |
+| TF-IDF de palabras | Unigramas y bigramas (1–2 gramos) |
+| TF-IDF de caracteres | Fragmentos de 3–5 caracteres |
+| Señales léxicas | Términos financieros incorporados como características; no sustituyen al modelo |
+| Clasificador | `LinearSVC` multiclase con `C = 2` |
+| Calibración | Sigmoide con 5 folds agrupados + temperatura `0.70` en validación independiente |
 
 ---
 
@@ -567,21 +568,11 @@ TF-IDF palabras     TF-IDF caracteres
 
 # 🎯 Política de confianza
 
-El clasificador utiliza varios criterios antes de aceptar automáticamente una predicción:
+`LinearSVC` produce distancias respecto de los hiperplanos de decisión, no probabilidades nativas. Para devolver una `confiabilidad` interpretable, sus márgenes se convierten en probabilidades mediante calibración sigmoide con folds agrupados y después se ajustan con una temperatura de **0.70** elegida sobre 94 casos de validación independientes.
 
-| Criterio | Umbral |
-|:---|---:|
-| Umbral mínimo | **55%** |
-| Margen mínimo | **8%** |
-| Cobertura léxica mínima | **20%** |
+La misma partición fijó un umbral interno de **0.48** para la aceptación automática, con un objetivo de 93% de precisión entre los casos aceptados. Una confianza inferior debe tratarse como señal de revisión, no como certeza ni como una conversión automática a `OTROS`. El contrato del backend conserva siempre la mejor categoría y su confiabilidad.
 
-Si alguna condición crítica no se cumple:
-
-```text
-→ Respaldo: OTROS
-```
-
-El modelo conserva información adicional para auditoría, como:
+Para auditoría interna, el clasificador también conserva:
 
 - Margen
 - Cobertura léxica
@@ -590,25 +581,25 @@ El modelo conserva información adicional para auditoría, como:
 
 ---
 
-# 📈 Evaluación del modelo NLP
+# 📈 Evaluación y selección del modelo
 
-Se compararon cinco familias utilizando `StratifiedGroupKFold`:
+Se compararon cinco familias compatibles con matrices dispersas utilizando `StratifiedGroupKFold` de cinco folds. Las variaciones de un mismo concepto permanecen en el mismo grupo, por lo que no pueden aparecer simultáneamente en entrenamiento y prueba.
 
 | Modelo | F1 macro agrupado | Exactitud agrupada |
 |:---|---:|---:|
-| SVM lineal | 75.03% | 74.74% |
-| Regresión logística | 74.87% | 73.37% |
-| SGD logístico | 74.47% | 73.58% |
-| Naive Bayes complementario | 73.22% | 74.01% |
-| Bosque aleatorio | 68.29% | 67.86% |
+| **SVM lineal** | **73.33%** | **73.50%** |
+| Regresión logística | 73.22% | 72.55% |
+| SGD logístico | 72.53% | 72.34% |
+| Naive Bayes complementario | 72.35% | 73.58% |
+| Bosque aleatorio | 68.23% | 68.67% |
 
-### ¿Por qué se seleccionó Regresión Logística?
+### ¿Por qué se seleccionó SVM lineal?
 
-- La diferencia frente a SVM fue de solo **0.16 puntos de F1**.
-- Proporciona probabilidades nativas.
-- Permite calibrar la confiabilidad.
-- Produce un artefacto compacto.
-- Simplifica la inferencia y el despliegue.
+- Obtuvo la mayor **F1 macro agrupada (73.33%)**, métrica que concede el mismo peso a cada categoría.
+- Se comporta bien en espacios TF-IDF de alta dimensión y con gran cantidad de valores cero.
+- Su frontera lineal ofrece una inferencia más viable para 100,000 textos que KNN o una SVM con kernel RBF.
+- Sus márgenes pueden calibrarse para producir la confiabilidad requerida por el contrato JSON.
+- La selección sigue una regla reproducible: elegir la mayor F1 macro agrupada entre los modelos con un flujo probabilístico aprobado.
 
 ---
 
@@ -620,15 +611,14 @@ El entrenamiento final utiliza:
 |:---|---:|
 | Descripciones únicas | **100,000** |
 | Textos manuales curados | **118** |
-| Variaciones sintéticas reproducibles | **99,882** |
+| Deformaciones ortográficas sistemáticas | **4,820** |
+| Variaciones sintéticas de redacción y formato bancario | **95,062** |
 | Casos de calibración | **94** |
 | Holdout final | **72** |
 
-La generación de datos es **determinista y reproducible**.
+La generación es **determinista y reproducible**: combina conceptos financieros con formatos habituales de estados de cuenta, ruido textual y errores ortográficos controlados. Cada variación conserva el grupo de su concepto original para evitar fuga semántica, y el hash SHA-256 del conjunto se registra dentro del artefacto entrenado.
 
-Las variaciones sintéticas conservan el grupo conceptual original para evitar fuga semántica.
-
-> ⚠️ Las 100,000 muestras no representan 100,000 transacciones reales independientes. Para producción se recomienda incorporar datos reales anonimizados.
+> ⚠️ Las 100,000 muestras no representan 100,000 transacciones reales independientes. La aumentación enseña tolerancia a cambios de redacción y ortografía, pero no reemplaza datos reales anonimizados de distintos países, bancos y usuarios.
 
 ---
 
@@ -636,17 +626,17 @@ Las variaciones sintéticas conservan el grupo conceptual original para evitar f
 
 | Métrica | Resultado |
 |:---|---:|
-| 🎯 Exactitud | **95.83%** |
-| 📊 F1 macro | **95.82%** |
-| 📉 Log-loss | **0.1848** |
-| 📐 Brier multiclase | **0.0533** |
-| 📏 ECE | **2.62%** |
+| 🎯 Exactitud | **97.22%** |
+| 📊 F1 macro | **97.20%** |
+| 📉 Log-loss | **0.0886** |
+| 📐 Brier multiclase | **0.0360** |
+| 📏 ECE | **4.29%** |
 | 🤖 Cobertura automática | **98.61%** |
-| ✅ Precisión entre aceptadas | **97.18%** |
+| ✅ Precisión entre aceptadas | **98.59%** |
 
 > ⚠️ El holdout es pequeño y debe considerarse evidencia inicial, no una garantía de rendimiento en producción.
 
-La validación agrupada es especialmente importante para evaluar generalización hacia conceptos nuevos.
+La batería de regresión de la versión 3.3 también superó 120 casos semánticos, 600 transformaciones con ruido bancario, 960 deformaciones ortográficas sistemáticas y 29 errores dirigidos. Estos son controles conocidos de robustez, no ejemplos independientes; para estimar la generalización hacia conceptos nuevos debe considerarse principalmente la validación agrupada, cercana al 73% de F1 macro.
 
 ---
 
@@ -1057,7 +1047,7 @@ modelos/
 
 | Archivo | Contenido |
 |:---|:---|
-| `clasificador_gastos.pkl` | TF-IDF + LogisticRegression + calibración |
+| `clasificador_gastos.pkl` | TF-IDF + SVM lineal calibrada (`LinearSVC`) + metadatos de entrenamiento |
 | `clasificador_gastos.pkl.sha256` | Checksum de integridad |
 | `modelo_perfil_financiero.pkl` | Clasificador del perfil |
 | `modelo_tipo_ingreso_1.pkl` | Tipo de ingreso v1 |
@@ -1112,21 +1102,15 @@ modelos/
 
 # 🚀 Uso del módulo Python
 
-## Cargar el clasificador
+## Probar el clasificador entrenado
 
-```python
-from clasificador.modelo import cargar_modelo
+El archivo de demostración carga `modelos/clasificador_gastos.pkl`, valida su integridad, procesa `ejemplos/entrada_transacciones.json` y conserva el orden de las transacciones en la salida.
 
-modelo = cargar_modelo(
-    "modelos/clasificador_gastos.pkl",
-    verificar_integridad=True
-)
-
-resultado = modelo.predecir("PAGO SUPERMERCADO METRO")
-
-print(resultado["categoria"])
-print(resultado["confianza_porcentaje"])
+```powershell
+.\.venv_hackathon\Scripts\python.exe probar_modelo_json.py
 ```
+
+El resultado se escribe en `ejemplos/salida_transacciones.json` con exactamente los campos `categoria` y `confiabilidad` acordados con el backend.
 
 ---
 
@@ -1134,6 +1118,12 @@ print(resultado["confianza_porcentaje"])
 
 ```python
 from clasificador.contrato_json import clasificar_payload
+from clasificador.modelo import cargar_modelo
+
+modelo = cargar_modelo(
+    "modelos/clasificador_gastos.pkl",
+    verificar_integridad=True
+)
 
 payload = {
     "transacciones": [
@@ -1157,31 +1147,13 @@ resultado = clasificar_payload(payload, modelo)
 
 ## 🧪 Entrenar el clasificador
 
-```python
-from clasificador.modelo import ClasificadorGastos
-from clasificador.datos import cargar_datos_entrenamiento_ampliado
+`entrenar.py` ejecuta el flujo completo y reproducible: construye los datos, compara las cinco familias, selecciona la regularización, calibra la SVM, fija el umbral interno, evalúa el holdout y guarda el PKL junto con sus reportes JSON.
 
-datos = cargar_datos_entrenamiento_ampliado(
-    "transacciones.csv",
-    objetivo_total=100_000
-)
-
-clasificador = ClasificadorGastos(
-    umbral_confianza=0.55,
-    margen_minimo=0.08,
-    cobertura_minima=0.20,
-    c_regularizacion=3.0
-)
-
-clasificador.entrenar(
-    datos["descripcion"],
-    datos["categoria"]
-)
-
-clasificador.guardar(
-    "modelos/clasificador_gastos.pkl"
-)
+```powershell
+.\.venv_hackathon\Scripts\python.exe entrenar.py
 ```
+
+El holdout se utiliza únicamente al final y nunca se copia al entrenamiento.
 
 ---
 
