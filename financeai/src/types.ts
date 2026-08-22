@@ -9,7 +9,7 @@ export type NavigationTab =
 export type TopSubTab = 'Dashboard' | 'Informes';
 
 export type HealthStatus = 'Crítico' | 'En riesgo' | 'En observación' | 'Estable' | 'Saludable' | 'Excelente';
-export type EstadoSalud = HealthStatus;
+export type PerfilFinanciero = HealthStatus;
 
 export type SavingsFrequency = 'Semanal' | 'Quincenal' | 'Mensual';
 export type FrecuenciaAhorro = SavingsFrequency;
@@ -58,6 +58,7 @@ export interface Recomendacion {
   etiquetaAccion: string;
   completada?: boolean;
   tipoEstado?: 'danger' | 'warning' | 'info' | 'success';
+  contextoExtra?: string;
 }
 
 export interface DistribucionCategoria {
@@ -72,8 +73,8 @@ export interface ReporteAnalisis {
   fecha: string;
   marcaTiempo: number;
   totalGastado: number;
-  puntajeSalud: number;
-  estadoSalud: EstadoSalud;
+  confianzaModelo: number;
+  perfilFinanciero: PerfilFinanciero;
   mensajeMotivador: string;
 
   distribucionCategorias: DistribucionCategoria[];

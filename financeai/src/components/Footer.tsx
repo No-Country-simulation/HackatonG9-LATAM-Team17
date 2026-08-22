@@ -11,8 +11,8 @@ export const Footer: React.FC = () => {
         <div className="w-6 h-6 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-[#6063ee] to-[#fd933d] flex items-center justify-center shrink-0">
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
             <img
-              src={MASCOTS.happyPotatoCoin}
-              alt="FinanceAI Mascot"
+              src={MASCOTS.logo}
+              alt="FinanceAI Logo"
               className="w-full h-full object-contain"
               referrerPolicy="no-referrer"
             />

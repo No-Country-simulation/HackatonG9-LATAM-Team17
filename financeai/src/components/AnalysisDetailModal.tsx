@@ -25,7 +25,7 @@ export const AnalysisDetailModal: React.FC<PropsModalDetalleAnalisis> = ({
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md p-1 flex items-center justify-center shrink-0">
               <img
-                src={reporte.puntajeSalud >= 80 ? MASCOTS.happyPotatoCoin : MASCOTS.catWorriedEmpty}
+                src={['Excelente', 'Saludable'].includes(reporte.perfilFinanciero) ? MASCOTS.happyPotatoCoin : MASCOTS.catWorriedEmpty}
                 alt="Status Mascot"
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
@@ -35,8 +35,9 @@ export const AnalysisDetailModal: React.FC<PropsModalDetalleAnalisis> = ({
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#ffdcc5]">
                 REPORTE DEL EXPERTO ALENTADOR • {reporte.fecha}
               </span>
-              <h2 className="text-xl font-bold text-white font-display">
-                Salud Financiera: {reporte.puntajeSalud}% ({reporte.estadoSalud})
+              <h2 className="text-xl font-bold text-white font-display flex flex-col gap-0.5 mt-0.5">
+                <span>Perfil Financiero: {reporte.perfilFinanciero}</span>
+                <span className="text-sm font-medium text-white/90">Confianza de IA: {reporte.confianzaModelo}%</span>
               </h2>
             </div>
           </div>
@@ -67,22 +68,24 @@ export const AnalysisDetailModal: React.FC<PropsModalDetalleAnalisis> = ({
             )}
           </div>
 
-          {/* Breakdown Distribution */}
-          <div>
-            <h4 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-3">
-              Desglose de Gastos Analizados (Total: ${reporte.totalGastado.toLocaleString()})
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {reporte.distribucionCategorias.map((c) => (
-                <div key={c.categoria} className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e1e3e4]">
-                  <p className="text-[11px] text-[#767586] font-medium">{c.categoria}</p>
-                  <p className="text-sm font-bold text-[#191c1d] font-mono-val mt-0.5">
-                    ${c.monto.toLocaleString()} ({c.porcentaje}%)
-                  </p>
-                </div>
-              ))}
+          {/* Breakdown Distribution (Only shown if valid data exists) */}
+          {reporte.distribucionCategorias && reporte.distribucionCategorias.some(c => c.monto > 0) && (
+            <div>
+              <h4 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-3">
+                Desglose de Gastos Analizados (Total: ${reporte.totalGastado.toLocaleString()})
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {reporte.distribucionCategorias.map((c) => (
+                  <div key={c.categoria} className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e1e3e4]">
+                    <p className="text-[11px] text-[#767586] font-medium">{c.categoria}</p>
+                    <p className="text-sm font-bold text-[#191c1d] font-mono-val mt-0.5">
+                      ${c.monto.toLocaleString()} ({c.porcentaje}%)
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Recommendations checklist */}
           <div className="space-y-3">

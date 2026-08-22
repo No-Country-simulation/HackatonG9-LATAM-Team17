@@ -1,13 +1,14 @@
 // Mascot assets registry for FinanceAI - El Experto Alentador
-import potatoCoinImg from './images/happy_potato_coin_1786989431977.jpg';
-import sadPotatoCoinImg from './images/sad_watercolor_potato_1787016101087.jpg';
+import logoImg from './images/much_money.png';
+import mascotImg from './images/save_money.png';
 
 export const MASCOTS = {
-  luckyCatGold: potatoCoinImg,
-  catRichMoney: potatoCoinImg,
-  catWorriedEmpty: sadPotatoCoinImg,
-  happyPotatoCoin: potatoCoinImg,
-  sadPotatoCoin: sadPotatoCoinImg,
+  logo: logoImg,
+  luckyCatGold: mascotImg,
+  catRichMoney: mascotImg,
+  catWorriedEmpty: mascotImg,
+  happyPotatoCoin: mascotImg,
+  sadPotatoCoin: mascotImg,
 };
 
 export default MASCOTS;

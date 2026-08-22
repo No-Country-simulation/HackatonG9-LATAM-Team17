@@ -11,7 +11,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   CheckCircle2,
-  FileText
+  FileText,
+  BarChart3
 } from 'lucide-react';
 import { UserProfile, ReporteAnalisis } from '../types';
 import { getDebtColor } from './SettingsProfileView';
@@ -34,31 +35,35 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   const [estaExportando, setEstaExportando] = useState(false);
   const [exportacionExitosa, setExportacionExitosa] = useState(false);
 
-  const deudas = report?.entradas?.deudas ?? userProfile.deudaTotal;
-  const ingresoMensual = report?.entradas?.ingresoMensual ?? userProfile.ingresoMensual;
+  const deudas = userProfile.deudaTotal;
+  const ingresoMensual = userProfile.ingresoMensual;
   const ratioDeudaCalculado = ingresoMensual > 0 ? Math.round((deudas / ingresoMensual) * 100) : 0;
 
   const historicalReports = analysisHistory && analysisHistory.length > 0 ? analysisHistory : (report ? [report] : []);
   
-  const totalCategoriesMap = new Map<string, number>();
   let totalGastadoGeneral = 0;
+  const totalCategoriesMap: Record<string, import('../types').DistribucionCategoria> = {};
 
-  historicalReports.forEach(r => {
-    totalGastadoGeneral += r.totalGastado || 0;
-    r.distribucionCategorias?.forEach(cat => {
-      const current = totalCategoriesMap.get(cat.categoria) || 0;
-      totalCategoriesMap.set(cat.categoria, current + cat.monto);
+  historicalReports.forEach(rep => {
+    totalGastadoGeneral += rep.totalGastado;
+    (rep.distribucionCategorias || []).forEach(cat => {
+      if (!totalCategoriesMap[cat.categoria]) {
+        totalCategoriesMap[cat.categoria] = { ...cat, monto: 0, porcentaje: 0 };
+      }
+      totalCategoriesMap[cat.categoria].monto += cat.monto;
     });
   });
 
-  const distribucionCategoriasTotal = Array.from(totalCategoriesMap.entries()).map(([categoria, monto]) => {
-    return {
-      categoria: categoria as any,
-      monto,
-      porcentaje: totalGastadoGeneral > 0 ? Math.round((monto / totalGastadoGeneral) * 100) : 0,
-      colorHex: getColorForCategory(categoria as any)
-    };
-  }).sort((a, b) => b.monto - a.monto);
+  const distribucionCategoriasTotal = Object.values(totalCategoriesMap)
+    .filter(cat => cat.monto > 0)
+    .map(cat => ({
+      ...cat,
+      porcentaje: totalGastadoGeneral > 0 ? Math.round((cat.monto / totalGastadoGeneral) * 1000) / 10 : 0
+    }))
+    .sort((a, b) => b.monto - a.monto);
+
+  const maxMontoCalc = Math.max(...distribucionCategoriasTotal.map(c => c.monto));
+  const maxMonto = maxMontoCalc > 0 ? maxMontoCalc : 1;
 
   const manejarExportacionPdf = () => {
     setEstaExportando(true);
@@ -195,66 +200,63 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Left Column: Distribución de Gastos Card (8 cols) */}
         <div
           id="card-reports-expense-distribution"
-          className="lg:col-span-8 bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
+          className="lg:col-span-8 bg-white rounded-2xl p-6 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col"
         >
-          <div>
-            {/* Header with Title and 3-dots */}
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-base font-bold text-[#191c1d] font-display">
-                Distribución de Gastos
-              </h3>
-              <button className="text-[#767586] hover:text-[#191c1d] p-1 rounded-lg hover:bg-[#f3f4f5] transition-colors">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Central Content Area with Percentages Breakdown */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center my-6">
-              {/* Visual Multi-bar representation */}
-              <div className="md:col-span-7 space-y-4">
-                <div className="h-6 w-full bg-[#f3f4f5] rounded-xl overflow-hidden flex shadow-inner">
-                  {distribucionCategoriasTotal.length > 0 ? (
-                    distribucionCategoriasTotal.map((cat, idx) => (
-                      <div key={idx} style={{ width: `${cat.porcentaje}%`, backgroundColor: cat.colorHex }} className="h-full transition-all hover:opacity-90" title={`${cat.categoria}: ${cat.porcentaje}%`} />
-                    ))
-                  ) : (
-                    <div style={{ width: '100%' }} className="h-full bg-[#d9dadb] transition-all" title="Sin datos" />
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-semibold text-[#767586] px-1">
-                  {distribucionCategoriasTotal.slice(0, 3).map((cat, idx) => (
-                    <span key={idx}>{cat.categoria}: ${(cat.monto || 0).toLocaleString('en-US')}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Legend List on Right */}
-              <div className="md:col-span-5 space-y-3 pl-0 md:pl-6 border-t md:border-t-0 md:border-l border-[#f3f4f5] pt-4 md:pt-0">
-                {distribucionCategoriasTotal.length > 0 ? (
-                  distribucionCategoriasTotal.map((cat, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.colorHex }} />
-                        <span className="text-xs font-medium text-[#464554]">{cat.categoria}</span>
-                      </div>
-                      <span className="text-xs font-bold text-[#191c1d] font-mono-val">{cat.porcentaje}%</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-[#767586]">No hay suficientes datos para graficar</p>
-                )}
-              </div>
-            </div>
+          {/* Header with Title and 3-dots */}
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-base font-bold text-[#191c1d] font-display">
+              Distribución de Gastos
+            </h3>
+            <button className="text-[#767586] hover:text-[#191c1d] p-1 rounded-lg hover:bg-[#f3f4f5] transition-colors">
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* Bottom Sub-categories Bar (Exact as screenshot) */}
-          <div className="pt-6 border-t border-[#f3f4f5] flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-[#464554]">
-            {distribucionCategoriasTotal.map((c) => c.categoria).map((cat) => (
-              <span key={cat} className="hover:text-[#4648d4] transition-colors cursor-pointer">
-                {cat}
-              </span>
-            )) || <span className="text-[#767586]">Sin datos</span>}
+          <div className="mb-8 flex flex-col">
+            <span className="text-xs font-bold text-[#767586] uppercase tracking-wider mb-1">Total del periodo</span>
+            <span className="text-[28px] font-extrabold text-[#191c1d] tracking-tight font-mono-val leading-none">
+              ${totalGastadoGeneral.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </span>
+          </div>
+
+          {/* List of categories */}
+          <div className="max-h-[400px] overflow-y-auto custom-scrollbar pr-2 space-y-5">
+            {distribucionCategoriasTotal.length > 0 ? (
+              distribucionCategoriasTotal.map((cat, idx) => (
+                <div key={idx} className="flex flex-col space-y-2.5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: cat.colorHex }} />
+                      <div>
+                        <p className="text-sm font-bold text-[#191c1d] leading-none mb-1.5">{cat.categoria}</p>
+                        <p className="text-[11px] font-semibold text-[#767586]">{cat.porcentaje}% del gasto</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-[#191c1d] font-mono-val">
+                      ${cat.monto.toLocaleString('en-US')}
+                    </span>
+                  </div>
+                  {/* Independent Bar */}
+                  <div className="w-full h-2 bg-[#f3f4f5] rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500 ease-out"
+                      style={{ 
+                        width: `${Math.max(1, (cat.monto / maxMonto) * 100)}%`,
+                        backgroundColor: cat.colorHex
+                      }}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#f3f4f5] flex items-center justify-center text-[#767586]">
+                  <BarChart3 className="w-5 h-5 opacity-60" />
+                </div>
+                <p className="text-sm font-bold text-[#464554]">Aún no hay gastos registrados.</p>
+                <p className="text-xs text-[#767586] max-w-[200px]">Agrega nuevas transacciones y genera un análisis para ver tu distribución.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -266,10 +268,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             className="bg-white rounded-2xl p-5 border border-[#e1e3e4] shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between"
           >
             <p className="text-[11px] font-semibold text-[#767586]">
-              Ahorro Total
+              Ahorro del Último Análisis
             </p>
             <p className="text-xl font-bold text-[#191c1d] font-mono-val my-2">
-              ${(totalGastadoGeneral || 0).toLocaleString('en-US')}
+              ${Math.max(0, ingresoMensual - (historicalReports[0]?.totalGastado || 0)).toLocaleString('en-US')}
             </p>
             <div className="flex justify-end text-[#4648d4]">
               <TrendingUp className="w-4 h-4 stroke-[2]" />

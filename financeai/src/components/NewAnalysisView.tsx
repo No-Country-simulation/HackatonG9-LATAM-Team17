@@ -18,6 +18,8 @@ import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 import { manejarRespuestaError } from '../utils/apiErrors';
+import { normalizarPerfil } from '../utils/mapeadores';
+import { getColorForCategory } from '../utils/colorManager';
 
 interface NewAnalysisViewProps {
   userProfile: UserProfile;
@@ -254,19 +256,19 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
           categoria: categoria as any,
           monto: montoNum,
           porcentaje: Math.round(porcentaje),
-          colorHex: '#4648d4'
+          colorHex: getColorForCategory(categoria)
         };
       });
 
       const recsOriginales = Array.isArray(data.recomendaciones) ? data.recomendaciones : [];
       const recomendaciones = recsOriginales.map((texto: string, idx: number) => ({
         id: `rec-${idx}`,
-        titulo: `Recomendación ${idx + 1}`,
+        titulo: texto.length > 60 ? texto.slice(0, 57) + '...' : texto,
         descripcion: texto,
         categoria: 'General',
-        impacto: 'Calculado por motor',
+        impacto: 'Personalizado',
         etiquetaAccion: 'Ver detalles',
-        tipoEstado: 'warning' as const
+        tipoEstado: 'info' as const
       }));
 
       const report: ReporteAnalisis = {
@@ -274,11 +276,21 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
         fecha: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
         marcaTiempo: Date.now(),
         totalGastado: totalGastado,
-        puntajeSalud: Math.round((data.probabilidad || 0) * 100),
-        estadoSalud: (data.perfil_financiero || 'Observación') as any,
+        confianzaModelo: Math.round((data.probabilidad || 0) * 100),
+        perfilFinanciero: normalizarPerfil(data.perfil_financiero),
         mensajeMotivador: '¡Aquí tienes tu análisis detallado!',
         distribucionCategorias,
-        recomendaciones
+        recomendaciones,
+        entradas: {
+          ingresoMensual: ingresoParseado,
+          deudas: deudaParseada,
+          frecuenciaAhorro: frecuenciaAhorro,
+          objetivoPresupuesto: parseFloat(objetivoPresupuesto) || 0,
+          pagoDeuda: parseFloat(pagoMensualDeuda) || 0,
+          suscripciones: parseInt(serviciosSuscripcion, 10) || 0,
+          fondoEmergencia: parseFloat(fondoEmergencia) || 0,
+          cantidadTransacciones: listaTransacciones.length
+        }
       };
 
       onAnalysisComplete(report);

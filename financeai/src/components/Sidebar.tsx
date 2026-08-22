@@ -61,8 +61,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="relative w-11 h-11 rounded-full p-1 bg-gradient-to-tr from-[#6063ee] via-[#4648d4] to-[#fd933d] shadow-[0_4px_12px_rgba(70,72,212,0.25)] flex items-center justify-center transition-transform group-hover:scale-105">
               <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center p-0.5">
                 <img
-                  src={MASCOTS.happyPotatoCoin}
-                  alt="FinanceAI Mascot"
+                  src={MASCOTS.logo}
+                  alt="FinanceAI Logo"
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
                 />

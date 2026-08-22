@@ -34,52 +34,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   transactions = [],
 }) => {
   const [busqueda, setBusqueda] = useState('');
-  const [filtroSalud, setFiltroSalud] = useState<'all' | HealthStatus>('all');
+  const [filtroPerfil, setFiltroPerfil] = useState<'all' | HealthStatus>('all');
   const [ordenarPor, setOrdenarPor] = useState<'newest' | 'oldest' | 'score-high' | 'score-low'>('newest');
 
   const [historialLocal, setHistorialLocal] = useState<ReporteAnalisis[]>(analysisHistory);
-  const [cargandoHistorial, setCargandoHistorial] = useState(true);
 
+  // Sincronizar historialLocal cuando App.tsx actualice el prop (ej. análisis nuevo generado en sesión)
   useEffect(() => {
-    let isMounted = true;
-    const fetchHistory = async () => {
-      try {
-        const response = await fetch('/api/v1/finanzas/historial');
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            // Map the history payload (basic) to ReporteAnalisis format using fallbacks for missing fields
-            const mappedHistory = data.map((item: any): ReporteAnalisis => {
-              // Normalize status
-              let normStatus = item.perfilFinanciero || 'En observación';
-              if (normStatus === 'Observación') normStatus = 'En observación';
-              if (normStatus === 'Riesgo') normStatus = 'En riesgo';
-
-              return {
-                id: item.id?.toString() || Math.random().toString(36).substr(2, 9),
-                fecha: item.fechaAnalisis || new Date().toISOString().split('T')[0],
-                marcaTiempo: new Date(item.fechaAnalisis || Date.now()).getTime(),
-                puntajeSalud: item.probabilidad ? Math.round(item.probabilidad * 100) : 50,
-                estadoSalud: normStatus as HealthStatus,
-                mensajeMotivador: normStatus === 'Excelente' ? '¡Finanzas impecables!' : 'Sigue esforzándote',
-                totalGastado: item.transacciones?.reduce((sum: number, tx: any) => sum + (tx.valor || 0), 0) || 0,
-                distribucionCategorias: item.categorias || [],
-                recomendaciones: item.recomendaciones || []
-              };
-            });
-            if (isMounted) setHistorialLocal(mappedHistory);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching history:', error);
-      } finally {
-        if (isMounted) setCargandoHistorial(false);
-      }
-    };
-
-    fetchHistory();
-    return () => { isMounted = false; };
-  }, []);
+    setHistorialLocal(analysisHistory);
+  }, [analysisHistory]);
 
   // Filtered & Sorted list
   const historialFiltrado = useMemo(() => {
@@ -87,8 +50,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       id: tx.id,
       fecha: tx.fecha,
       marcaTiempo: new Date(tx.fecha).getTime(),
-      puntajeSalud: 0,
-      estadoSalud: 'En observación' as HealthStatus,
+      confianzaModelo: 0,
+      perfilFinanciero: 'En observación' as HealthStatus,
       mensajeMotivador: 'Transacción: ' + tx.descripcion,
       totalGastado: tx.monto,
       distribucionCategorias: [{
@@ -105,8 +68,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     return historialCombinado
       .filter((item) => {
         // Status filter
-        if (filtroSalud !== 'all') {
-          if (item.estadoSalud !== filtroSalud) return false;
+        if (filtroPerfil !== 'all') {
+          if (item.perfilFinanciero !== filtroPerfil) return false;
         }
 
         // Search query
@@ -114,7 +77,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           const q = busqueda.toLowerCase();
           const matchesDate = item.fecha.toLowerCase().includes(q);
           const matchesMsg = item.mensajeMotivador?.toLowerCase().includes(q) || false;
-          const matchesStatus = item.estadoSalud.toLowerCase().includes(q);
+          const matchesStatus = item.perfilFinanciero.toLowerCase().includes(q);
           return matchesDate || matchesMsg || matchesStatus;
         }
 
@@ -123,11 +86,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       .sort((a, b) => {
         if (ordenarPor === 'newest') return b.marcaTiempo - a.marcaTiempo;
         if (ordenarPor === 'oldest') return a.marcaTiempo - b.marcaTiempo;
-        if (ordenarPor === 'score-high') return b.puntajeSalud - a.puntajeSalud;
-        if (ordenarPor === 'score-low') return a.puntajeSalud - b.puntajeSalud;
+        if (ordenarPor === 'score-high') return (b.confianzaModelo ?? (b as any).puntajeSalud) - (a.confianzaModelo ?? (a as any).puntajeSalud);
+        if (ordenarPor === 'score-low') return (a.confianzaModelo ?? (a as any).puntajeSalud) - (b.confianzaModelo ?? (b as any).puntajeSalud);
         return 0;
       });
-  }, [historialLocal, busqueda, filtroSalud, ordenarPor, transactions]);
+  }, [historialLocal, busqueda, filtroPerfil, ordenarPor, transactions]);
 
   // Statistics calculation
   const estadisticas = useMemo(() => {
@@ -142,7 +105,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       Crítico: 0
     };
 
-    const puntajeTotal = historialLocal.reduce((acc, curr) => acc + (weights[curr.estadoSalud] ?? 40), 0);
+    const puntajeTotal = historialLocal.reduce((acc, curr) => acc + (weights[curr.perfilFinanciero ?? (curr as any).estadoSalud] ?? 40), 0);
     const gastoTotal = historialLocal.reduce((acc, curr) => acc + curr.totalGastado, 0);
     return {
       count: historialLocal.length,
@@ -175,7 +138,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           </span>
         );
       case 'En observación':
-      case 'Observación':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f59e0b]/10 text-[#d97706] border border-[#f59e0b]/20">
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -183,7 +145,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           </span>
         );
       case 'En riesgo':
-      case 'Riesgo':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#ef4444]/10 text-[#dc2626] border border-[#ef4444]/20">
             <AlertCircle className="w-3.5 h-3.5" />
@@ -295,50 +256,50 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           {/* Status Filter Buttons */}
           <div className="flex items-center gap-1 bg-[#f8f9fa] p-1 rounded-xl border border-[#e1e3e4] overflow-x-auto max-w-full">
             <button
-              onClick={() => setFiltroSalud('all')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'all'
+              onClick={() => setFiltroPerfil('all')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'all'
                   ? 'bg-white text-[#4648d4] shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >Todos</button>
             <button
-              onClick={() => setFiltroSalud('Excelente')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Excelente'
+              onClick={() => setFiltroPerfil('Excelente')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'Excelente'
                   ? 'bg-[#047857] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >Excelente</button>
             <button
-              onClick={() => setFiltroSalud('Saludable')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Saludable'
+              onClick={() => setFiltroPerfil('Saludable')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'Saludable'
                   ? 'bg-[#10b981] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >Saludable</button>
             <button
-              onClick={() => setFiltroSalud('Estable')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Estable'
+              onClick={() => setFiltroPerfil('Estable')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'Estable'
                   ? 'bg-[#3b82f6] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >Estable</button>
             <button
-              onClick={() => setFiltroSalud('En observación')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'En observación'
+              onClick={() => setFiltroPerfil('En observación')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'En observación'
                   ? 'bg-[#f59e0b] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >En observación</button>
             <button
-              onClick={() => setFiltroSalud('En riesgo')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'En riesgo'
+              onClick={() => setFiltroPerfil('En riesgo')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'En riesgo'
                   ? 'bg-[#ef4444] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
             >En riesgo</button>
             <button
-              onClick={() => setFiltroSalud('Crítico')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroSalud === 'Crítico'
+              onClick={() => setFiltroPerfil('Crítico')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${filtroPerfil === 'Crítico'
                   ? 'bg-[#991b1b] text-white shadow-xs'
                   : 'text-[#767586] hover:text-[#191c1d]'
                 }`}
@@ -378,16 +339,16 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               No se encontraron registros
             </h3>
             <p className="text-xs text-[#767586] leading-relaxed">
-              {busqueda || filtroSalud !== 'all'
+              {busqueda || filtroPerfil !== 'all'
                 ? 'No hay análisis que coincidan con los criterios de búsqueda aplicados.'
                 : 'Aún no has generado ningún análisis financiero. ¡Inicia uno nuevo para que la IA evalúe tu perfil!'}
             </p>
           </div>
-          {busqueda || filtroSalud !== 'all' ? (
+          {busqueda || filtroPerfil !== 'all' ? (
             <button
               onClick={() => {
                 setBusqueda('');
-                setFiltroSalud('all');
+                setFiltroPerfil('all');
               }}
               className="px-4 py-2 bg-[#f3f4f5] hover:bg-[#e7e8e9] text-[#191c1d] text-xs font-semibold rounded-xl transition-all"
             >
@@ -414,12 +375,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
               {/* Left Details */}
               <div className="flex items-start gap-4 flex-1 min-w-0">
                 <div className="w-12 h-12 rounded-2xl bg-[#f8f9fa] group-hover:bg-[#e0e7ff]/60 text-[#4648d4] flex flex-col items-center justify-center shrink-0 border border-[#e1e3e4] group-hover:border-[#6063ee]/30 transition-colors">
-                  {item.puntajeSalud === 0 ? (
+                  {item.confianzaModelo === 0 ? (
                     <Receipt className="w-5 h-5" />
                   ) : (
                     <>
-                      <BarChart2 className="w-5 h-5" />
-                      <span className="text-[9px] font-bold mt-0.5">{item.puntajeSalud}%</span>
+                      <BarChart2 className="w-4 h-4 mb-0.5" />
+                      <span className="text-[8px] font-bold leading-tight text-center">IA:<br/>{item.confianzaModelo}%</span>
                     </>
                   )}
                 </div>
@@ -430,7 +391,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                       <Calendar className="w-3.5 h-3.5 text-[#767586]" />
                       {item.fecha}
                     </span>
-                    {obtenerInsigniaSalud(item.estadoSalud)}
+                    {obtenerInsigniaSalud(item.perfilFinanciero)}
                     <span className="text-xs font-bold text-[#4648d4] font-mono-val bg-[#e0e7ff]/60 px-2.5 py-0.5 rounded-full">
                       ${item.totalGastado.toLocaleString()} evaluados
                     </span>

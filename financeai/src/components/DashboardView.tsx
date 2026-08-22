@@ -25,6 +25,8 @@ import { getColorForCategory } from '../utils/colorManager';
 
 interface RecomendacionExtendida extends Recomendacion {
   fechaAsociada?: string;
+  reporteOrigen: ReporteAnalisis; // 4.1
+  antiguedad?: { texto: string; esReciente: boolean };
 }
 
 interface DashboardViewProps {
@@ -60,8 +62,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
   useEffect(() => {
+    const calcularAntiguedad = (marcaTiempo: number) => {
+      const diasPasados = Math.floor((Date.now() - marcaTiempo) / (1000 * 60 * 60 * 24));
+      if (diasPasados === 0) return { texto: '✨ Hoy', esReciente: true };
+      if (diasPasados === 1) return { texto: 'Ayer', esReciente: true };
+      if (diasPasados < 7) return { texto: `Hace ${diasPasados} días`, esReciente: false };
+      const semanas = Math.floor(diasPasados / 7);
+      return { texto: `Hace ${semanas} semana${semanas > 1 ? 's' : ''}`, esReciente: false };
+    };
+
     if (analysisHistory.length === 0) {
-      setRecommendations(report?.recomendaciones || []);
+      // 4.4 — fallback: recomendaciones del último análisis con su reporte de origen
+      setRecommendations(
+        (report?.recomendaciones || []).map(rec => ({
+          ...rec,
+          reporteOrigen: report!,
+          antiguedad: report ? calcularAntiguedad(report.marcaTiempo) : undefined
+        }))
+      );
       return;
     }
 
@@ -72,7 +90,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         const randomRec = rep.recomendaciones[randomIndex];
         recoMixtas.push({
           ...randomRec,
-          fechaAsociada: new Date(rep.marcaTiempo).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+          fechaAsociada: new Date(rep.marcaTiempo).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          reporteOrigen: rep, // 4.2
+          antiguedad: calcularAntiguedad(rep.marcaTiempo)
         });
       }
     });
@@ -90,29 +110,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       return fechaRep.getMonth() === mesActual && fechaRep.getFullYear() === anioActual;
     });
 
-    if (reportesDelMes.length === 0 && report) {
-      return report.distribucionCategorias;
+    if (reportesDelMes.length > 0) {
+      let totalMensual = 0;
+      const categoriasDict: Record<string, import('../types').DistribucionCategoria> = {};
+
+      reportesDelMes.forEach(rep => {
+        totalMensual += rep.totalGastado;
+        (rep.distribucionCategorias || []).forEach(cat => {
+          if (!categoriasDict[cat.categoria]) {
+            categoriasDict[cat.categoria] = { ...cat, monto: 0, porcentaje: 0 };
+          }
+          categoriasDict[cat.categoria].monto += cat.monto;
+        });
+      });
+
+      const distribucionAgrupada = Object.values(categoriasDict)
+        .filter(cat => cat.monto > 0)
+        .map(cat => ({
+          ...cat,
+          porcentaje: totalMensual > 0 ? Math.round((cat.monto / totalMensual) * 1000) / 10 : 0
+        }))
+        .sort((a, b) => b.monto - a.monto);
+
+      return distribucionAgrupada;
     }
 
-    let totalMensual = 0;
-    const categoriasDict: Record<string, any> = {};
+    if (report) {
+      return [...(report.distribucionCategorias || [])].sort((a, b) => b.monto - a.monto);
+    }
 
-    reportesDelMes.forEach(rep => {
-      totalMensual += rep.totalGastado;
-      rep.distribucionCategorias.forEach(cat => {
-        if (!categoriasDict[cat.categoria]) {
-          categoriasDict[cat.categoria] = { ...cat, monto: 0, porcentaje: 0 };
-        }
-        categoriasDict[cat.categoria].monto += cat.monto;
-      });
-    });
-
-    const distribucionAgregada = Object.values(categoriasDict).map(cat => ({
-      ...cat,
-      porcentaje: totalMensual > 0 ? Math.round((cat.monto / totalMensual) * 100) : 0
-    }));
-
-    return distribucionAgregada.sort((a, b) => b.monto - a.monto);
+    return [];
   }, [analysisHistory, report]);
 
   // Timer countdown simulation
@@ -173,14 +200,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     );
   };
 
-  const statusBadgeConfig = {
+  const statusBadgeConfig: Record<string, { text: string; bg: string; textCol: string; border: string }> = {
+    'Excelente': { text: 'Excelente', bg: 'bg-[#047857]/15', textCol: 'text-[#047857]', border: 'border-[#047857]/30' },
     'Saludable': { text: 'Saludable', bg: 'bg-[#10b981]/15', textCol: 'text-[#10b981]', border: 'border-[#10b981]/30' },
+    'Estable': { text: 'Estable', bg: 'bg-[#3b82f6]/15', textCol: 'text-[#3b82f6]', border: 'border-[#3b82f6]/30' },
     'En observación': { text: 'En observación', bg: 'bg-[#fd933d]/15', textCol: 'text-[#944a00]', border: 'border-[#fd933d]/30' },
-    'Observación': { text: 'Observación', bg: 'bg-[#fd933d]/15', textCol: 'text-[#944a00]', border: 'border-[#fd933d]/30' },
-    'Riesgo': { text: 'Riesgo', bg: 'bg-[#ba1a1a]/15', textCol: 'text-[#ba1a1a]', border: 'border-[#ba1a1a]/30' },
+    'En riesgo': { text: 'En riesgo', bg: 'bg-[#ef4444]/15', textCol: 'text-[#dc2626]', border: 'border-[#ef4444]/30' },
+    'Crítico': { text: 'Crítico', bg: 'bg-[#ba1a1a]/15', textCol: 'text-[#ba1a1a]', border: 'border-[#ba1a1a]/30' },
   };
 
-  const currentStatus = report ? statusBadgeConfig[report.estadoSalud] || statusBadgeConfig['En observación'] : null;
+  const currentStatus = report ? statusBadgeConfig[report.perfilFinanciero] || statusBadgeConfig['En observación'] : null;
 
   return (
     <div className="space-y-7 pb-12 animate-in fade-in duration-200" id="dashboard-view-container">
@@ -271,22 +300,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 <div className="flex items-baseline gap-1">
                   <span className="text-[40px] md:text-[44px] font-extrabold text-[#191c1d] tracking-tight font-display leading-none">
-                    {report.puntajeSalud}%
+                    {report.confianzaModelo}%
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-[#767586] mt-1">
-                  Nivel de confianza del modelo
+                  Nivel de confianza de IA
                 </p>
 
                 <p className="text-xs font-bold text-[#944a00] mt-3 leading-relaxed">
-                  <span>{report.mensajeMotivador || '¡Vamos a mejorar tu salud financiera! 💪'}</span>
+                  <span>{report.mensajeMotivador || '¡Vamos a mejorar tu perfil financiero! 💪'}</span>
                 </p>
               </div>
 
               {/* Mascot placement */}
               <div className="self-end sm:self-center shrink-0 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center pointer-events-none transition-transform group-hover:scale-105">
                 <img
-                  src={MASCOTS.happyPotatoCoin}
+                  src={['Excelente', 'Saludable', 'Estable'].includes(report.perfilFinanciero) ? MASCOTS.logo : MASCOTS.happyPotatoCoin}
                   alt="Mascot Potato Coin"
                   className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(253,147,61,0.25)]"
                   referrerPolicy="no-referrer"
@@ -491,7 +520,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setIsTimelineOpen(true)}
               className="text-xs font-semibold text-[#4648d4] hover:underline flex items-center gap-1"
             >
-              <span>Ver reporte completo</span>
+              <span>Ver historial de reportes</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -520,22 +549,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </button>
 
                     <div>
-                      <h4 className="text-xs font-bold text-[#191c1d] flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-[#191c1d] flex flex-wrap items-center gap-2">
                         {rec.titulo}
-                        {rec.fechaAsociada && (
-                          <span className="text-[9px] font-medium text-[#767586] bg-[#f3f4f5] px-1.5 py-0.5 rounded border border-[#e1e3e4]">
-                            {rec.fechaAsociada}
+                        {rec.antiguedad && (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${rec.antiguedad.esReciente
+                              ? 'bg-[#4648d4]/10 text-[#4648d4] border-[#4648d4]/20'
+                              : 'bg-[#f3f4f5] text-[#767586] border-[#e1e3e4]'
+                            }`}>
+                            {rec.antiguedad.texto}
                           </span>
                         )}
                       </h4>
                       <p className="text-[11px] text-[#464554] mt-0.5">
                         {rec.descripcion}
                       </p>
+                      {rec.contextoExtra && (
+                        <div className="mt-2 inline-block px-2 py-1 rounded bg-[#f8f9fa] border border-[#e1e3e4]">
+                          <p className="text-[9px] font-semibold text-[#767586]">{rec.contextoExtra}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <button
-                    onClick={() => onOpenAnalysisModal(report)}
+                    onClick={() => onOpenAnalysisModal(rec.reporteOrigen ?? report)}
                     className={`text-xs font-bold hover:underline transition-colors shrink-0 ${isRed ? 'text-[#4648d4]' : 'text-[#4648d4]'
                       }`}
                   >

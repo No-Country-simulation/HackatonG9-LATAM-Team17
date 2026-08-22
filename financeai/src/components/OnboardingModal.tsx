@@ -50,8 +50,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <div className="relative w-32 h-32 rounded-full p-2 bg-gradient-to-tr from-[#6063ee] via-[#4648d4] to-[#fd933d] shadow-[0_8px_24px_rgba(70,72,212,0.25)] flex items-center justify-center my-6 group">
               <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center p-1">
                 <img
-                  src={MASCOTS.happyPotatoCoin}
-                  alt="FinanceAI Mascot"
+                  src={MASCOTS.logo}
+                  alt="FinanceAI Logo"
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
                 />

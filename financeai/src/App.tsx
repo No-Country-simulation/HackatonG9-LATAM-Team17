@@ -14,6 +14,7 @@ import { Footer } from './components/Footer';
 import { UserProfile, Transaction, ReporteAnalisis } from './types';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { manejarRespuestaError } from './utils/apiErrors';
+import { mapearItemHistorial } from './utils/mapeadores';
 
 function MainApp() {
   const location = useLocation();
@@ -86,9 +87,11 @@ function MainApp() {
 
     Promise.all([
       fetchConManejo('/api/v1/finanzas/historial').then(data => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          setAnalysisHistory(data);
-          setCurrentReport(data[0]);
+        const items = data?.content ?? (Array.isArray(data) ? data : []);
+        if (items.length > 0) {
+          const historialMapeado = items.map(mapearItemHistorial);
+          setAnalysisHistory(historialMapeado);
+          setCurrentReport(historialMapeado[0]);
         }
       })
     ]).then(() => {
@@ -159,6 +162,16 @@ function MainApp() {
     setCurrentReport(newReport);
     setAnalysisHistory([newReport, ...analysisHistory]);
     setTransactions([]); // Vacia el "carrito" de transacciones
+    
+    if (newReport.entradas?.pagoDeuda && userProfile) {
+      const currentDebt = userProfile.deudaTotal || 0;
+      const payment = newReport.entradas.pagoDeuda;
+      if (payment > 0) {
+        const newDebt = Math.max(0, currentDebt - payment);
+        handleUpdateProfile({ deudaTotal: newDebt }, true);
+      }
+    }
+
     navigate('/');
     setActiveReportModal(newReport);
     
@@ -173,22 +186,13 @@ function MainApp() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!userProfile?.email) return;
-    const emailToDelete = userProfile.email;
-
-    try {
-      const res = await fetch(`/api/v1/auth/eliminar?email=${encodeURIComponent(emailToDelete)}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = await manejarRespuestaError(res);
-        throw new Error(err.general);
-      }
-      setUserProfile(null);
-      setTransactions([]);
-      setAnalysisHistory([]);
-    } catch (e: any) {
-      setErrorGlobal(e.message || 'No es posible eliminar la cuenta porque ya tienes un historial asociado.');
-    }
+    // La eliminación en el backend ya fue procesada exitosamente en SettingsProfileView
+    setUserProfile(null);
+    setTransactions([]);
+    setAnalysisHistory([]);
+    navigate('/login');
   };
+
 
   if (cargandoAuth) {
     return (

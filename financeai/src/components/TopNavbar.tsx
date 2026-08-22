@@ -53,10 +53,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           className="flex items-center gap-2 cursor-pointer"
         >
           <div className="w-7 h-7 rounded-full p-0.5 bg-gradient-to-tr from-[#6063ee] to-[#fd933d] flex items-center justify-center shadow-xs">
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center p-1">
               <img
-                src={MASCOTS.happyPotatoCoin}
-                alt="FinanceAI Mascot"
+                src={MASCOTS.logo}
+                alt="FinanceAI Logo"
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
               />

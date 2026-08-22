@@ -62,8 +62,8 @@ export const AnalysisTimelineModal: React.FC<AnalysisTimelineModalProps> = ({
                 minute: '2-digit'
               });
               
-              const isRed = rep.estadoSalud === 'Riesgo';
-              const isGreen = rep.estadoSalud === 'Saludable';
+              const isRed = rep.perfilFinanciero === 'En riesgo' || rep.perfilFinanciero === 'Crítico';
+              const isGreen = rep.perfilFinanciero === 'Saludable' || rep.perfilFinanciero === 'Excelente';
               const scoreColor = isRed ? 'text-[#ba1a1a]' : isGreen ? 'text-[#10b981]' : 'text-[#fd933d]';
 
               return (
@@ -80,7 +80,7 @@ export const AnalysisTimelineModal: React.FC<AnalysisTimelineModalProps> = ({
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <Activity className={`w-3.5 h-3.5 ${scoreColor}`} />
                       <span className={`text-xs font-semibold ${scoreColor}`}>
-                        {rep.puntajeSalud}% - {rep.estadoSalud}
+                        IA: {rep.confianzaModelo}% - {rep.perfilFinanciero}
                       </span>
                     </div>
                   </div>
