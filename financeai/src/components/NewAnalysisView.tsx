@@ -13,7 +13,7 @@ import {
   Coins,
   Cpu
 } from 'lucide-react';
-import { UserProfile, Transaction, ExpenseCategory, SavingsFrequency, ReporteAnalisis } from '../types';
+import { UserProfile, Transaction, CategoriaGasto, FrecuenciaAhorro, ReporteAnalisis } from '../types';
 import { MASCOTS } from '../assets/mascots';
 import { autoCategorizeDescription } from '../utils/categorizer';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
@@ -21,13 +21,13 @@ import { manejarRespuestaError } from '../utils/apiErrors';
 import { normalizarPerfil } from '../utils/mapeadores';
 import { getColorForCategory } from '../utils/colorManager';
 
-interface NewAnalysisViewProps {
+interface PropsNewAnalysisView {
   userProfile: UserProfile;
   initialTransactions: Transaction[];
   onAnalysisComplete: (newReport: ReporteAnalisis) => void;
 }
 
-export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
+export const NewAnalysisView: React.FC<PropsNewAnalysisView> = ({
   userProfile,
   initialTransactions,
   onAnalysisComplete,
@@ -37,7 +37,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   // Base Inputs State
   const [ingresoMensual, setIngresoMensual] = useState('');
   const [deudaTotal, setDeudaTotal] = useState('');
-  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>('Mensual');
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<FrecuenciaAhorro>('Mensual');
 
   // Advanced Inputs State
   const [objetivoPresupuesto, setObjetivoPresupuesto] = useState('');
@@ -65,7 +65,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
   const [listaTransacciones, setListaTransacciones] = useState<Transaction[]>(initialTransactions || []);
   const [descTx, setDescTx] = useState('');
   const [montoTx, setMontoTx] = useState('');
-  const [categoriaTx, setCategoriaTx] = useState<ExpenseCategory>('Alimentación');
+  const [categoriaTx, setCategoriaTx] = useState<CategoriaGasto>('Alimentación');
   const [falloModeloTx, setFalloModeloTx] = useState(false);
   const [sobrescribirTxManual, setSobrescribirTxManual] = useState(false);
 
@@ -105,12 +105,12 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
 
         if (res.ok) {
           const data = await res.json();
-          // Map backend category to ExpenseCategory
+          // Map backend category to CategoriaGasto
           if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
             const returnedCat = Object.keys(data.resumen_gastos)[0];
-            const validCategories: ExpenseCategory[] = ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'];
-            if (validCategories.includes(returnedCat as ExpenseCategory)) {
-              finalCategory = returnedCat as ExpenseCategory;
+            const validCategories: CategoriaGasto[] = ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'];
+            if (validCategories.includes(returnedCat as CategoriaGasto)) {
+              finalCategory = returnedCat as CategoriaGasto;
             } else {
               // Map unknown categories to 'Otros'
               finalCategory = 'Otros';
@@ -148,7 +148,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
     setSobrescribirTxManual(false);
   };
 
-  const handleUpdateTxCategory = (id: string, newCat: ExpenseCategory) => {
+  const handleUpdateTxCategory = (id: string, newCat: CategoriaGasto) => {
     setListaTransacciones(prev => prev.map(t => t.id === id ? { ...t, categoria: newCat, categorizacionFallida: true } : t));
   };
 
@@ -160,7 +160,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setNombreArchivoCsv(file.nombre);
+    setNombreArchivoCsv(file.name);
     // Parse sample CSV data
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -174,7 +174,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
         if (parts.length >= 2) {
           const desc = parts[0]?.trim() || `Gasto importado #${idx}`;
           const amt = parseFloat(parts[1]?.replace(/[^\d.]/g, '')) || 50;
-          const cat = (parts[2]?.trim() as ExpenseCategory) || 'Alimentación';
+          const cat = (parts[2]?.trim() as CategoriaGasto) || 'Alimentación';
           parsed.push({
             id: `csv-${Date.now()}-${idx}`,
             descripcion: desc,
@@ -295,7 +295,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
 
       onAnalysisComplete(report);
     } catch (err: any) {
-      console.error(err);
+      console.error('Error al generar el análisis financiero:', err);
       setErrorAnalisis(err.message || 'Error de conexión. Intenta nuevamente.');
     } finally {
       setEstaAnalizando(false);
@@ -366,7 +366,7 @@ export const NewAnalysisView: React.FC<NewAnalysisViewProps> = ({
                 <div className="relative">
                   <select
                     value={frecuenciaAhorro}
-                    onChange={(e) => setFrecuenciaAhorro(e.target.value as SavingsFrequency)}
+                    onChange={(e) => setFrecuenciaAhorro(e.target.value as FrecuenciaAhorro)}
                     className="w-full appearance-none px-3.5 py-2 text-xs rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] pr-8 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="Mensual">Mensual</option>

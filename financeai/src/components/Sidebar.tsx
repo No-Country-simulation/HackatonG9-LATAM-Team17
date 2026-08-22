@@ -8,17 +8,16 @@ import {
   LogOut,
   X
 } from 'lucide-react';
-import { NavigationTab } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MASCOTS } from '../assets/mascots';
 
-interface SidebarProps {
+interface PropsSidebar {
   onOpenLogin: () => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export const Sidebar: React.FC<PropsSidebar> = ({
   onOpenLogin,
   isOpenMobile = false,
   onCloseMobile,

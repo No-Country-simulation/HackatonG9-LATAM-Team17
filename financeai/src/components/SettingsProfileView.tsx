@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   BarChart3
 } from 'lucide-react';
-import { UserProfile, SavingsFrequency } from '../types';
+import { UserProfile, FrecuenciaAhorro } from '../types';
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
 import { MASCOTS } from '../assets/mascots';
 import { manejarRespuestaError } from '../utils/apiErrors';
@@ -23,13 +23,13 @@ export const getDebtColor = (ratio: number): string => {
   return '#ba1a1a'; // Rojo
 };
 
-interface SettingsProfileViewProps {
+interface PropsSettingsProfileView {
   userProfile: UserProfile;
-  onUpdateProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  onUpdateProfile: (profile: Partial<UserProfile>, localOnly?: boolean) => Promise<void>;
   onDeleteAccount?: () => void;
 }
 
-export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
+export const SettingsProfileView: React.FC<PropsSettingsProfileView> = ({
   userProfile,
   onUpdateProfile,
   onDeleteAccount,
@@ -46,8 +46,7 @@ export const SettingsProfileView: React.FC<SettingsProfileViewProps> = ({
   // Financial profile form state
   const [ingresoTotal, setIngresoTotal] = useState(String(userProfile.ingresoMensual || 0));
   const ratioDeudaCalculado = userProfile.ingresoMensual > 0 ? Math.round((userProfile.deudaTotal / userProfile.ingresoMensual) * 100) : 0;
-  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>(userProfile.frecuenciaAhorro || 'Mensual');
-  const [deudasTotales, setDeudasTotales] = useState(String(userProfile.deudasTotales || 0));
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<FrecuenciaAhorro>(userProfile.frecuenciaAhorro || 'Mensual');
   const [exitoGuardadoFinanciero, setExitoGuardadoFinanciero] = useState(false);
 
   // Delete account modal state

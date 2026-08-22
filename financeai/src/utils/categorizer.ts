@@ -1,7 +1,7 @@
-import { ExpenseCategory } from '../types';
+import { CategoriaGasto } from '../types';
 
 // Fast heuristic mapping for instantaneous UI response while also supporting server AI API
-const KEYWORDS_MAP: Record<ExpenseCategory, string[]> = {
+const KEYWORDS_MAP: Record<CategoriaGasto, string[]> = {
   Vivienda: [
     'alquiler', 'renta', 'hipoteca', 'departamento', 'casa', 'condominio', 'mantenimiento depa',
     'mudanza', 'muebles', 'decoracion', 'reparacion casa', 'habitacion', 'arriendo'
@@ -32,7 +32,7 @@ const KEYWORDS_MAP: Record<ExpenseCategory, string[]> = {
 };
 
 export interface CategorizeResult {
-  category: ExpenseCategory;
+  category: CategoriaGasto;
   confidence: number; // 0 to 1
   failed: boolean;
 }
@@ -45,7 +45,7 @@ export function autoCategorizeDescription(description: string): CategorizeResult
   const clean = description.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   // Check exact/partial keyword match
-  for (const [category, keywords] of Object.entries(KEYWORDS_MAP) as [ExpenseCategory, string[]][]) {
+  for (const [category, keywords] of Object.entries(KEYWORDS_MAP) as [CategoriaGasto, string[]][]) {
     for (const kw of keywords) {
       const cleanKw = kw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       // Exact word boundary or includes
@@ -63,9 +63,4 @@ export function autoCategorizeDescription(description: string): CategorizeResult
 
   // Default fallback if no match found
   return { category: 'Otros', confidence: 0.3, failed: true };
-}
-
-export async function requestAiCategorization(description: string): Promise<CategorizeResult> {
-  // Return the local categorization directly to prevent silent errors from non-existent endpoints
-  return autoCategorizeDescription(description);
 }

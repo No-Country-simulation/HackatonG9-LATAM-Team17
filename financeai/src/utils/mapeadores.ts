@@ -24,17 +24,6 @@ export function normalizarPerfil(crudo: string | undefined | null): PerfilFinanc
   return mapa[(crudo || '').trim().toLowerCase()] ?? 'En observación';
 }
 
-/**
- * Estructura cruda del DTO que retorna el backend desde
- * POST /api/v1/finanzas/analizar (AnalisisOutputDTO)
- */
-export interface AnalisisOutputDTO {
-  perfil_financiero: string;
-  probabilidad: number;
-  resumen_gastos: Record<string, number>;
-  recomendaciones: string[];
-}
-
 import { getColorForCategory } from './colorManager';
 
 /**
@@ -68,77 +57,6 @@ function inferirImpacto(texto: string): string {
     return 'Medio';
   }
   return 'Moderado';
-}
-
-/**
- * Mapea la respuesta cruda del backend (AnalisisOutputDTO) a la
- * interfaz enriquecida que consume el frontend (ReporteAnalisis).
- *
- * Genera localmente: colores, porcentajes, objetos de recomendación,
- * puntaje de salud y mensaje motivador.
- */
-export function mapearAnalisisOutputDTO(
-  dto: AnalisisOutputDTO,
-  idReporte?: string,
-): ReporteAnalisis {
-  // --- Distribución de categorías ---
-  const entradasGastos = Object.entries(dto.resumen_gastos);
-  const totalGastado = entradasGastos.reduce((suma, [, monto]) => suma + monto, 0);
-
-  const distribucionCategorias: DistribucionCategoria[] = entradasGastos.map(
-    ([nombreCategoria, monto]) => ({
-      categoria: (nombreCategoria as CategoriaGasto) || 'Otros',
-      monto,
-      porcentaje: totalGastado > 0 ? Math.round((monto / totalGastado) * 1000) / 10 : 0,
-      colorHex: getColorForCategory(nombreCategoria),
-    }),
-  );
-
-  // --- Recomendaciones ---
-  const recomendaciones: Recomendacion[] = dto.recomendaciones.map(
-    (texto, indice) => ({
-      id: `rec-${indice + 1}`,
-      titulo: texto.length > 60 ? texto.slice(0, 57) + '...' : texto,
-      descripcion: texto,
-      categoria: 'General',
-      impacto: inferirImpacto(texto),
-      etiquetaAccion: 'Ver detalles',
-      tipoEstado: inferirTipoEstado(texto),
-    }),
-  );
-
-  // --- Confianza de Modelo (derivado de probabilidad) ---
-  const confianzaModelo = Math.round((dto.probabilidad || 0) * 100);
-
-  // --- Perfil Financiero (normalizado) ---
-  const perfilFinanciero = normalizarPerfil(dto.perfil_financiero);
-
-  // --- Mensaje motivador ---
-  const mensajesMotivadores: Record<string, string> = {
-    Excelente: '¡Finanzas impecables! Eres un ejemplo a seguir. 🌟',
-    Saludable: '¡Excelente disciplina financiera! Sigue así, vas por buen camino. 💪',
-    Estable: 'Tus finanzas están bajo control. Con un empujoncito llegarás lejos. 📈',
-    'En observación': '¡Vamos a mejorar tu perfil! Pequeños ajustes hacen gran diferencia. 🚀',
-    'En riesgo': 'Estás a tiempo de corregir el rumbo. Prioriza pagar deudas y reducir gastos. ⚠️',
-    Crítico: 'Es hora de tomar medidas urgentes. ¡Busca ayuda financiera y reestructura tus gastos! 🆘',
-  };
-
-  return {
-    id: idReporte ?? `an-${Date.now()}`,
-    fecha: new Date().toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }),
-    marcaTiempo: Date.now(),
-    totalGastado,
-    confianzaModelo,
-    perfilFinanciero,
-    mensajeMotivador: mensajesMotivadores[perfilFinanciero] ?? mensajesMotivadores['En observación'],
-    distribucionCategorias,
-    recomendaciones,
-    narrativaIa: `Tu perfil financiero ha sido clasificado como "${perfilFinanciero}" con una confianza de IA del ${confianzaModelo}%.`,
-  };
 }
 
 // --- Diccionario compartido de mensajes motivadores ---

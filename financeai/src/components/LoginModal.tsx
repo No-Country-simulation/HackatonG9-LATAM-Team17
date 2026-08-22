@@ -3,13 +3,13 @@ import { Eye, EyeOff, X, ArrowRight, Activity } from 'lucide-react';
 import { MASCOTS } from '../assets/mascots';
 import { manejarRespuestaError } from '../utils/apiErrors';
 
-interface LoginModalProps {
+interface PropsLoginModal {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess: (nombre: string, email: string, id?: number) => void;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({
+export const LoginModal: React.FC<PropsLoginModal> = ({
   isOpen,
   onClose,
   onLoginSuccess,

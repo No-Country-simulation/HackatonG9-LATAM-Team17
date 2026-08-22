@@ -4,13 +4,13 @@ import { TopSubTab, UserProfile } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MASCOTS } from '../assets/mascots';
 
-interface TopNavbarProps {
+interface PropsTopNavbar {
   userProfile: UserProfile;
   onOpenLogin: () => void;
   onToggleMobileMenu?: () => void;
 }
 
-export const TopNavbar: React.FC<TopNavbarProps> = ({
+export const TopNavbar: React.FC<PropsTopNavbar> = ({
   userProfile,
   onOpenLogin,
   onToggleMobileMenu,

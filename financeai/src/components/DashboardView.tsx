@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Check
 } from 'lucide-react';
-import { ReporteAnalisis, UserProfile, Transaction, ExpenseCategory, Recomendacion } from '../types';
+import { ReporteAnalisis, UserProfile, Transaction, CategoriaGasto, Recomendacion } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
@@ -29,7 +29,7 @@ interface RecomendacionExtendida extends Recomendacion {
   antiguedad?: { texto: string; esReciente: boolean };
 }
 
-interface DashboardViewProps {
+interface PropsDashboardView {
   report: ReporteAnalisis | null;
   userProfile: UserProfile;
   transactions: Transaction[];
@@ -42,7 +42,7 @@ interface DashboardViewProps {
   onOpenAnalysisModal: (report: ReporteAnalisis) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({
+export const DashboardView: React.FC<PropsDashboardView> = ({
   report,
   userProfile,
   transactions,
@@ -172,10 +172,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       await onAddTransaction({
         descripcion: descripcionRapida,
         monto: parsePositiveFloat(valorRapido, 0),
-        categoria: 'Pendiente',
+        categoria: 'Otros',
         tipo: 'gasto',
         autoCategorizado: false,
-        categorizacionFallida: false,
+        categorizacionFallida: true,
       });
 
       setDescripcionRapida('');

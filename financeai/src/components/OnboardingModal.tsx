@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { MASCOTS } from '../assets/mascots';
-import { SavingsFrequency } from '../types';
+import { FrecuenciaAhorro } from '../types';
 import { preventNegativeKeys, sanitizePositiveNumber } from '../utils/numberUtils';
 
-interface OnboardingModalProps {
+interface PropsOnboardingModal {
   isOpen: boolean;
-  onComplete: (datos: { ingresoMensual: number; deudaTotal: number; frecuenciaAhorro: SavingsFrequency }) => void;
+  onComplete: (datos: { ingresoMensual: number; deudaTotal: number; frecuenciaAhorro: FrecuenciaAhorro }) => void;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({
+export const OnboardingModal: React.FC<PropsOnboardingModal> = ({
   isOpen,
   onComplete,
 }) => {
   const [ingresoMensual, setIngresoMensual] = useState('');
   const [deudaTotal, setDeudaTotal] = useState('');
-  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<SavingsFrequency>('Mensual');
+  const [frecuenciaAhorro, setFrecuenciaAhorro] = useState<FrecuenciaAhorro>('Mensual');
 
   if (!isOpen) return null;
 
@@ -123,7 +123,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               </label>
               <select
                 value={frecuenciaAhorro}
-                onChange={(e) => setFrecuenciaAhorro(e.target.value as SavingsFrequency)}
+                onChange={(e) => setFrecuenciaAhorro(e.target.value as FrecuenciaAhorro)}
                 className="w-full appearance-none px-3.5 py-2.5 text-sm rounded-xl bg-white border border-[#e1e3e4] text-[#191c1d] focus:outline-none focus:border-[#4648d4] focus:ring-1 focus:ring-[#4648d4] transition-all"
               >
                 <option value="Mensual">Mensual</option>

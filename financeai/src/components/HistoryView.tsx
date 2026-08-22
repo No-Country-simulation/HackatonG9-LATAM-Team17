@@ -20,14 +20,14 @@ import {
 import { ReporteAnalisis, HealthStatus } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
-interface HistoryViewProps {
+interface PropsHistoryView {
   analysisHistory: ReporteAnalisis[];
   onOpenAnalysisModal: (report: ReporteAnalisis) => void;
   onNavigateToNewAnalysis: () => void;
   transactions?: import('../types').Transaction[];
 }
 
-export const HistoryView: React.FC<HistoryViewProps> = ({
+export const HistoryView: React.FC<PropsHistoryView> = ({
   analysisHistory,
   onOpenAnalysisModal,
   onNavigateToNewAnalysis,

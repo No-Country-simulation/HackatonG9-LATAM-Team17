@@ -18,14 +18,14 @@ import { UserProfile, ReporteAnalisis } from '../types';
 import { getDebtColor } from './SettingsProfileView';
 import { getColorForCategory } from '../utils/colorManager';
 
-interface ReportsViewProps {
+interface PropsReportsView {
   report: ReporteAnalisis;
   userProfile: UserProfile;
   analysisHistory?: ReporteAnalisis[];
   onOpenAnalysisModal?: (report: ReporteAnalisis) => void;
 }
 
-export const ReportsView: React.FC<ReportsViewProps> = ({
+export const ReportsView: React.FC<PropsReportsView> = ({
   report,
   userProfile,
   analysisHistory,

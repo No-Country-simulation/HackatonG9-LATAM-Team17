@@ -2,14 +2,14 @@ import React from 'react';
 import { X, History, ChevronRight, Activity } from 'lucide-react';
 import { ReporteAnalisis } from '../types';
 
-interface AnalysisTimelineModalProps {
+interface PropsAnalysisTimelineModal {
   history: ReporteAnalisis[];
   isOpen: boolean;
   onClose: () => void;
   onSelectAnalysis: (r: ReporteAnalisis) => void;
 }
 
-export const AnalysisTimelineModal: React.FC<AnalysisTimelineModalProps> = ({
+export const AnalysisTimelineModal: React.FC<PropsAnalysisTimelineModal> = ({
   history,
   isOpen,
   onClose,

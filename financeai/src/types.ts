@@ -11,8 +11,7 @@ export type TopSubTab = 'Dashboard' | 'Informes';
 export type HealthStatus = 'Crítico' | 'En riesgo' | 'En observación' | 'Estable' | 'Saludable' | 'Excelente';
 export type PerfilFinanciero = HealthStatus;
 
-export type SavingsFrequency = 'Semanal' | 'Quincenal' | 'Mensual';
-export type FrecuenciaAhorro = SavingsFrequency;
+export type FrecuenciaAhorro = 'Semanal' | 'Quincenal' | 'Mensual';
 
 export interface UserProfile {
   id?: number;
@@ -21,14 +20,14 @@ export interface UserProfile {
   ingresoMensual: number;
   deudaTotal: number;
   pagoMensualDeuda: number;
-  frecuenciaAhorro: SavingsFrequency;
+  frecuenciaAhorro: FrecuenciaAhorro;
   fondoEmergencia: number;
   objetivoPresupuesto: number;
   suscripciones: number;
   ratioDeuda: number;
 }
 
-export type ExpenseCategory = 
+export type CategoriaGasto = 
   | 'Vivienda'
   | 'Alimentación'
   | 'Transporte'
@@ -36,13 +35,13 @@ export type ExpenseCategory =
   | 'Salud'
   | 'Entretenimiento'
   | 'Otros';
-export type CategoriaGasto = ExpenseCategory;
+
 
 export interface Transaction {
   id: string;
   descripcion: string;
   monto: number;
-  categoria: ExpenseCategory;
+  categoria: CategoriaGasto;
   fecha: string;
   tipo: 'gasto' | 'ingreso';
   autoCategorizado?: boolean;
