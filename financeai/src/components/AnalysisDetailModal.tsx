@@ -3,12 +3,12 @@ import { X, Sparkles, CheckCircle2, TrendingUp, AlertTriangle, ArrowRight, Shiel
 import { ReporteAnalisis } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
-interface PropsModalDetalleAnalisis {
+interface PropsAnalysisDetailModal {
   reporte: ReporteAnalisis | null;
   alCerrar: () => void;
 }
 
-export const AnalysisDetailModal: React.FC<PropsModalDetalleAnalisis> = ({
+export const AnalysisDetailModal: React.FC<PropsAnalysisDetailModal> = ({
   reporte,
   alCerrar,
 }) => {

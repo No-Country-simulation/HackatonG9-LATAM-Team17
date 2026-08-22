@@ -3,7 +3,7 @@
 ## Purpose
 TBD
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Sincronización de Historial con el Backend
 El sistema DEBE hacer una petición al endpoint `GET /api/v1/finanzas/historial` para recuperar el historial de análisis real del usuario.

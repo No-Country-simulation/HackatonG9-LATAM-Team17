@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
   AlertCircle,
-  RotateCw,
   Eye,
   Clock,
   Plus,
   Receipt,
   CheckCircle,
   Sparkles,
-  ExternalLink,
   ChevronRight,
-  TrendingDown,
   Trash2,
-  Cpu,
-  HelpCircle,
-  Check
+  Loader2
 } from 'lucide-react';
 import { ReporteAnalisis, UserProfile, Transaction, CategoriaGasto, Recomendacion } from '../types';
 import { MASCOTS } from '../assets/mascots';
 
 import { sanitizePositiveNumber, preventNegativeKeys, parsePositiveFloat } from '../utils/numberUtils';
+import { autoCategorizeDescription } from '../utils/categorizer';
 import { AnalysisTimelineModal } from './AnalysisTimelineModal';
 import { getColorForCategory } from '../utils/colorManager';
 
@@ -162,20 +158,67 @@ export const DashboardView: React.FC<PropsDashboardView> = ({
     setDescripcionRapida(text);
   };
 
-
+  const [estaClasificandoRapido, setEstaClasificandoRapido] = useState(false);
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descripcionRapida || !valorRapido) return;
 
+    let categoriaFinal: CategoriaGasto = 'Otros';
+    let autoCategorizado = false;
+    let categorizacionFallida = true;
+
+    setEstaClasificandoRapido(true);
+    try {
+      const payload = {
+        descripcion: descripcionRapida,
+        valor: parsePositiveFloat(valorRapido, 0),
+        fecha_transaccion: new Date().toISOString()
+      };
+      const res = await fetch('/api/v1/finanzas/clasificar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.resumen_gastos && Object.keys(data.resumen_gastos).length > 0) {
+          const returnedCat = Object.keys(data.resumen_gastos)[0];
+          const validCategories: CategoriaGasto[] = ['Vivienda', 'Alimentación', 'Transporte', 'Servicios', 'Salud', 'Entretenimiento', 'Otros'];
+          categoriaFinal = validCategories.includes(returnedCat as CategoriaGasto) ? (returnedCat as CategoriaGasto) : 'Otros';
+          autoCategorizado = true;
+          categorizacionFallida = false;
+        } else {
+          const heuristico = autoCategorizeDescription(descripcionRapida);
+          categoriaFinal = heuristico.category;
+          autoCategorizado = !heuristico.failed;
+          categorizacionFallida = heuristico.failed;
+        }
+      } else {
+        const heuristico = autoCategorizeDescription(descripcionRapida);
+        categoriaFinal = heuristico.category;
+        autoCategorizado = !heuristico.failed;
+        categorizacionFallida = heuristico.failed;
+      }
+    } catch (err) {
+      console.error('Error clasificando transacción rápida', err);
+      const heuristico = autoCategorizeDescription(descripcionRapida);
+      categoriaFinal = heuristico.category;
+      autoCategorizado = !heuristico.failed;
+      categorizacionFallida = heuristico.failed;
+    } finally {
+      setEstaClasificandoRapido(false);
+    }
+
     try {
       await onAddTransaction({
         descripcion: descripcionRapida,
         monto: parsePositiveFloat(valorRapido, 0),
-        categoria: 'Otros',
+        categoria: categoriaFinal,
         tipo: 'gasto',
-        autoCategorizado: false,
-        categorizacionFallida: true,
+        autoCategorizado,
+        categorizacionFallida,
       });
 
       setDescripcionRapida('');
@@ -445,9 +488,14 @@ export const DashboardView: React.FC<PropsDashboardView> = ({
 
                 <button
                   type="submit"
-                  className="px-3.5 py-1.5 bg-[#fd933d] hover:bg-[#e07d2c] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0"
+                  disabled={estaClasificandoRapido}
+                  className="px-3.5 py-1.5 bg-[#fd933d] hover:bg-[#e07d2c] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm shrink-0 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  {estaClasificandoRapido ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Plus className="w-3.5 h-3.5" />
+                  )}
                   <span>Agregar</span>
                 </button>
               </div>

@@ -8,10 +8,7 @@ import {
   TrendingUp,
   Target,
   Tv,
-  ShieldAlert,
   ShieldCheck,
-  CheckCircle2,
-  FileText,
   BarChart3
 } from 'lucide-react';
 import { UserProfile, ReporteAnalisis } from '../types';
@@ -19,7 +16,7 @@ import { getDebtColor } from './SettingsProfileView';
 import { getColorForCategory } from '../utils/colorManager';
 
 interface PropsReportsView {
-  report: ReporteAnalisis;
+  report: ReporteAnalisis | null;
   userProfile: UserProfile;
   analysisHistory?: ReporteAnalisis[];
   onOpenAnalysisModal?: (report: ReporteAnalisis) => void;

@@ -68,8 +68,15 @@ function MainApp() {
   const [analysisHistory, setAnalysisHistory] = useState<ReporteAnalisis[]>([]);
   const [showSuccessSync, setShowSuccessSync] = useState(false);
 
-  // Initial Data Fetch
+  // Initial Data Fetch — scoped al usuario autenticado activo
   useEffect(() => {
+    if (!userProfile?.id) {
+      setAnalysisHistory([]);
+      setCurrentReport(null);
+      setCargandoAuth(false);
+      return;
+    }
+
     const fetchConManejo = async (url: string) => {
       const res = await fetch(url);
       if (res.status === 401) {
@@ -86,12 +93,15 @@ function MainApp() {
     };
 
     Promise.all([
-      fetchConManejo('/api/v1/finanzas/historial').then(data => {
+      fetchConManejo(`/api/v1/finanzas/historial/${userProfile.id}`).then(data => {
         const items = data?.content ?? (Array.isArray(data) ? data : []);
         if (items.length > 0) {
           const historialMapeado = items.map(mapearItemHistorial);
           setAnalysisHistory(historialMapeado);
           setCurrentReport(historialMapeado[0]);
+        } else {
+          setAnalysisHistory([]);
+          setCurrentReport(null);
         }
       })
     ]).then(() => {
@@ -102,7 +112,7 @@ function MainApp() {
       }
       setCargandoAuth(false);
     });
-  }, []);
+  }, [userProfile?.id]);
 
   // Handlers
   const handleAddTransaction = async (newTx: Partial<Transaction>) => {
@@ -205,11 +215,10 @@ function MainApp() {
     );
   }
 
-  if (!userProfile && location.pathname !== '/login') {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!userProfile && location.pathname === '/login') {
+  if (!userProfile) {
+    if (location.pathname !== '/login') {
+      return <Navigate to="/login" replace />;
+    }
     return (
       <div className="min-h-screen bg-[#f8f9fa]">
         <LoginModal
@@ -272,7 +281,7 @@ function MainApp() {
           <Routes>
             <Route path="/" element={
               <DashboardView
-                report={currentReport as any}
+                report={currentReport}
                 userProfile={userProfile}
                 transactions={transactions}
                 analysisHistory={analysisHistory}
@@ -293,7 +302,7 @@ function MainApp() {
             } />
             <Route path="/reportes" element={
               <ReportsView
-                report={currentReport as any}
+                report={currentReport}
                 userProfile={userProfile}
                 analysisHistory={analysisHistory}
                 onOpenAnalysisModal={setActiveReportModal}

@@ -1,4 +1,9 @@
-## ADDED Requirements
+# auth-api-integration
+
+## Purpose
+Define cómo el frontend se autentica contra el backend (login y registro), incluyendo el manejo de errores y las convenciones de nomenclatura para el estado del formulario.
+
+## Requirements
 
 ### Requirement: Autenticación mediante Backend API
 El sistema DEBE interactuar con los endpoints `POST /api/v1/auth/login` y `POST /api/v1/auth/registro` para procesar de forma asíncrona la autenticación.
@@ -21,3 +26,7 @@ El sistema DEBE interactuar con los endpoints `POST /api/v1/auth/login` y `POST 
 
 ### Requirement: Nomenclatura Estricta al Español
 El sistema DEBE nombrar todas sus variables internas (estados reactivos, nombres de funciones locales) en español (`camelCase`), desterrando todo vestigio de nombres en inglés como `email`, `password`, o `rememberMe`.
+
+#### Scenario: Estado interno del formulario de autenticación
+- **WHEN** se declara un nuevo estado reactivo o función local dentro de `LoginModal`
+- **THEN** su nombre debe estar en español y en `camelCase` (ej. `correo`, `contrasena`, `cargandoApi`), sin usar equivalentes en inglés.

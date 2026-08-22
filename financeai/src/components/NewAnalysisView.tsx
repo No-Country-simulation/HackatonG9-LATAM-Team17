@@ -5,13 +5,11 @@ import {
   AlertCircle,
   Plus,
   Upload,
-  FileText,
   Trash2,
   CheckCircle2,
   Loader2,
   ChevronDown,
-  Coins,
-  Cpu
+  Coins
 } from 'lucide-react';
 import { UserProfile, Transaction, CategoriaGasto, FrecuenciaAhorro, ReporteAnalisis } from '../types';
 import { MASCOTS } from '../assets/mascots';
@@ -146,10 +144,6 @@ export const NewAnalysisView: React.FC<PropsNewAnalysisView> = ({
     setMontoTx('');
     setFalloModeloTx(false);
     setSobrescribirTxManual(false);
-  };
-
-  const handleUpdateTxCategory = (id: string, newCat: CategoriaGasto) => {
-    setListaTransacciones(prev => prev.map(t => t.id === id ? { ...t, categoria: newCat, categorizacionFallida: true } : t));
   };
 
   const handleRemoveTx = (id: string) => {
@@ -711,7 +705,7 @@ export const NewAnalysisView: React.FC<PropsNewAnalysisView> = ({
                 ¡Ya casi!
               </h4>
               <p className="text-[11px] text-[#693300] leading-relaxed mt-1">
-                Agregar entradas manuales mantiene tu historia precisa. Cada detalle ayuda a pintar una mejor imagen de tus metas.
+                No olvides completar tus Indicadores Financieros Avanzados — el Experto los necesita para generar tu análisis.
               </p>
             </div>
           </div>

@@ -55,9 +55,26 @@ export const LoginModal: React.FC<PropsLoginModal> = ({
 
       // If response is OK, we need to read the JSON now
       // Note that manejarRespuestaError reads the json only if it's NOT ok.
-      const data = await response.json().catch(() => ({}));
+      let data = await response.json().catch(() => ({}));
 
-      const nombreAUsar = data.nombre || correo.split('@')[0];
+      // /registro no devuelve el id real del usuario: encadenar un login para obtenerlo
+      if (esRegistro) {
+        const loginResponse = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: correo, password: contrasena }),
+        });
+
+        if (!loginResponse.ok) {
+          const loginErrorData = await manejarRespuestaError(loginResponse);
+          setEsRegistro(false);
+          throw new Error(loginErrorData.general || 'Cuenta creada, pero no se pudo iniciar sesión automáticamente. Intenta iniciar sesión.');
+        }
+
+        data = await loginResponse.json().catch(() => ({}));
+      }
+
+      const nombreAUsar = data.nombre || nombre || correo.split('@')[0];
       onLoginSuccess(nombreAUsar, correo, data.id);
       onClose();
     } catch (err: any) {
