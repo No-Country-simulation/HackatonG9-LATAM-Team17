@@ -1,7 +1,0 @@
-{
-  "name": "Mi Salud Financiera",
-  "description": "El Experto Alentador - Plataforma inteligente de gestión financiera personal con análisis predictivo, metas de ahorro gamificadas y seguimiento de gastos.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-

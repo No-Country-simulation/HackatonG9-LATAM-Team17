@@ -1,9 +1,0 @@
-# Python bytecode
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Entornos virtuales / IDEs (opcional)
-venv/
-.env
-.vscode/

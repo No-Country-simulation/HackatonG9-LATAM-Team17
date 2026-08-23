@@ -1,8 +1,0 @@
-[33mf03f74f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/back-python-prueba[m[33m, [m[1;31morigin/feature/back-python-prueba[m[33m)[m HEAD@{0}: commit: Actualización: Nuevo modelo .pkl funcional y limpieza de caché
-[33mf0ccb0d[m HEAD@{1}: rebase (abort): returning to refs/heads/feature/back-python-prueba
-[33m0f273f7[m HEAD@{2}: pull origin feature/back-python-prueba --rebase (start): checkout 0f273f7de16d01b2c41f6654b40874c60344acc7
-[33mf0ccb0d[m HEAD@{3}: rebase (abort): returning to refs/heads/feature/back-python-prueba
-[33m0f273f7[m HEAD@{4}: pull origin feature/back-python-prueba --rebase (start): checkout 0f273f7de16d01b2c41f6654b40874c60344acc7
-[33mf0ccb0d[m HEAD@{5}: commit: Actualización: Nuevo modelo .pkl funcional y ajustes de integración
-[33m7941d8c[m HEAD@{6}: commit: feat: actualizacion de backend y servicios de analitica
-[33m46d0e51[m HEAD@{7}: commit (initial): feat: agrego main.py de prueba
