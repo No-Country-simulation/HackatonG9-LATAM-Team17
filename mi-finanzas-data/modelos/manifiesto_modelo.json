@@ -1,0 +1,28 @@
+{
+  "archivo": "clasificador_gastos.pkl",
+  "version_artefacto": "3.3.0",
+  "sha256": "ce885cfb018077002e56a5a2dba713e014ae7c57aafdb5cda6137e6cf573f3d2",
+  "numero_ejemplos": 100000,
+  "familia_modelo": "svm_lineal",
+  "c_regularizacion": 2.0,
+  "temperatura_calibracion": 0.7,
+  "umbral_confianza": 0.48,
+  "algoritmo": "TF-IDF de palabras y caracteres + senales lexicas; LinearSVC balanceada + calibracion sigmoid agrupada + temperature scaling",
+  "python": "3.12.10",
+  "scikit_learn": "1.9.0",
+  "control_calidad": {
+    "cumple": true,
+    "criterios": {
+      "holdout_exactitud_minima_0_90": true,
+      "holdout_f1_macro_minimo_0_90": true,
+      "ece_maximo_0_08": true,
+      "regresion_base_100_por_ciento": true,
+      "regresion_ruido_minima_0_99": true,
+      "robustez_ortografica_100_por_ciento": true,
+      "ortografia_dirigida_100_por_ciento": true,
+      "almuerzo_es_alimentacion": true,
+      "almuerzo_confianza_minima_0_90": true
+    }
+  },
+  "integracion": "El backend debe desplegar este PKL y verificar que su SHA-256 coincida con este manifiesto."
+}
