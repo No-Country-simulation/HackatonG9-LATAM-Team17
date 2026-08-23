@@ -1,544 +1,791 @@
-# 🧠 Sistema Integral de Análisis y Recomendaciones Financieras
+# 💰 Motor de Recomendaciones Financieras
 
-### Hackathon ONE – G9 | Alura + Oracle
+Módulo de recomendaciones del proyecto **Financiera Saludable** — Hackathon ONE G9 LATAM (Alura + Oracle).
 
-> **Sistema end-to-end de clasificación de transacciones bancarias, predicción de perfil financiero y generación de recomendaciones personalizadas mediante Machine Learning y reglas de negocio.**
+Este módulo es responsable de transformar los resultados obtenidos por los modelos de Machine Learning y los indicadores financieros del usuario en **recomendaciones concretas, priorizadas, explicadas y accionables**.
 
----
-
-## 🎯 Visión General
-
-Este proyecto integra tres grandes módulos desarrollados en equipo para el Hackathon ONE, cada uno con responsabilidad clara y bien delimitada:
-
-| Módulo | Responsable | Función |
-|--------|-------------|---------|
-| **Clasificador NLP de transacciones** | **José** | NLP con TF-IDF + señales léxicas + regresión logística con política de confianza |
-| **Ciencia de Datos (perfil financiero)** | **Natalia** | Ingeniería de características, clasificación del tipo de ingreso y modelo de perfil financiero |
-| **Recommendation Engine + API** | **Mauricio** | Motor de reglas de negocio, flexibilización de perfil, adaptador de datos y endpoint FastAPI |
-
-El resultado final es una **API REST** que recibe datos financieros crudos (transacciones + variables del usuario) y devuelve un análisis completo: resumen de gastos por categoría, perfil financiero con probabilidades y recomendaciones priorizadas y accionables.
+> **Los modelos de Machine Learning determinan el perfil financiero y clasifican las transacciones. Este módulo toma esos resultados y decide qué recomendaciones debe recibir el usuario.**
 
 ---
 
-## 🏗️ Arquitectura End-to-End
+## 👨‍💻 Mi aporte al proyecto
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         API REST (FastAPI)                           │
-│                   POST /analizar-perfil                              │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     ORQUESTADOR (financial_processor)                │
-│                                                                     │
-│  1. Clasifica transacciones  ──►  2. Predice perfil financiero      │
-│  3. Flexibiliza el perfil    ──►  4. Ejecuta motor de reglas        │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-        ┌──────────────────────┼──────────────────────┐
-        ▼                      ▼                      ▼
-┌───────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  CLASIFICADOR │    │  MODELO PERFIL   │    │  RECOMMENDATION  │
-│   ML (NLP)    │    │    FINANCIERO    │    │     ENGINE       │
-│  TF-IDF + LR  │    │   (joblib .pkl)  │    │   (7 reglas)     │
-│   [José]      │    │   [Natalia]      │    │   [Mauricio]     │
-└───────────────┘    └──────────────────┘    └──────────────────┘
+### Mauricio Medina — Data & Backend / Recommendation Engine
+
+Mi responsabilidad dentro del proyecto fue desarrollar la **capa de recomendaciones financieras**.
+
+El objetivo fue construir un componente capaz de recibir:
+
+* Perfil financiero predicho.
+* Probabilidad de la predicción.
+* Información financiera del usuario.
+* Indicadores derivados.
+* Resultados de clasificación de transacciones.
+
+Y convertirlos en:
+
+* Recomendaciones personalizadas.
+* Prioridades.
+* Explicaciones.
+* Acciones concretas.
+* Impacto esperado.
+* Un resultado estructurado para ser consumido por una API REST.
+
+### Mi componente responde a una pregunta diferente a la del Machine Learning:
+
+**Machine Learning:**
+
+> ¿Cuál es el perfil financiero del usuario?
+
+**Motor de recomendaciones:**
+
+> ¿Qué debería hacer el usuario teniendo en cuenta su situación financiera?
+
+---
+
+# 🎯 Problema que resuelve
+
+Conocer el perfil financiero de una persona no es suficiente.
+
+Por ejemplo, un modelo puede determinar que un usuario se encuentra **"En riesgo"**, pero el sistema todavía necesita determinar:
+
+* ¿Por qué está en riesgo?
+* ¿Qué problema financiero debe atender primero?
+* ¿Qué acción debería realizar?
+* ¿Qué tan urgente es?
+* ¿Qué impacto puede tener esa acción?
+
+El motor de recomendaciones convierte la información financiera en **orientación práctica para el usuario**.
+
+```text
+Datos financieros
+       │
+       ▼
+Machine Learning
+       │
+       ▼
+Perfil financiero + probabilidad
+       │
+       ▼
+Indicadores financieros
+       │
+       ▼
+Reglas de negocio
+       │
+       ▼
+Priorización
+       │
+       ▼
+Recomendaciones personalizadas
+       │
+       ▼
+API REST / Frontend
 ```
 
 ---
 
-## 📂 Estructura del Proyecto
+# 🏗️ Rol dentro de la arquitectura
 
+```text
+Transacciones + datos financieros
+                │
+                ▼
+        Modelos de Machine Learning
+        ├── clasificador_gastos.pkl
+        └── perfil_financiero.pkl
+                │
+                ▼
+       profile_flexibility.py
+       Validación y ajuste del perfil
+                │
+                ▼
+       financial_data_adapter.py
+       Normalización y variables derivadas
+                │
+                ▼
+       recommendation_engine.py
+       Motor principal de recomendaciones
+                │
+                ▼
+       recommendation_rules.py
+       7 reglas de negocio
+                │
+                ▼
+       Priorización de recomendaciones
+                │
+                ▼
+       recommendation_serializer.py
+                │
+                ▼
+              JSON
+                │
+                ▼
+       api_router.py
+       POST /analizar-perfil
 ```
-proyecto/
+
+---
+
+# 📂 Estructura del módulo
+
+```text
+src/
 │
-├── clasificador/                      # 🧠 Módulo NLP (José)
-│   ├── __init__.py                    # API pública del paquete
-│   ├── modelo.py                      # ClasificadorGastos + serialización segura
-│   ├── datos.py                       # Dominio, señales léxicas, aumento de datos
-│   ├── texto.py                       # Normalización y tokens informativos
-│   └── contrato_json.py               # Adaptador JSON ↔ clasificador
-│
-├── ciencia_datos/                     # 📊 Módulo Ciencia de Datos (Natalia)
-│   ├── generar_caracteristicas.py     # Ingeniería de 17 variables financieras
-│   ├── clasificar_tipo_ingreso.py     # Identificación del tipo de ingreso
-│   └── notebooks/                     # Notebooks de entrenamiento
-│
-├── recomendaciones/                   # 💡 Motor de recomendaciones (Mauricio)
-│   ├── recommendation_engine.py       # Orquestador de 7 reglas
-│   ├── recommendation_rules.py        # Reglas de negocio (ahorro, deuda, etc.)
-│   ├── recommendation_models.py       # Dataclass Recommendation
-│   ├── recommendation_serializer.py   # Serialización a JSON
-│   ├── recommendation_service.py      # Servicio de integración
-│   ├── financial_data_adapter.py      # Adaptador de variables financieras
-│   ├── profile_flexibility.py         # Flexibilización del perfil
-│   ├── financial_processor.py         # Procesador ML + perfil
-│   ├── json_loader.py                 # Carga de datos JSON
-│   └── __init__.py                    # API pública del paquete
-│
-├── api/                               # 📡 Capa de exposición (Mauricio)
-│   ├── api_router.py                  # Endpoint FastAPI
-│   └── schemas.py                     # DTOs Pydantic
-│
-└── modelos/                           # 📦 Artefactos entrenados (.pkl)
-    ├── clasificador_gastos.pkl        # NLP clasificador (José)
-    ├── clasificador_gastos.pkl.sha256 # Checksum SHA-256
-    ├── modelo_perfil_financiero.pkl   # Perfil financiero (Natalia)
-    ├── modelo_tipo_ingreso_1.pkl      # Tipo de ingreso v1 (Natalia)
-    └── modelo_tipo_ingreso_2.pkl      # Tipo de ingreso v2 (Natalia)
+├── financial_processor.py
+├── profile_flexibility.py
+├── financial_data_adapter.py
+├── recommendation_rules.py
+├── recommendation_engine.py
+├── recommendation_models.py
+├── recommendation_serializer.py
+├── recommendation_service.py
+├── schemas.py
+├── api_router.py
+└── json_loader.py
+
+main.py
+requirements.txt
+
+tests/
+├── test_financial_data_adapter.py
+├── test_recommendation_engine.py
+└── conftest.py
 ```
 
 ---
 
-## 🔄 Flujo de Datos Completo
+# 🔧 Componentes desarrollados
 
+## `financial_processor.py`
+
+Orquesta la interacción con los modelos de Machine Learning.
+
+Su función dentro del flujo es:
+
+1. Recibir las transacciones.
+2. Clasificar las transacciones.
+3. Obtener el perfil financiero.
+4. Obtener las probabilidades correspondientes.
+5. Entregar los resultados al sistema de recomendaciones.
+
+Este componente permite conectar los resultados del Machine Learning con la lógica desarrollada en el motor.
+
+---
+
+## `profile_flexibility.py`
+
+Implementa una capa de validación del perfil financiero.
+
+La predicción del modelo puede presentar incertidumbre, especialmente cuando la probabilidad asociada a la clase predicha es baja.
+
+Por eso se incorporó una capa que contrasta la predicción con indicadores financieros reales.
+
+### Ejemplo
+
+Si el modelo predice:
+
+```text
+Perfil: En riesgo
+Probabilidad: 52%
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ 1. ENTRADA: Transacciones + Datos Financieros del Usuario       │
-│    (ingreso, deuda, ahorro, inversiones, suscripciones, etc.)   │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 2. CLASIFICADOR NLP (José)                                      │
-│    • Normaliza texto (tildes, mayúsculas, puntuación)           │
-│    • Extrae features: palabras + caracteres + señales léxicas   │
-│    • Regresión logística multiclase con temperature scaling     │
-│    • Política de confianza (umbral, margen, cobertura)          │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 3. INGENIERÍA DE CARACTERÍSTICAS (Natalia)                      │
-│    • 17 variables financieras derivadas                         │
-│    • Tipo de ingreso, estrés financiero, flujo de caja          │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 4. MODELO DE PERFIL FINANCIERO (Natalia)                        │
-│    • Predice: Excelente / Saludable / Estable / En observación  │
-│              / En riesgo / Crítico                              │
-│    • Devuelve probabilidades por clase                          │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 5. FLEXIBILIZACIÓN DEL PERFIL (Mauricio)                        │
-│    Ajusta la etiqueta según indicadores críticos                │
-│    (deuda > 50%, reserva < 1 mes, tasa de ahorro ≥ 20%)         │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 6. RECOMMENDATION ENGINE (Mauricio) — 7 reglas de negocio       │
-│    ① Ahorro    ② Endeudamiento    ③ Fondo de emergencia         │
-│    ④ Flujo de caja    ⑤ Suscripciones                           │
-│    ⑥ Perfil financiero    ⑦ Confianza del modelo                │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 7. SALIDA JSON                                                  │
-│    { probabilidad_categoria, probabilidad_perfil,               │
-│      probabilidad_recomendaciones, perfil_financiero,           │
-│      resumen_gastos, recomendaciones }                          │
-└─────────────────────────────────────────────────────────────────┘
+
+pero los indicadores muestran:
+
+```text
+Deuda controlada
+Reserva suficiente
+Ahorro positivo
+```
+
+el sistema puede ajustar la clasificación hacia:
+
+```text
+En observación
+```
+
+Esto permite evitar que una predicción con baja confianza se convierta directamente en una conclusión rígida para el usuario.
+
+### Reglas principales
+
+* Confianza menor al **55%** → recalcular el perfil mediante indicadores financieros.
+* Perfil **"En riesgo"** con indicadores que no representan riesgo → ajustar a **"En observación"**.
+* Perfil **"Estable"** con indicadores significativamente mejores → posibilidad de subir a **"Saludable"** o **"Excelente"**.
+
+---
+
+# 🔄 `financial_data_adapter.py`
+
+Se encarga de adaptar los datos provenientes del pipeline financiero al formato requerido por el motor de recomendaciones.
+
+Entre sus responsabilidades están:
+
+* Normalizar nombres de variables.
+* Adaptar estructuras de datos.
+* Calcular variables derivadas.
+* Mantener un contrato interno consistente para las reglas.
+
+### Variables derivadas
+
+#### `meses_reserva`
+
+Permite estimar cuántos meses de gastos puede cubrir el fondo de emergencia disponible.
+
+#### `ratio_suscripciones`
+
+Calcula el peso de las suscripciones respecto al ingreso mensual.
+
+#### `ahorro_real`
+
+Permite determinar si el usuario realmente está generando capacidad de ahorro a partir de sus ingresos y gastos.
+
+Esto evita que las reglas tengan que encargarse directamente de transformar los datos de entrada.
+
+---
+
+# 🧠 `recommendation_rules.py`
+
+Contiene las **7 reglas de negocio** utilizadas para generar recomendaciones.
+
+Cada regla analiza una situación financiera específica.
+
+---
+
+## 1. Regla de ahorro
+
+Se activa dependiendo de la tasa de ahorro:
+
+```text
+< 10%     → alerta de ahorro
+10%-20%   → situación intermedia
+≥ 20%     → oportunidad para inversión
+```
+
+Ejemplo:
+
+> "Tu nivel de ahorro actual es bajo respecto a tus ingresos. Establece una meta de ahorro mensual y automatiza una parte de tus ingresos."
+
+---
+
+## 2. Regla de endeudamiento
+
+Se activa cuando:
+
+```text
+relacion_deuda_ingreso > 40%
+```
+
+Permite identificar situaciones donde una proporción elevada de los ingresos está comprometida con deuda.
+
+Ejemplo:
+
+> "Tu nivel de endeudamiento representa una proporción elevada de tus ingresos. Prioriza la reducción de las obligaciones con mayor costo."
+
+---
+
+## 3. Regla de fondo de emergencia
+
+Analiza los meses de reserva disponibles.
+
+```text
+0 meses
+< 1.5 meses
+< 3 meses
+< 6 meses
+≥ 6 meses
+```
+
+La recomendación cambia dependiendo del nivel de protección financiera del usuario.
+
+---
+
+## 4. Regla de flujo de caja
+
+Analiza si existe capacidad real de ahorro.
+
+Se activa cuando:
+
+```text
+ahorro_real ≤ 0
+```
+
+o cuando:
+
+```text
+ahorro_real > 0
+pero representa menos del 10% del ingreso
+```
+
+Esta regla permite detectar usuarios cuyos ingresos prácticamente se consumen en gastos y obligaciones.
+
+---
+
+## 5. Regla de suscripciones
+
+Analiza el peso de las suscripciones sobre el ingreso.
+
+Se activa cuando:
+
+```text
+ratio_suscripciones > 3%
+```
+
+o cuando existe un monto declarado de suscripciones.
+
+La recomendación busca identificar servicios recurrentes que podrían estar afectando la capacidad de ahorro.
+
+---
+
+## 6. Regla de perfil financiero
+
+Genera recomendaciones generales de acuerdo con las diferentes categorías del perfil:
+
+```text
+Crítico
+En riesgo
+En observación
+Estable
+Saludable
+Excelente
+```
+
+Cada perfil puede tener diferentes recomendaciones y mensajes.
+
+---
+
+## 7. Regla de confianza del modelo
+
+Permite advertir al usuario cuando la predicción tiene una probabilidad baja.
+
+Se activa cuando:
+
+```text
+probabilidad < 60%
+```
+
+En este escenario se recomienda revisar los datos utilizados para generar el perfil.
+
+Esto agrega una capa de **transparencia y explicabilidad** al sistema.
+
+---
+
+# ⭐ Priorización de recomendaciones
+
+Una de las funciones principales del motor es evitar entregar una lista desordenada de recomendaciones.
+
+Cada recomendación contiene:
+
+```text
+categoría
+prioridad
+título
+explicación
+acción
+impacto
+score
+fecha
+```
+
+Las recomendaciones se ordenan utilizando:
+
+```text
+1. Prioridad
+2. Score
+```
+
+Donde:
+
+```text
+0 = máxima prioridad
+```
+
+En caso de empate, se utiliza el `score` de manera descendente.
+
+De esta forma, el usuario recibe primero las acciones que requieren mayor atención.
+
+---
+
+# 🧩 `recommendation_models.py`
+
+Define el modelo de datos utilizado para representar una recomendación.
+
+Se utiliza un `dataclass`:
+
+```text
+Recommendation
+```
+
+Esto permite mantener una estructura consistente entre las diferentes reglas.
+
+Una recomendación puede contener:
+
+```text
+categoría
+prioridad
+título
+explicación
+acción
+impacto
+score
+fecha
 ```
 
 ---
 
-## 🧠 Módulo 1 — Clasificador NLP (José)
+# ⚙️ `recommendation_engine.py`
 
-### Arquitectura del modelo
+Es el **núcleo del sistema de recomendaciones**.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              FeatureUnion (3 transformadores)            │
-├─────────────────────────────────────────────────────────┤
-│  TF-IDF palabras (1-2 gramos)        peso: 1.0          │
-│  TF-IDF caracteres (3-5 gramos)      peso: 0.8          │
-│  Señales léxicas financieras         peso: 2.5          │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│  LogisticRegression multiclase (C=3.0, balanced)        │
-│  + Temperature Scaling (calibración de probabilidades)  │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│  Política de confianza (post-procesamiento)             │
-│  • Umbral mínimo: 55%                                   │
-│  • Margen mínimo: 8%                                    │
-│  • Cobertura léxica mínima: 20%                         │
-│  • Respaldo: "Otros" si falla alguna condición          │
-└─────────────────────────────────────────────────────────┘
-```
+Su responsabilidad es:
 
-### Categorías financieras (12)
+1. Recibir los datos financieros.
+2. Ejecutar las reglas.
+3. Recopilar las recomendaciones.
+4. Eliminar inconsistencias.
+5. Ordenar las recomendaciones.
+6. Entregar el resultado al siguiente componente.
 
-| Categoría | Ejemplos |
-|-----------|----------|
-| **Alimentación** | supermercado, restaurante, abarrotes, pollería |
-| **Aporte Inversiones** | acciones, ETF, AFP, broker, cripto |
-| **Educación** | universidad, curso, matrícula, colegio |
-| **Gastos Hormiga** | café, snack, golosina, kiosco |
-| **Ingresos** | sueldo, salario, honorarios, bonificación |
-| **Ocio** | cine, concierto, videojuego, teatro |
-| **Otros** | retiro, ropa, desconocido, impuesto |
-| **Salud** | farmacia, clínica, dentista, vacuna |
-| **Servicios** | electricidad, internet, agua, telefonía |
-| **Suscripciones** | Netflix, Spotify, streaming, membresía |
-| **Transporte** | Uber, taxi, gasolina, peaje, metro |
-| **Vivienda** | alquiler, hipoteca, condominio, plomero |
+Conceptualmente:
 
-### Seguridad del artefacto
-
-- ✅ Serialización atómica con archivo temporal
-- ✅ Checksum SHA-256 lateral (`.pkl.sha256`)
-- ✅ Verificación con `hmac.compare_digest` (timing-safe)
-- ✅ Validación de versión mayor del artefacto
-- ✅ Detección de incompatibilidad de scikit-learn
-- ✅ `fsync` para garantizar persistencia en disco
-- ✅ Validación anti-fuga entre splits de entrenamiento/evaluación
-
----
-
-## 📊 Módulo 2 — Ciencia de Datos (Natalia)
-
-### Flujo de Ciencia de Datos
-
-```
-Información financiera del usuario
-              │
-              ▼
-       Transacciones
-              │
-              ▼
-    Clasificación de ingresos
-              │
-              ▼
-  Ingeniería de características
-              │
-              ▼
-      Variables financieras
-              │
-              ▼
-       Modelo de Machine Learning
-              │
-       ┌──────┴──────┐
-       ▼             ▼
-Perfil financiero   Probabilidad
-```
-
-### Variables financieras generadas (17)
-
-```
-ingreso_mensual              gasto_mensual_total
-tasa_ahorro                  objetivo_presupuesto
-relacion_deuda_ingreso       pago_prestamo
-monto_inversion              servicios_suscripcion
-fondo_emergencia             cantidad_transacciones
-gastos_discrecionales        gastos_esenciales
-tipo_ingreso                 alquiler_o_hipoteca
-estado_flujo_caja            nivel_estres_financiero
-ahorro_real
-```
-
-### Fórmulas clave
-
-```
-ahorro_real = ingreso_mensual - gasto_mensual_total + aporte_inversiones
-
-tasa_ahorro = ahorro_real / ingreso_mensual
-
-relacion_deuda_ingreso = deuda_total / ingreso_mensual
-
-meses_reserva = fondo_emergencia / gasto_mensual_esencial
-```
-
-### Clasificación del tipo de ingreso
-
-```
-Salario | Independiente | Mixto | Sin ingreso
-```
-
-### Nivel de estrés financiero
-
-```
-Bajo | Medio | Alto
-```
-
-### Modelos entrenados
-
-```
-modelos/
-├── modelo_perfil_financiero.pkl   # Clasificador del perfil financiero
-├── modelo_tipo_ingreso_1.pkl      # Tipo de ingreso (v1)
-└── modelo_tipo_ingreso_2.pkl      # Tipo de ingreso (v2)
+```text
+Input financiero
+       │
+       ▼
+Regla de ahorro
+Regla de deuda
+Regla de emergencia
+Regla de flujo de caja
+Regla de suscripciones
+Regla de perfil
+Regla de confianza
+       │
+       ▼
+Lista de recomendaciones
+       │
+       ▼
+Priorización
+       │
+       ▼
+Resultado final
 ```
 
 ---
 
-## 💡 Módulo 3 — Recommendation Engine (Mauricio)
+# 🔗 `recommendation_service.py`
 
-### Motor de reglas de negocio (7 reglas)
+Funciona como punto de entrada de alto nivel.
 
-| # | Regla | Prioridad | Impacto |
-|---|-------|-----------|---------|
-| 1 | **Ahorro** | 2-3 | Medio/Bajo |
-| 2 | **Endeudamiento** | 1-3 | Alto/Bajo |
-| 3 | **Fondo de emergencia** | 1-4 | Alto/Bajo |
-| 4 | **Flujo de caja** | 1-2 | Alto/Medio |
-| 5 | **Suscripciones** | 3 | Bajo |
-| 6 | **Perfil financiero** | 0-4 | Alto/Bajo |
-| 7 | **Confianza del modelo** | 4 | Informativo |
+Recibe:
 
-Cada recomendación incluye:
-- **Categoría** (ej. "Ahorro")
-- **Prioridad** (0 = más urgente)
-- **Título** descriptivo
-- **Explicación** con datos del usuario
-- **Acción** concreta (variedad aleatoria para evitar monotonía)
-- **Impacto** (Alto / Medio / Bajo / Informativo)
-- **Score** (0.0 - 1.0, desempate)
-- **Fecha** de generación
+```text
+Perfil financiero
+Probabilidad
+Datos financieros
+```
 
-### Adaptador de datos
+y coordina el proceso completo hasta producir el resultado final.
 
-El módulo `financial_data_adapter.py` cierra la brecha entre los nombres de variables del modelo de Natalia y los nombres esperados por las reglas de negocio. Calcula variables derivadas:
-
-- `meses_reserva`: cuántos meses de gastos esenciales cubre el fondo de emergencia
-- `ratio_suscripciones`: peso de las suscripciones sobre el ingreso mensual
-
-### Flexibilización del perfil
-
-La capa `profile_flexibility.py` ajusta la etiqueta del ML según indicadores críticos:
-
-- Si `probabilidad < 0.55` y `deuda > 50%` → **Crítico**
-- Si `tasa_ahorro ≥ 25%` y `reserva ≥ 6 meses` → **Excelente**
+Esto permite mantener separada la lógica de negocio de la lógica de integración.
 
 ---
 
-## 📡 Módulo 4 — API REST (FastAPI)
+# 📦 `recommendation_serializer.py`
 
-### Endpoint principal
+Convierte los objetos `Recommendation` en estructuras compatibles con JSON.
+
+Esto permite que las recomendaciones puedan ser utilizadas posteriormente por:
+
+* FastAPI.
+* Frontend web.
+* Aplicaciones móviles.
+* Dashboards.
+* Otros servicios backend.
+
+---
+
+# 🌐 API REST
+
+El módulo está preparado para exponerse mediante una API REST.
+
+## Endpoint
 
 ```http
 POST /analizar-perfil
-Content-Type: application/json
 ```
 
-### Request (DTO de entrada)
+La ruta conecta:
+
+```text
+Datos financieros
+        +
+Transacciones
+        │
+        ▼
+Machine Learning
+        │
+        ▼
+Perfil financiero
+        │
+        ▼
+Recommendation Engine
+        │
+        ▼
+JSON
+```
+
+> `api_router.py` define un `APIRouter`, no una aplicación FastAPI completa. Debe montarse en la aplicación principal mediante `app.include_router(router)`.
+
+---
+
+# 📥 Entrada
+
+Ejemplo de `AnalisisInputDTO`:
 
 ```json
 {
-  "ingreso_mensual": 5000.0,
+  "ingreso_mensual": 3200,
   "nivel_endeudamiento": 0.35,
-  "frecuencia_ahorro": "mensual",
-  "monto_inversion": 500.0,
-  "deuda_total": 1750.0,
-  "objetivo_presupuesto": 3000.0,
-  "pago_mensual_deuda": 350.0,
+  "frecuencia_ahorro": "Mensual",
+  "monto_inversion": 200,
+  "deuda_total": 1100,
+  "objetivo_presupuesto": 600,
+  "pago_mensual_deuda": 150,
   "servicios_suscripción": 3,
-  "fondo_emergencia": 4500.0,
+  "fondo_emergencia": 1000,
   "transacciones": [
-    { "descripcion": "PAGO SUPERMERCADO METRO", "valor": -150.50 },
-    { "descripcion": "UBER VIAJE CENTRO", "valor": -25.00 },
-    { "descripcion": "NETFLIX MENSUAL", "valor": -15.99 }
+    {
+      "descripcion": "Sueldo mensual recibido",
+      "valor": 3200
+    },
+    {
+      "descripcion": "Mercado",
+      "valor": 500
+    }
   ]
 }
 ```
 
-### Response (DTO de salida)
+---
+
+# 📤 Salida
+
+Ejemplo de `RespuestaPythonDTO`:
 
 ```json
 {
-  "probabilidad_categoria": 0.87,
-  "probabilidad_perfil_financiero": 0.76,
-  "probabilidad_recomendaciones": 0.82,
-  "perfil_financiero": "Estable",
+  "probabilidad_categoria": 0.91,
+  "probabilidad_perfil_financiero": 0.78,
+  "probabilidad_recomendaciones": 0.62,
+  "perfil_financiero": "En observación",
   "resumen_gastos": {
-    "Alimentación": 150.50,
-    "Transporte": 25.00,
-    "Suscripciones": 15.99
+    "Alimentación": 500.0
   },
   "recomendaciones": [
-    "Fondo de emergencia en etapa inicial: Tienes un pequeño avance...",
-    "Optimización de membresías y servicios digitales...",
-    "Impulsa tu estabilidad al siguiente nivel..."
+    "Monitoreo activo de hábitos de consumo: Lleva un registro diario de cada pequeño gasto durante las siguientes dos semanas para identificar patrones."
   ]
 }
 ```
 
 ---
 
-## 🚀 Uso
+# 🧪 Testing
 
-### 1. Cargar el clasificador
+El módulo incluye pruebas automatizadas mediante **Pytest**.
 
-```python
-from clasificador.modelo import cargar_modelo
+### `test_financial_data_adapter.py`
 
-modelo = cargar_modelo("modelos/clasificador_gastos.pkl", verificar_integridad=True)
-resultado = modelo.predecir("PAGO SUPERMERCADO METRO")
-print(resultado["categoria"])            # "Alimentación"
-print(resultado["confianza_porcentaje"]) # 92.3
-```
+Verifica:
 
-### 2. Clasificar un payload JSON
+* `meses_reserva`.
+* `ratio_suscripciones`.
+* `ahorro_real`.
+* Adaptación de los datos.
 
-```python
-from clasificador.contrato_json import clasificar_payload
+### `test_recommendation_engine.py`
 
-payload = {
-    "transacciones": [
-        {"descripcion": "UBER VIAJE", "valor": -25.0, "fecha": "2026-08-19T09:00:00Z"},
-        {"descripcion": "NETFLIX MENSUAL", "valor": -15.99, "fecha": "2026-08-19T00:00:00Z"}
-    ]
-}
-resultado = clasificar_payload(payload, modelo)
-```
+Verifica:
 
-### 3. Entrenar el clasificador
+* Ejecución del motor.
+* Generación de recomendaciones.
+* Funcionamiento de las reglas principales.
 
-```python
-from clasificador.modelo import ClasificadorGastos
-from clasificador.datos import cargar_datos_entrenamiento_ampliado
+### `conftest.py`
 
-datos = cargar_datos_entrenamiento_ampliado("transacciones.csv", objetivo_total=100_000)
+Configura la raíz del proyecto para permitir que los imports funcionen correctamente al ejecutar las pruebas.
 
-clasificador = ClasificadorGastos(
-    umbral_confianza=0.55,
-    margen_minimo=0.08,
-    cobertura_minima=0.20,
-    c_regularizacion=3.0
-)
-clasificador.entrenar(datos["descripcion"], datos["categoria"])
-clasificador.guardar("modelos/clasificador_gastos.pkl")
-```
+---
 
-### 4. Ejecutar el motor de recomendaciones
+# 🚀 Instalación
 
-```python
-from recomendaciones import RecommendationEngine
+## 1. Crear entorno virtual
 
-engine = RecommendationEngine()
-financial_data = {
-    "ingreso_mensual": 5000,
-    "gasto_mensual_total": 3500,
-    "tasa_ahorro": 0.15,
-    "relacion_deuda_ingreso": 0.35,
-    "meses_reserva": 1.3,
-    "fondo_emergencia": 4500,
-    "servicios_suscripcion": 45,
-    "ahorro_real": 750,
-    "deuda_total": 1750
-}
-
-recomendaciones = engine.generate("Estable", financial_data, probability=0.76)
-for r in recomendaciones:
-    print(f"[{r.prioridad}] {r.titulo}: {r.accion}")
-```
-
-### 5. Levantar la API
+### Linux / macOS
 
 ```bash
-uvicorn api.api_router:router --host 0.0.0.0 --port 8000
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Windows
+
+```powershell
+python -m venv venv
+venv\Scripts\Activate.ps1
 ```
 
 ---
 
-## 🛡️ Protecciones Implementadas
+## 2. Instalar dependencias
 
-### Clasificador (José)
-- ✅ Validación anti-fuga entre splits
-- ✅ Detección de descripciones contradictorias
-- ✅ Prevención de duplicados
-- ✅ Checksum SHA-256 con comparación segura
-- ✅ Política de confianza multi-criterio
-
-### Ciencia de Datos (Natalia)
-- ✅ Aumento de datos sintético determinista y reproducible
-- ✅ Grupos trazables para validación cruzada sin fuga semántica
-- ✅ Validación estricta de columnas y categorías
-
-### Recommendation Engine (Mauricio)
-- ✅ Adaptador de variables que cierra brechas de nomenclatura
-- ✅ Alias de compatibilidad hacia atrás
-- ✅ Cálculo defensivo de variables derivadas
-- ✅ Ordenamiento determinista por prioridad y score
-- ✅ Flexibilización dinámica del perfil según indicadores críticos
-
----
-
-## 🧰 Tecnologías
-
+```bash
+pip install -r requirements.txt
 ```
-Python 3.11+
-FastAPI + Pydantic
-scikit-learn 1.3+
-NumPy + SciPy
-Pandas
-Joblib
-Unicodedata (NFKD normalization)
-Jupyter Notebook (entrenamiento)
+
+Dependencias principales:
+
+```text
+pandas
+numpy
+scikit-learn
+joblib
+jupyter
+pytest
+```
+
+Para ejecutar la API:
+
+```bash
+pip install fastapi "uvicorn[standard]"
 ```
 
 ---
 
-## 📦 Artefactos Entrenados (`.pkl`)
+# ▶️ Ejecución
 
-Los modelos serializados corresponden únicamente a los módulos de **Machine Learning** (clasificador NLP y perfil financiero). El **Recommendation Engine** no genera artefactos `.pkl` porque es un sistema basado en **reglas de negocio programadas** (no en modelos entrenados).
+## Ejecutar demostración
 
-| Archivo | Contenido | Autor |
-|---------|-----------|-------|
-| `clasificador_gastos.pkl` | Pipeline TF-IDF + LogisticRegression + calibración | José |
-| `clasificador_gastos.pkl.sha256` | Checksum de integridad | José |
-| `modelo_perfil_financiero.pkl` | Clasificador del perfil financiero | Natalia |
-| `modelo_tipo_ingreso_1.pkl` | Clasificador de tipo de ingreso (v1) | Natalia |
-| `modelo_tipo_ingreso_2.pkl` | Clasificador de tipo de ingreso (v2) | Natalia |
-
-> 💡 **Nota:** El motor de recomendaciones (Mauricio) no requiere entrenamiento ni artefactos `.pkl`. Su inteligencia reside en **7 reglas de negocio** implementadas en Python puro (`recommendation_rules.py`), que evalúan indicadores financieros y generan recomendaciones priorizadas de forma determinista.
-
----
-
-## 🏆 Aporte del Proyecto
-
-> **Transformamos datos financieros dispersos (transacciones, deudas, ahorros, inversiones) en un diagnóstico estructurado del comportamiento económico del usuario, y generamos recomendaciones financieras personalizadas, priorizadas y accionables.**
-
+```bash
+python main.py
 ```
-DATOS FINANCIEROS
-       ↓
-CLASIFICACIÓN NLP (José)
-       ↓
-INGENIERÍA DE CARACTERÍSTICAS (Natalia) — 17 variables
-       ↓
-MACHINE LEARNING (Natalia) — Perfil financiero
-       ↓
-FLEXIBILIZACIÓN DE PERFIL (Mauricio)
-       ↓
-MOTOR DE RECOMENDACIONES (Mauricio) — 7 reglas
-       ↓
-RECOMENDACIONES ACCIONABLES
+
+## Ejecutar pruebas
+
+```bash
+pytest -v
 ```
 
 ---
 
-## 👥 Equipo
+# 🔮 Evolución del proyecto
 
-| Integrante | Rol | Módulo |
-|------------|-----|--------|
-| **José** | ML Engineer | Clasificador NLP de transacciones (TF-IDF + señales léxicas + regresión logística + política de confianza + serialización segura) |
-| **Natalia** | Data Scientist | Ciencia de Datos: ingeniería de características, clasificación del tipo de ingreso, modelo de perfil financiero |
-| **Mauricio** | Backend / ML Ops | Recommendation Engine, flexibilización de perfil, adaptador de datos, API FastAPI |
+La arquitectura permite evolucionar el motor hacia un sistema de recomendaciones cada vez más inteligente.
+
+### Próximas mejoras
+
+* Integración completa mediante FastAPI.
+* Dockerización del servicio.
+* Persistencia de recomendaciones.
+* Historial financiero del usuario.
+* Sistema de feedback.
+* Personalización basada en comportamiento.
+* Nuevas reglas financieras.
+* Optimización automática de prioridades.
+* Sistema híbrido de Machine Learning + reglas.
+* Explicaciones más personalizadas.
+* Evaluación continua de la efectividad de las recomendaciones.
 
 ---
 
-## 📄 Licencia
+# 🏆 Valor técnico del módulo
 
-Proyecto desarrollado para el **Hackathon ONE – Grupo 9 | Alura + Oracle**.  
-Todos los derechos reservados.
+El principal aporte de este componente es crear una **capa de decisión entre los modelos de Machine Learning y el usuario final**.
+
+La arquitectura permite separar claramente:
+
+```text
+Machine Learning
+      │
+      │ "¿Cómo está el usuario?"
+      ▼
+Perfil financiero
+      │
+      ▼
+Motor de recomendaciones
+      │
+      │ "¿Qué debería hacer?"
+      ▼
+Recomendación
+      │
+      ▼
+Acción concreta
+```
+
+Esto permite que los modelos predictivos no sean el punto final del sistema.
+
+El valor está en transformar una predicción en una **acción financiera comprensible y útil para el usuario**.
+
+---
+
+# 🧠 Principios aplicados
+
+### Modularidad
+
+Cada componente tiene una responsabilidad específica.
+
+### Separación de responsabilidades
+
+El Machine Learning, la adaptación de datos, las reglas y la API están desacoplados.
+
+### Escalabilidad
+
+Es posible agregar nuevas reglas sin modificar completamente el motor.
+
+### Testeabilidad
+
+Los componentes principales cuentan con pruebas automatizadas.
+
+### Explicabilidad
+
+Las recomendaciones incluyen una explicación y una acción concreta.
+
+### Integrabilidad
+
+La salida estructurada permite conectar el motor con una API REST y diferentes interfaces.
+
+---
+
+# 👨‍💻 Mauricio Medina
+
+**Data & Backend — Recommendation Engine**
+
+Desarrollo del motor encargado de convertir resultados de Machine Learning e indicadores financieros en recomendaciones personalizadas, explicables y priorizadas.
+
+### Aporte principal
+
+```text
+Datos financieros
+        ↓
+Validación
+        ↓
+Reglas de negocio
+        ↓
+Priorización
+        ↓
+Recomendaciones
+        ↓
+API REST
+```
+
+> **"El Machine Learning identifica la situación financiera. Mi componente transforma esa información en una decisión accionable para el usuario."**
+
+---
+
+## 📌 Proyecto
+
+**Financiera Saludable**
+
+Hackathon ONE G9 LATAM
+Alura + Oracle
+
+**Tecnologías principales:**
+
+`Python` · `Machine Learning` · `Pandas` · `NumPy` · `Scikit-learn` · `FastAPI` · `Pydantic` · `Pytest` · `Git`
