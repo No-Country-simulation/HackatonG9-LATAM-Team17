@@ -14,7 +14,7 @@ El sistema combina tres grandes capas:
 
 | Capa | Tecnología | Responsabilidad |
 |:---|:---|:---|
-| 🎨 **Frontend** | HTML, CSS, JavaScript | Interfaz de usuario, formularios, resultados e historial |
+| 🎨 **Frontend** | React 19 + TypeScript 5.8 + Vite 6 | Interfaz de usuario gamificada (SPA), formularios, resultados, informes e historial |
 | ⚙️ **Backend** | Java 21 + Spring Boot 3.4.2 | API REST, autenticación, persistencia, orquestación e integración |
 | 🧠 **Python / IA** | Python 3.11+ + FastAPI + scikit-learn | NLP, clasificación, perfil financiero y recomendaciones |
 
@@ -25,12 +25,12 @@ El sistema combina tres grandes capas:
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
 │                         🎨 FRONTEND WEB                           │
-│                     HTML + CSS + JavaScript                      │
+│             React 19 + TypeScript + Vite + Tailwind              │
 │                                                                  │
-│  Registro · Login · Análisis · Clasificación · Historial         │
+│  Registro · Login · Análisis · Clasificación · Historial · Perfil│
 └──────────────────────────────┬───────────────────────────────────┘
                                │
-                          HTTP / JSON
+                    HTTP / JSON (proxy /api)
                                │
                                ▼
 ┌──────────────────────────────────────────────────────────────────┐
@@ -75,14 +75,16 @@ El sistema combina tres grandes capas:
 ```text
 proyecto/
 │
-├── 🎨 frontend/
-│   ├── index.html
-│   ├── login.html
-│   ├── registro.html
-│   ├── analisis.html
-│   ├── historial.html
-│   ├── css/
-│   └── js/
+├── 🎨 frontend/                    # mi-finanzas-frontend
+│   ├── server.ts                   # Express: sirve el build y hace proxy /api → backend
+│   ├── vite.config.ts
+│   ├── openspec/                   # Especificaciones SDD (OpenSpec)
+│   └── src/
+│       ├── App.tsx
+│       ├── types.ts
+│       ├── assets/
+│       ├── components/
+│       └── utils/
 │
 ├── ⚙️ backend/
 │   └── src/main/java/saludfinanciera/finanzas/
@@ -116,21 +118,23 @@ proyecto/
 
 ## 📌 Descripción
 
-El frontend proporciona la interfaz gráfica para que el usuario pueda:
+El frontend es una **SPA en React** que proporciona la interfaz gráfica para que el usuario pueda:
 
 - 👤 Registrarse.
 - 🔐 Iniciar sesión.
-- ⚙️ Consultar y gestionar su cuenta.
+- ⚙️ Consultar y gestionar su cuenta (edición parcial de nombre/email).
 - 💰 Ingresar información financiera.
-- 💳 Registrar transacciones.
+- 💳 Registrar transacciones (registro rápido desde el Dashboard con clasificación automática).
 - 📊 Ejecutar un análisis financiero.
 - 🧠 Clasificar transacciones individualmente.
 - 💡 Consultar recomendaciones.
-- 🕒 Consultar el historial de análisis.
+- 📈 Consultar informes de distribución de gastos por categoría.
+- 🕒 Consultar el historial de análisis (paginado, con línea de tiempo y detalle).
+- 🎮 Interactuar con una **mascota gamificada** que reacciona a su salud financiera (confetti al completar análisis).
 
 ### 🛠️ Tecnologías
 
-`HTML5` · `CSS3` · `JavaScript` · `Fetch API` · `REST / JSON`
+`React 19` · `TypeScript 5.8` · `Vite 6` · `TailwindCSS v4` · `React Router 7` · `Motion` · `Lucide` · `Express` · `Fetch API` · `REST / JSON`
 
 ---
 
@@ -139,28 +143,41 @@ El frontend proporciona la interfaz gráfica para que el usuario pueda:
 ```text
 frontend/
 │
-├── index.html
-├── login.html
-├── registro.html
-├── analisis.html
-├── historial.html
+├── server.ts                     # Express: sirve el build y hace proxy /api → backend
+├── vite.config.ts                # Proxy /api/v1 en desarrollo
+├── openspec/                     # Specs SDD: capacidades vigentes + changes archivados
 │
-├── css/
-│   ├── styles.css
-│   └── ...
-│
-└── js/
-    ├── auth.js
-    ├── analisis.js
-    ├── historial.js
-    └── ...
+└── src/
+    ├── App.tsx                   # Enrutamiento y layout principal
+    ├── types.ts                  # Tipos compartidos del dominio
+    ├── assets/
+    │   └── mascots.ts            # Mascota financiera: variantes según estado/perfil
+    ├── components/
+    │   ├── LoginModal.tsx        # Autenticación (login/registro)
+    │   ├── DashboardView.tsx     # Dashboard: perfil actual + registro rápido de gastos
+    │   ├── NewAnalysisView.tsx   # Formulario de nuevo análisis financiero
+    │   ├── HistoryView.tsx       # Historial paginado de análisis
+    │   ├── ReportsView.tsx       # Informes: distribución de gastos por categoría
+    │   ├── SettingsProfileView.tsx # Edición protegida del perfil de usuario
+    │   └── ...
+    └── utils/
+        ├── mapeadores.ts         # Anti-Corruption Layer: snake_case → camelCase
+        ├── apiErrors.ts          # Traducción de errores HTTP a mensajes de UI
+        ├── categorizer.ts
+        ├── colorManager.ts
+        └── numberUtils.ts
 ```
 
 ---
 
 ## 🔄 Comunicación con el Backend
 
-El frontend utiliza peticiones HTTP asíncronas mediante `fetch`.
+El frontend utiliza peticiones HTTP asíncronas mediante `fetch`. El frontend nunca habla directo con la base de datos: toda la lógica de negocio y persistencia vive en la API Spring Boot.
+
+- **En desarrollo:** Vite hace proxy de `/api/v1` hacia `http://localhost:8080` (`vite.config.ts`).
+- **En producción:** el servidor Express (`server.ts`) reenvía `/api` a la URL definida en la variable de entorno `BACKEND_URL`.
+
+> **Decisión técnica:** el contrato JSON de la API usa **snake_case** y el frontend trabaja en **camelCase**. La transformación se resuelve en `src/utils/mapeadores.ts` (Anti-Corruption Layer), y los errores tipados del backend (400/401/404/409/502/503) se traducen a mensajes amigables en `src/utils/apiErrors.ts`.
 
 ### 🔐 Autenticación
 
@@ -168,6 +185,7 @@ El frontend utiliza peticiones HTTP asíncronas mediante `fetch`.
 |:---:|:---|
 | `POST` | `/api/v1/auth/registro` |
 | `POST` | `/api/v1/auth/login` |
+| `PUT` | `/api/v1/auth/usuarios/{id}` |
 | `DELETE` | `/api/v1/auth/eliminar` |
 
 ### 📊 Análisis financiero
@@ -179,26 +197,27 @@ El frontend utiliza peticiones HTTP asíncronas mediante `fetch`.
 | `GET` | `/api/v1/finanzas/historial/{usuarioId}` |
 | `GET` | `/api/v1/finanzas/historial` |
 
+> Los endpoints de historial son **paginados** (`page`, `size`, `sort`): el frontend lee `response.content`.
+
 ### 🔁 Flujo
 
 ```text
 Usuario
    │
    ▼
-Formulario HTML
+Componente React
    │
    ▼
-JavaScript
+fetch() → proxy /api
    │
-   │ fetch()
    ▼
 Spring Boot
    │
    ▼
-Respuesta JSON
+Respuesta JSON (snake_case)
    │
    ▼
-JavaScript
+mapeadores.ts (→ camelCase)
    │
    ▼
 Renderización de resultados
@@ -236,10 +255,12 @@ La respuesta contiene información estructurada de autenticación:
 
 ```json
 {
+  "mensaje": "Bienvenido de nuevo, Usuario",
+  "nombre": "Usuario",
+  "email": "usuario@email.com",
+  "id": 15,
   "token": "...",
-  "status": "...",
-  "id": 1,
-  "email": "usuario@email.com"
+  "status": "success"
 }
 ```
 
@@ -1780,7 +1801,7 @@ python/
 
 ## 🎨 Frontend
 
-`HTML5` · `CSS3` · `JavaScript` · `Fetch API` · `REST / JSON`
+`React 19` · `TypeScript 5.8` · `Vite 6` · `TailwindCSS v4` · `React Router 7` · `Motion` · `Lucide` · `Express` · `Fetch API` · `REST / JSON`
 
 ## ⚙️ Backend
 
@@ -1796,7 +1817,7 @@ python/
 
 | Componente | Responsable | Tecnología |
 |:---|:---|:---|
-| 🎨 Frontend | Frontend | HTML/CSS/JS |
+| 🎨 Frontend | Frontend | React 19 + TypeScript |
 | 🌐 API principal | Backend | Java/Spring Boot |
 | 🗄️ Persistencia | Backend | JPA/PostgreSQL |
 | 🔐 Seguridad | Backend | Spring Security + BCrypt |
@@ -1854,7 +1875,7 @@ El proyecto constituye un **MVP funcional**, por lo que existen oportunidades pa
                          ▼
                  ┌─────────────────┐
                  │    🎨 FRONTEND  │
-                 │    HTML/CSS/JS  │
+                 │   React + TS    │
                  └────────┬────────┘
                           │
                           ▼
