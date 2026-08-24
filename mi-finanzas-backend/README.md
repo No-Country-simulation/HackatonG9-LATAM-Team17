@@ -129,35 +129,115 @@ Realiza un análisis financiero integral a partir de los datos generales del usu
     {
       "descripcion": "Supermercado Coto compras semana",
       "valor": 42500.00,
-      "categoria": "ALIMENTACION",
-      "fecha": "2026-08-18"
+      "fecha_transaccion": "2026-08-18T20:30:00.000Z"
     }
   ]
 }
 ````
-2. Clasificar Transacción / Perfil Financiero
-   Clasifica un movimiento puntual asociándolo al perfil financiero y metas de ahorro del usuario.
 
-Método: **POST**
+> **Nota:** este endpoint no recibe `usuario_id`; el análisis se guarda asociado al primer usuario encontrado en la base de datos (usuario "activo" simulado). Los campos financieros de entrada no se persisten de forma independiente.
 
-URL: **/api/v1/finanzas/clasificar**
+### 2. Clasificar Transacción / Perfil Financiero
 
-Headers: **Content-Type: application/json**
+Clasifica un movimiento puntual y devuelve el perfil financiero, probabilidades y recomendaciones.
 
-### 📥 Ejemplo de Request Body:
+- **Método:** `POST`
+- **URL:** `/api/v1/finanzas/clasificar`
+- **Headers:** `Content-Type: application/json`
+
+#### 📥 Ejemplo de Request Body:
 
 ````json
 {
-  "usuario_id": "USR-1001",
-  "ingreso_mensual": 650000.00,
-  "ahorro_actual": 150000.00,
-  "meta_ahorro": 300000.00,
-  "nivel_endeudamiento": 2,
-  "frecuencia_ahorro": "MENSUAL",
-  "descripcion": "Supermercado Coto compras semana",
-  "valor": 42500.00
+  "descripcion": "Netflix",
+  "valor": 15.99,
+  "fecha_transaccion": "2026-08-17T20:30:00.000Z"
 }
 ````
+
+### 3. Historial de Análisis (Paginado)
+
+Obtiene el historial de análisis financieros, **paginado** (actualizado 2026-08-19).
+
+- **Método:** `GET`
+- **URL:** `/api/v1/finanzas/historial/{usuarioId}` — historial de un usuario específico.
+- **URL alternativa:** `/api/v1/finanzas/historial` — historial del usuario "activo" simulado (primer usuario en BD).
+- **Query params opcionales:** `page` (default `0`), `size` (default `10`, máximo `100`), `sort` (default `fechaAnalisis,desc`).
+
+#### 📤 Ejemplo de Respuesta (`Page<AnalisisFinanciero>`):
+
+````json
+{
+  "content": [
+    {
+      "id": 10,
+      "perfilFinanciero": "Estable",
+      "fechaAnalisis": "2026-08-17 20:31:10",
+      "transacciones": [],
+      "categorias": [],
+      "recomendaciones": []
+    }
+  ],
+  "totalElements": 12,
+  "totalPages": 2,
+  "size": 10,
+  "number": 0
+}
+````
+
+> ⚠️ **Breaking change:** antes devolvía una lista plana `[]`; ahora devuelve un objeto `Page`. El frontend debe leer `response.content`.
+
+---
+
+## 🔐 Endpoints de Autenticación (`/api/v1/auth`)
+
+Endpoints públicos (`permitAll()` en `SecurityConfig`); el `token` devuelto por el login es un valor **simulado**, no un JWT real.
+
+### 1. Registro de Usuario
+
+- **Método:** `POST`
+- **URL:** `/api/v1/auth/registro`
+- **Body:** `{ "nombre": "Ana Perez", "email": "ana@email.com", "password": "123456" }` (password mínimo 6 caracteres)
+- **Errores:** `400` validación, `409` email ya registrado.
+
+### 2. Login
+
+- **Método:** `POST`
+- **URL:** `/api/v1/auth/login`
+- **Body:** `{ "email": "ana@email.com", "password": "123456" }`
+
+#### 📤 Respuesta 200:
+
+````json
+{
+  "mensaje": "Bienvenido de nuevo, Ana Perez",
+  "nombre": "Ana Perez",
+  "email": "ana@email.com",
+  "id": 15,
+  "token": "fake-jwt-token-for-session",
+  "status": "success"
+}
+````
+
+> Desde 2026-08-21 el `id` es el **ID real** del usuario autenticado (antes estaba hardcodeado a `1`) y se incluye el campo `nombre` con el valor persistido en BD. Credenciales inválidas responden `401` con mensaje genérico (no revela si el email existe).
+
+### 3. Actualización de Perfil — **Nuevo (2026-08-21)**
+
+- **Método:** `PUT`
+- **URL:** `/api/v1/auth/usuarios/{id}`
+- **Soporta actualización parcial:** enviar solo `nombre`, solo `email`, o ambos.
+
+````json
+{ "nombre": "Ana Perez Editada", "email": "ana.nueva@email.com" }
+````
+
+- **Errores:** `400` body vacío o sin campos (validador custom `@AlMenosUnCampoPresente`), `404` usuario inexistente, `409` email en uso por otro usuario.
+
+### 4. Eliminar Cuenta
+
+- **Método:** `DELETE`
+- **URL:** `/api/v1/auth/eliminar?email={email}`
+- **Errores:** `404` usuario no encontrado, `409` si el usuario tiene análisis asociados (no hay borrado en cascada).
 
 ## 🛠️ Arquitectura de Tratamiento de Errores
 
@@ -166,13 +246,19 @@ La estructura queda dividida entre el paquete `dto.error` para las respuestas de
 ````text
 saludfinanciera/finanzas/
  ├── dto/
- │   └── error/
- │       ├── ErrorResponseDTO.java          # DTO para errores generales de validación y datos del cliente (400, 415, 500)
- │       ├── DataErrorResponseDTO.java       # DTO para errores de persistencia y base de datos (409)
- │       ├── PythonServiceErrorDTO.java     # DTO para fallas en la comunicación con el servicio de Python (502, 503)
- │       └── AIServiceErrorDTO.java         # DTO para timeouts y fallas del motor IA
+ │   ├── error/
+ │   │   ├── ErrorResponseDTO.java          # DTO para errores generales de validación y datos del cliente (400, 401, 415, 500)
+ │   │   ├── DataErrorResponseDTO.java       # DTO para errores de persistencia y base de datos (409)
+ │   │   ├── PythonServiceErrorDTO.java     # DTO para fallas en la comunicación con el servicio de Python (502, 503)
+ │   │   └── AIServiceErrorDTO.java         # DTO para timeouts y fallas del motor IA
+ │   └── request/
+ │       └── ActualizarUsuarioRequestDTO.java # DTO de actualización parcial de perfil (nombre/email opcionales)
+ ├── validation/
+ │   ├── AlMenosUnCampoPresente.java        # Anotación de validación a nivel de clase
+ │   └── AlMenosUnCampoPresenteValidator.java # Exige nombre y/o email presentes en el PUT de perfil
  └── exception/
      ├── GlobalExceptionHandler.java     # Interceptor centralizado (@RestControllerAdvice)
+     ├── AuthenticationFailedException.java # Excepción personalizada para credenciales inválidas (401)
      ├── EntityAlreadyExistsException.java  # Excepción personalizada para entidades duplicadas (409)
      └── ResourceNotFoundException.java   # Excepción personalizada para recursos no encontrados (404)
 ````
@@ -182,11 +268,22 @@ saludfinanciera/finanzas/
 | Capa / Origen | Excepción Interceptada | Código HTTP | DTO Devuelto | Descripción |
 |---------------|------------------------|-------------|--------------|-------------|
 | Validación DTO (Front) | `MethodArgumentNotValidException` | `400 BAD REQUEST` | `ErrorResponseDTO` | Devuelve un mapa con el detalle de los campos que violaron las reglas (`@NotNull`, `@Valid`, etc.). |
+| Autenticación (login) | `AuthenticationFailedException` | `401 UNAUTHORIZED` | `ErrorResponseDTO` | Usuario inexistente o contraseña incorrecta; mensaje genérico por seguridad (antes devolvía 500). |
 | Recursos Inexistentes | `ResourceNotFoundException` | `404 NOT FOUND` | `ErrorResponseDTO` | Entidades o registros no encontrados en el dominio. |
 | Persistencia / BD (data) | `DataIntegrityViolationException` / `EntityAlreadyExistsException` | `409 CONFLICT` | `DataErrorResponseDTO` | Sanitiza errores técnicos de SQL o registros duplicados, devolviendo un mensaje amigable al usuario. |
+| Content-Type inválido | `HttpMediaTypeNotSupportedException` | `415 UNSUPPORTED MEDIA TYPE` | `ErrorResponseDTO` | El request no envió `Content-Type: application/json`. |
 | Microservicio Python | `HttpStatusCodeException` | `502 BAD GATEWAY` | `PythonServiceErrorDTO` | Captura respuestas 4xx/5xx provenientes del cliente externo en Python. |
 | Red / Conexión Python | `ResourceAccessException` | `503 SERVICE UNAVAILABLE` | `PythonServiceErrorDTO` | Captura caídas o fallas de red al intentar alcanzar el servicio de Python. |
 | General / Inesperado | `Exception` | `500 INTERNAL ERROR` | `ErrorResponseDTO` | Captura no controlada para evitar exponer la traza de Java. |
+
+> Detalle completo de cada excepción y ejemplos de respuesta en `backend/docs/EXCEPCIONES_BACKEND.md` y referencia de endpoints en `backend/docs/API_BACKEND_ENDPOINTS.md`.
+
+## ⚠️ Deuda Técnica Conocida
+
+1. El `token` del login es un valor simulado (`fake-jwt-token-for-session`) — no hay validación de sesión ni expiración.
+2. `/analizar`, `/clasificar` y `/historial` (sin `usuarioId`) no usan un usuario autenticado real: operan sobre el primer usuario encontrado en la BD.
+3. `DELETE /auth/eliminar` no tiene borrado en cascada — falla con `409` si el usuario tiene historial asociado.
+4. Los parámetros financieros base (`ingreso_mensual`, `deuda_total`, etc.) no se persisten de forma independiente; solo son inputs efímeros de `POST /analizar`.
 
 ___
 
