@@ -803,20 +803,643 @@ meses_reserva =
 - Medio
 - Alto
 
-## 🎯 Perfil financiero
+---
+title: "📊 Análisis Financiero con Machine Learning"
+author: "Equipo de desarrollo"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+---
 
-El modelo puede clasificar al usuario como:
+# 🎯 Objetivo
 
-| Perfil |
-|:---|
-| 🟢 Excelente |
-| 🟢 Saludable |
-| 🔵 Estable |
-| 🟡 En observación |
-| 🟠 En riesgo |
-| 🔴 Crítico |
+Se desarrolla un sistema de análisis financiero utilizando **Machine Learning** para procesar transacciones de un usuario, identificar sus tipos de ingreso y clasificar su perfil financiero.
 
-Además de la etiqueta se devuelven probabilidades por clase.
+El sistema transforma información de transacciones individuales en diferentes características financieras que posteriormente son utilizadas para determinar el comportamiento financiero general del usuario.
+
+Los principales procesos son:
+
+1. Clasificación de ingresos.
+2. Identificación del tipo de ingreso.
+3. Generación de características financieras.
+4. Clasificación del perfil financiero.
+5. Obtención de probabilidades para cada perfil.
+
+---
+
+# 🧠 ¿Cómo funciona?
+
+El funcionamiento general del proyecto es:
+
+```text
+Transacciones del usuario
+          ↓
+Clasificación de ingresos
+          ↓
+Identificación del tipo de ingreso
+          ↓
+Generación de características financieras
+          ↓
+Modelo de perfil financiero
+          ↓
+Perfil financiero
+```
+
+El sistema comienza con las transacciones realizadas por el usuario y posteriormente transforma estos datos hasta obtener una clasificación general de su situación financiera.
+
+---
+
+# 1. 📋 Entrada de datos
+
+El sistema trabaja con transacciones financieras que contienen información como:
+
+- Fecha.
+- Descripción.
+- Categoría.
+- Valor.
+- Tipo de ingreso.
+
+Por ejemplo:
+
+```{python}
+datos = {
+    "fecha": [
+        "2026-07-01",
+        "2026-07-02",
+        "2026-07-03",
+        "2026-07-04",
+        "2026-07-05"
+    ],
+
+    "descripcion": [
+        "Sueldo mensual recibido",
+        "Mercado Éxito",
+        "Pago de energía",
+        "Honorarios por consultoría",
+        "Netflix"
+    ],
+
+    "categoria": [
+        "Ingresos",
+        "Alimentacion",
+        "Servicios",
+        "Ingresos",
+        "Ocio"
+    ],
+
+    "valor": [
+        3000,
+        180,
+        95,
+        850,
+        28
+    ]
+}
+```
+
+Los datos se convierten posteriormente en un `DataFrame`:
+
+```{python}
+df_usuario <- as.data.frame(datos)
+```
+
+> **Nota:** Los ejemplos anteriores representan la estructura de los datos utilizados por el proyecto. El código original del análisis está desarrollado en Python.
+
+---
+
+# 2. 🔎 Identificación de ingresos
+
+El sistema identifica cuáles de las transacciones corresponden a ingresos.
+
+Por ejemplo:
+
+| Transacción | Categoría | ¿Es ingreso? |
+|:---|:---|:---:|
+| Sueldo mensual recibido | Ingresos | ✓ |
+| Mercado Éxito | Alimentación | ✗ |
+| Pago de energía | Servicios | ✗ |
+| Honorarios por consultoría | Ingresos | ✓ |
+| Netflix | Ocio | ✗ |
+
+Las transacciones clasificadas como `Ingresos` pasan al siguiente proceso.
+
+---
+
+# 3. 🤖 Clasificación del tipo de ingreso
+
+Para clasificar los ingresos se utilizan dos modelos previamente entrenados:
+
+```text
+modelo_tipo_ingreso_1.pkl
+modelo_tipo_ingreso_2.pkl
+```
+
+Los modelos se cargan mediante `joblib`.
+
+```{python}
+modelo_tipo_ingreso_cat = joblib.load(
+    "modelos/modelo_tipo_ingreso_1.pkl"
+)
+
+modelo_tipo_ingreso = joblib.load(
+    "modelos/modelo_tipo_ingreso_2.pkl"
+)
+```
+
+El primer modelo analiza la descripción de la transacción.
+
+Por ejemplo:
+
+```text
+"Sueldo mensual recibido"
+            ↓
+modelo_tipo_ingreso_1
+            ↓
+Salario
+```
+
+Otro ejemplo:
+
+```text
+"Honorarios por consultoría"
+            ↓
+modelo_tipo_ingreso_1
+            ↓
+Independiente
+```
+
+---
+
+# 4. 👤 Tipo de ingreso del usuario
+
+Después de clasificar las diferentes transacciones, el sistema analiza los tipos de ingreso encontrados.
+
+La clasificación final puede ser:
+
+- **Salario**
+- **Independiente**
+- **Mixto**
+- **Sin ingresos registrados**
+
+La lógica utilizada es:
+
+```text
+No existen ingresos
+        ↓
+Sin ingresos registrados
+
+Solo existe Salario
+        ↓
+Salario
+
+Solo existe Independiente
+        ↓
+Independiente
+
+Existen diferentes tipos
+        ↓
+Mixto
+```
+
+Por ejemplo:
+
+```text
+Sueldo mensual recibido
+        ↓
+Salario
+
+Honorarios por consultoría
+        ↓
+Independiente
+
+Resultado:
+Mixto
+```
+
+---
+
+# 5. 📊 Generación de características financieras
+
+Después del procesamiento de las transacciones, se generan las variables utilizadas por el modelo de perfil financiero.
+
+Entre las principales características se encuentran:
+
+```text
+ingreso_mensual
+gasto_mensual_total
+tasa_ahorro
+objetivo_presupuesto
+relacion_deuda_ingreso
+pago_prestamo
+monto_inversion
+servicios_suscripcion
+fondo_emergencia
+cantidad_transacciones
+gastos_discrecionales
+gastos_esenciales
+tipo_ingreso
+alquiler_o_hipoteca
+estado_flujo_caja
+nivel_estres_financiero
+ahorro_real
+```
+
+Estas variables permiten representar diferentes aspectos del comportamiento financiero del usuario.
+
+---
+
+# 6. 🧮 Generación de características del usuario
+
+El proyecto utiliza una función para transformar la información financiera y las transacciones en las variables necesarias para el modelo.
+
+Un ejemplo de entrada es:
+
+```{python}
+datos2 = generar_caracteristicas_usuario(
+    ingreso_mensual=3000,
+    deuda_total=1000,
+    objetivo_presupuesto=500,
+    pago_prestamo=200,
+    servicios_suscripcion=2,
+    fondo_emergencia=1500,
+    monto_inversion=300,
+    transacciones=transacciones
+)
+```
+
+La función genera un conjunto estructurado de características:
+
+```text
+Ingreso mensual
+Gasto mensual total
+Tasa de ahorro
+Relación deuda/ingreso
+Pago de préstamo
+Monto de inversión
+Fondo de emergencia
+Cantidad de transacciones
+Gastos esenciales
+Gastos discrecionales
+Tipo de ingreso
+Estado del flujo de caja
+Nivel de estrés financiero
+Ahorro real
+...
+```
+
+Estas características son las que finalmente recibe el modelo de perfil financiero.
+
+---
+
+# 7. 🧠 Clasificación del perfil financiero
+
+El modelo de perfil financiero se encuentra en:
+
+```text
+modelos/perfil_financiero.pkl
+```
+
+Se carga de la siguiente manera:
+
+```{python}
+modelo_pf = joblib.load(
+    "modelos/perfil_financiero.pkl"
+)
+```
+
+Posteriormente, las características del usuario son enviadas al modelo:
+
+```{python}
+perfil_financiero = modelo_pf.predict(datos2)
+```
+
+El modelo puede clasificar al usuario en uno de los siguientes perfiles:
+
+| Perfil | Indicador |
+|:---|:---:|
+| Excelente | 🟢 |
+| Saludable | 🟢 |
+| Estable | 🟡 |
+| En observación | 🟠 |
+| En riesgo | 🔴 |
+| Crítico | ⚫ |
+
+---
+
+# 8. 📈 Probabilidad de cada perfil
+
+Además de determinar el perfil financiero, el código obtiene la probabilidad asociada a cada categoría.
+
+Para esto utiliza:
+
+```{python}
+probabilidades = modelo_pf.predict_proba(datos2)[0]
+```
+
+Después se relacionan las probabilidades con las clases del modelo:
+
+```{python}
+clases = modelo_pf.classes_
+
+resultado = dict(
+    zip(clases, probabilidades)
+)
+```
+
+Un resultado puede tener la siguiente estructura:
+
+```text
+Crítico          → 1.3 %
+En observación   → 5.3 %
+En riesgo        → 2.0 %
+Estable          → 20.7 %
+Excelente        → 39.7 %
+Saludable        → 31.0 %
+```
+
+El modelo seleccionaría como resultado:
+
+```text
+🟢 Excelente
+```
+
+porque es la categoría con mayor probabilidad.
+
+---
+
+# 🧪 Ejemplo completo
+
+Supongamos que un usuario tiene las siguientes transacciones:
+
+| Descripción | Categoría | Valor |
+|:---|:---|---:|
+| Sueldo mensual recibido | Ingresos | 3000 |
+| Mercado Éxito | Alimentación | 180 |
+| Pago de energía | Servicios | 95 |
+| Honorarios por consultoría | Ingresos | 850 |
+| Netflix | Ocio | 28 |
+| Gasolina | Transporte | 70 |
+| Aporte a inversión | Inversiones | 200 |
+
+## Paso 1 — Identificación de ingresos
+
+El sistema identifica:
+
+```text
+Sueldo mensual recibido
+Honorarios por consultoría
+```
+
+---
+
+## Paso 2 — Clasificación
+
+Los modelos procesan las descripciones:
+
+```text
+Sueldo mensual recibido
+        ↓
+Salario
+
+Honorarios por consultoría
+        ↓
+Independiente
+```
+
+---
+
+## Paso 3 — Tipo de ingreso
+
+Como existen dos tipos de ingreso:
+
+```text
+Salario
+Independiente
+```
+
+el sistema determina:
+
+```text
+Tipo de ingreso = Mixto
+```
+
+---
+
+## Paso 4 — Características financieras
+
+La información se transforma en variables como:
+
+```text
+Ingreso mensual
+Gasto mensual total
+Tasa de ahorro
+Deuda
+Pago de préstamo
+Monto de inversión
+Fondo de emergencia
+Gastos esenciales
+Gastos discrecionales
+Cantidad de transacciones
+Tipo de ingreso
+Estado del flujo de caja
+Nivel de estrés financiero
+Ahorro real
+```
+
+---
+
+## Paso 5 — Perfil financiero
+
+Las características son enviadas al modelo:
+
+```text
+Características financieras
+            ↓
+perfil_financiero.pkl
+            ↓
+Probabilidades
+            ↓
+Perfil financiero
+```
+
+Por ejemplo:
+
+```text
+Crítico          → 1.3 %
+En observación   → 5.3 %
+En riesgo        → 2.0 %
+Estable          → 20.7 %
+Excelente        → 39.7 %
+Saludable        → 31.0 %
+```
+
+Resultado:
+
+```text
+🟢 Perfil financiero: Excelente
+```
+
+---
+
+# 🔄 Flujo completo del sistema
+
+```text
+┌───────────────────────────────┐
+│       TRANSACCIONES           │
+│                               │
+│ Fecha                         │
+│ Descripción                   │
+│ Categoría                     │
+│ Valor                         │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ CLASIFICACIÓN DE INGRESOS     │
+│                               │
+│ modelo_tipo_ingreso_1.pkl     │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ TIPO DE INGRESO               │
+│                               │
+│ Salario                       │
+│ Independiente                 │
+│ Mixto                         │
+│ Sin ingresos registrados      │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ CARACTERÍSTICAS FINANCIERAS   │
+│                               │
+│ Ingresos                      │
+│ Gastos                        │
+│ Ahorro                        │
+│ Deuda                         │
+│ Inversiones                   │
+│ Flujo de caja                 │
+│ Estrés financiero             │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ MODELO DE PERFIL FINANCIERO   │
+│                               │
+│ perfil_financiero.pkl         │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│       PERFIL FINANCIERO       │
+│                               │
+│ 🟢 Excelente                  │
+│ 🟢 Saludable                 │
+│ 🟡 Estable                   │
+│ 🟠 En observación            │
+│ 🔴 En riesgo                 │
+│ ⚫ Crítico                   │
+└───────────────────────────────┘
+```
+
+---
+
+# 🤖 Modelos utilizados
+
+## `modelo_tipo_ingreso_1.pkl`
+
+Clasifica la descripción de una transacción de ingreso.
+
+```text
+Descripción de la transacción
+             ↓
+modelo_tipo_ingreso_1.pkl
+             ↓
+Categoría del ingreso
+```
+
+## `modelo_tipo_ingreso_2.pkl`
+
+Utiliza la clasificación anterior para determinar el tipo general de ingreso.
+
+```text
+Categoría del ingreso
+             ↓
+modelo_tipo_ingreso_2.pkl
+             ↓
+Salario / Independiente
+```
+
+Posteriormente, el sistema determina si el usuario tiene ingresos de tipo `Salario`, `Independiente`, `Mixto` o no tiene ingresos registrados.
+
+## `perfil_financiero.pkl`
+
+Clasifica al usuario utilizando las características financieras generadas.
+
+```text
+Características financieras
+             ↓
+perfil_financiero.pkl
+             ↓
+Perfil financiero
+```
+
+---
+
+# 📁 Estructura del proyecto
+
+```text
+analisis-financiero/
+│
+├── datasets/
+│   └── df_modelo_pf.csv
+│
+├── modelos/
+│   ├── modelo_tipo_ingreso_1.pkl
+│   ├── modelo_tipo_ingreso_2.pkl
+│   └── perfil_financiero.pkl
+│
+├── notebooks/
+│   └── analisis_financiero.ipynb
+│
+└── README.md
+```
+
+---
+
+# 🛠️ Tecnologías
+
+- **Python 3.12.2**
+- **Pandas**
+- **NumPy**
+- **Scikit-learn**
+- **Joblib**
+- **Jupyter Notebook**
+
+---
+
+# 📌 Resumen
+
+El proyecto realiza una transformación progresiva de los datos:
+
+```text
+Transacciones
+      ↓
+Clasificación de ingresos
+      ↓
+Tipo de ingreso
+      ↓
+Características financieras
+      ↓
+Modelo de Machine Learning
+      ↓
+Perfil financiero
+```
+
+El resultado permite pasar de información financiera individual, como una lista de transacciones, a una clasificación general del comportamiento financiero del usuario.
 
 ---
 
