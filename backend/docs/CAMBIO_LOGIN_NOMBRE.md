@@ -1,3 +1,4 @@
+
 # Cambio: Campo `nombre` en la respuesta de `POST /api/v1/auth/login`
 
 **Fecha:** 2026-08-20
@@ -75,18 +76,36 @@ No existe actualmente un endpoint `GET /perfil` para consultar este dato por sep
 
 ---
 
-## 6. Deuda técnica NO resuelta en este cambio (fuera de alcance, dejada a criterio del equipo)
+## 6. Deuda técnica
 
-Durante el análisis se identificaron dos problemas preexistentes en el mismo endpoint que **no fueron modificados** porque no formaban parte de este requerimiento puntual:
+### ✅ RESUELTA (2026-08-21): `"id": 1` hardcodeado
 
-1. **`"id": 1` está hardcodeado** en la respuesta — no es el ID real del usuario autenticado (`usuario.getId()`). Si el frontend usa este `id` para llamadas posteriores (ej. `/historial/{usuarioId}`), siempre apuntará al usuario con ID 1 sin importar quién inició sesión.
-2. **`"token": "fake-jwt-token-for-session"`** es un string estático, no un JWT real — no hay validación de sesión/expiración basada en este token.
+**Causa raíz confirmada:** este bug fue la explicación real de un 404 reportado al probar el nuevo endpoint `PUT /api/v1/auth/usuarios/{id}` — el frontend usaba el `id` devuelto por el login (siempre `1`) para armar la ruta, y ese usuario no existe en la base de datos actual (se verificó en vivo: `PUT /usuarios/1` → 404 "Usuario no encontrado", mientras que `GET /historial` sí devuelve datos de un usuario real con otro ID).
 
-Se recomienda levantar un ticket separado para corregir el `id` hardcodeado, ya que puede causar comportamiento incorrecto en cualquier endpoint que dependa del usuario autenticado.
+**Cambio aplicado:** en `AuthController.loginUsuario`, se reemplazó el literal `1` por `usuario.getId()`:
+
+```java
+// Antes
+"id", 1,
+
+// Ahora
+"id", usuario.getId(),
+```
+
+No se requirió ningún cambio adicional en `AuthService` — el objeto `Usuario` retornado por `autenticarUsuario` ya expone `getId()`.
+
+**Verificación:** `mvn compile` exitoso. **Importante:** si el backend ya estaba corriendo (ej. desde el IDE) al aplicar este cambio, **debe reiniciarse el proceso** para que la nueva respuesta tome efecto — un `mvn compile` no recarga un servidor Spring Boot ya en ejecución fuera de un dev-tools con hot reload.
+
+**Confirmación del frontend:** el equipo de frontend confirmó que ya lee dinámicamente el campo `id` del JSON de login para construir la ruta de `PUT /usuarios/{id}` — **no requieren ningún cambio adicional de su lado**, el fix del backend es autosuficiente una vez desplegado/reiniciado.
+
+### ⚠️ Pendiente (fuera de alcance, sin cambios)
+
+- **`"token": "fake-jwt-token-for-session"`** sigue siendo un string estático, no un JWT real — no hay validación de sesión/expiración basada en este token. Se recomienda levantar un ticket separado si se requiere autenticación real basada en tokens.
 
 ---
 
 ## 7. Verificación realizada
 
-- `mvn compile` ejecutado tras los cambios → compilación exitosa sin errores.
+- `mvn compile` ejecutado tras los cambios → compilación exitosa sin errores (tanto en el cambio original del campo `nombre` como en la corrección posterior del `id`).
 - Se confirmó (vía búsqueda en el código) que no existen otros llamadores de `AuthService.autenticarUsuario` afectados por el cambio de tipo de retorno.
+- Se confirmó **en vivo** contra el backend corriendo localmente que la ruta `PUT /api/v1/auth/usuarios/{id}` coincide exactamente con la especificación, usa el método HTTP correcto, y que el 404 reportado era de negocio (`ResourceNotFoundException`) causado por el `id` hardcodeado — no un problema de ruta, método, ni de rama sin mergear.

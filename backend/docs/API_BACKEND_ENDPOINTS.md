@@ -385,8 +385,8 @@ Ejemplo `ErrorResponseDTO` (401 login inválido):
 
 ## Deuda técnica conocida (sin resolver a la fecha)
 
-1. 🔴 **BLOQUEANTE PARA PRODUCCIÓN CON USUARIOS REALES** — `"token": "fake-jwt-token-for-session"` en el login sigue siendo un valor simulado, no un JWT real — no hay validación de sesión/expiración. Cualquiera con la URL del backend puede invocar todos los endpoints sin autenticarse.
-2. 🔴 **BLOQUEANTE PARA PRODUCCIÓN CON USUARIOS REALES** — `/analizar`, `/clasificar` y `/historial` no usan un "usuario autenticado" real — operan sobre el primer usuario encontrado en la BD (`findAll().stream().findFirst()`), no sobre el usuario del token/sesión. El frontend ya mitiga la lectura usando `/historial/{usuarioId}`, pero la **escritura** de `/analizar` sigue guardando análisis al primer usuario de la BD: con múltiples usuarios reales, los análisis se cruzan entre cuentas.
+1. `"token": "fake-jwt-token-for-session"` en el login sigue siendo un valor simulado, no un JWT real — no hay validación de sesión/expiración.
+2. `/analizar`, `/clasificar` y `/historial` no usan un "usuario autenticado" real — operan sobre el primer usuario encontrado en la BD (`findAll().stream().findFirst()`), no sobre el usuario del token/sesión.
 3. `DELETE /auth/eliminar` no tiene borrado en cascada — falla con `409` si el usuario tiene historial asociado, sin mensaje específico para ese caso.
-4. No existe endpoint para actualizar parámetros financieros base (`ingreso_mensual`, `deuda_total`, `frecuencia_ahorro`) de forma independiente a un análisis completo — diseño documentado en `docs/PLAN_ENDPOINTS_PERFIL_PARAMETROS.md` (Endpoint 2), aún no implementado.
+4. Los parámetros financieros base (`ingreso_mensual`, `deuda_total`, `frecuencia_ahorro`, etc.) no se persisten de forma independiente — solo existen como inputs efímeros de `POST /analizar`.
 

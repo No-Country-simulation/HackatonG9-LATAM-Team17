@@ -11,11 +11,11 @@ Todas las excepciones son capturadas de forma centralizada en:
 
 | # | Excepción | HTTP Status | Endpoint(s) donde puede ocurrir | DTO de respuesta |
 |---|-----------|-------------|----------------------------------|-------------------|
-| 1 | `ResourceNotFoundException` | 404 Not Found | `POST /analizar`, `POST /clasificar` | `ErrorResponseDTO` |
+| 1 | `ResourceNotFoundException` | 404 Not Found | `POST /analizar`, `POST /clasificar`, `PUT /auth/usuarios/{id}` | `ErrorResponseDTO` |
 | 2 | `DataIntegrityViolationException` | 409 Conflict | `DELETE /eliminar`, cualquier operación de guardado/borrado en BD | `DataErrorResponseDTO` |
-| 3 | `EntityAlreadyExistsException` | 409 Conflict | `POST /registro` (email ya registrado) | `DataErrorResponseDTO` |
-| 3.1 | `AuthenticationFailedException` **(NUEVA)** | 401 Unauthorized | `POST /login` (usuario inexistente o contraseña incorrecta) | `ErrorResponseDTO` |
-| 4 | `MethodArgumentNotValidException` | 400 Bad Request | Todos los endpoints con `@Valid @RequestBody` (`/registro`, `/login`, `/analizar`, `/clasificar`) | `ErrorResponseDTO` (con `validation_errors`) |
+| 3 | `EntityAlreadyExistsException` | 409 Conflict | `POST /registro` (email ya registrado), `PUT /auth/usuarios/{id}` (email en uso por otro usuario) | `DataErrorResponseDTO` |
+| 3.1 | `AuthenticationFailedException` | 401 Unauthorized | `POST /login` (usuario inexistente o contraseña incorrecta) | `ErrorResponseDTO` |
+| 4 | `MethodArgumentNotValidException` | 400 Bad Request | Todos los endpoints con `@Valid @RequestBody` (`/registro`, `/login`, `/analizar`, `/clasificar`, `PUT /auth/usuarios/{id}`) | `ErrorResponseDTO` (con `validation_errors`) |
 | 5 | `HttpStatusCodeException` | 502 Bad Gateway | `POST /analizar`, `POST /clasificar` (cuando el microservicio Python responde 4xx/5xx) | `PythonServiceErrorDTO` |
 | 6 | `ResourceAccessException` | 503 Service Unavailable | `POST /analizar`, `POST /clasificar` (cuando el microservicio Python no responde/está caído) | `PythonServiceErrorDTO` |
 | 7 | `Exception` (genérica, catch-all) | 500 Internal Server Error | Cualquier endpoint | `ErrorResponseDTO` |
@@ -43,7 +43,7 @@ Usado para errores generales y de validación.
 }
 ```
 
-- `validation_errors` es `null` cuando el error no proviene de validación de campos (ej. 404 o 500).
+- `validation_errors` es un objeto vacío `{}` cuando el error no proviene de validación de campos (ej. 404, 401 o 500) — los handlers pasan `Map.of()`, no `null`.
 
 ### `DataErrorResponseDTO`
 Usado para conflictos de base de datos (integridad, duplicados).
@@ -79,6 +79,7 @@ Usado exclusivamente para errores de comunicación con el microservicio de Pytho
 **Cuándo ocurre:**
 - `POST /api/v1/finanzas/analizar`: cuando `transacciones` viene vacío/nulo, o la respuesta del motor Python es nula.
 - `POST /api/v1/finanzas/clasificar`: cuando el DTO de transacción es nulo, o no se obtiene respuesta de clasificación.
+- `PUT /api/v1/auth/usuarios/{id}`: cuando no existe un usuario con el `id` indicado.
 
 **Tratamiento en frontend:**
 - Mostrar mensaje del campo `message` directamente al usuario (son mensajes ya amigables en español).
@@ -103,6 +104,7 @@ Usado exclusivamente para errores de comunicación con el microservicio de Pytho
 ### 3) `EntityAlreadyExistsException` → 409
 **Cuándo ocurre:**
 - `POST /api/v1/auth/registro` cuando el email ya está registrado en la base de datos (`usuarioRepository.existsByEmail`).
+- `PUT /api/v1/auth/usuarios/{id}` cuando el `email` enviado ya está en uso por **otro** usuario distinto al que se edita (`usuarioRepository.existsByEmailAndIdNot`).
 
 > ✅ Antes del 2026-08-20 esto lanzaba `RuntimeException` genérica (500). Ahora usa esta excepción custom ya existente en el proyecto, devolviendo el status correcto (409).
 
@@ -125,7 +127,7 @@ Usado exclusivamente para errores de comunicación con el microservicio de Pytho
   "status": 401,
   "error": "Unauthorized",
   "message": "Usuario o contraseña incorrectos.",
-  "validation_errors": null,
+  "validation_errors": {},
   "timestamp": "2026-08-20T14:37:00"
 }
 ```
@@ -138,7 +140,8 @@ Usado exclusivamente para errores de comunicación con el microservicio de Pytho
 
 ### 4) `MethodArgumentNotValidException` → 400
 **Cuándo ocurre:**
-- Falla alguna anotación de Bean Validation (`@NotNull`, `@Email`, `@Size`, etc.) en los DTOs de request: `RegistroRequestDTO`, `LoginRequestDTO`, `AnalisisInputDTO`, `TransaccionDTO`.
+- Falla alguna anotación de Bean Validation (`@NotNull`, `@Email`, `@Size`, etc.) en los DTOs de request: `RegistroRequestDTO`, `LoginRequestDTO`, `AnalisisInputDTO`, `TransaccionDTO`, `ActualizarUsuarioRequestDTO`.
+- `PUT /api/v1/auth/usuarios/{id}` con body vacío `{}` o ambos campos nulos/vacíos (validador de clase `@AlMenosUnCampoPresente`).
 
 **Tratamiento en frontend:**
 - Usar el mapa `validation_errors` (`{campo: mensaje}`) para resaltar el campo específico del formulario con su mensaje de error.
@@ -178,7 +181,8 @@ if (error.validation_errors) {
 
 ### 7) `Exception` genérica (catch-all) → 500
 **Cuándo ocurre:**
-- Cualquier error no anticipado: `NullPointerException`, errores de configuración, **`RuntimeException` lanzadas manualmente en `AuthService`** (login/registro con credenciales inválidas o email duplicado), errores no mapeados de bibliotecas externas, etc.
+- Cualquier error no anticipado: `NullPointerException`, errores de configuración, errores no mapeados de bibliotecas externas, etc.
+- `POST /api/v1/finanzas/analizar` cuando **no hay ningún usuario registrado** en la base de datos — `AnalisisService` lanza una `RuntimeException` genérica (`"No hay usuarios registrados en el sistema."`) que cae en este handler.
 
 **Tratamiento en frontend:**
 - Mensaje genérico: *"Ocurrió un error inesperado, intenta de nuevo."*
@@ -226,7 +230,8 @@ if (response.status === 409) {
 | `/api/v1/auth/registro` | POST | 400 (validación), 409 (`EntityAlreadyExistsException` — email duplicado), 409 (`DataIntegrityViolationException`), 415 |
 | `/api/v1/auth/login` | POST | 400 (validación), 401 (`AuthenticationFailedException` — credenciales inválidas), 415 |
 | `/api/v1/auth/eliminar` | DELETE | 404 (no manejado explícitamente, ver nota), 409 (`DataIntegrityViolationException` por FK con `AnalisisFinanciero`) |
-| `/api/v1/finanzas/analizar` | POST | 400 (validación), 404 (`ResourceNotFoundException`), 502, 503, 415 |
+| `/api/v1/auth/usuarios/{id}` | PUT | 400 (validación / `@AlMenosUnCampoPresente`), 404 (`ResourceNotFoundException` — usuario no existe), 409 (`EntityAlreadyExistsException` — email en uso por otro usuario), 415 |
+| `/api/v1/finanzas/analizar` | POST | 400 (validación), 404 (`ResourceNotFoundException`), 500 (sin usuarios registrados en BD), 502, 503, 415 |
 | `/api/v1/finanzas/clasificar` | POST | 400 (validación), 404 (`ResourceNotFoundException`), 502, 503, 415 |
 | `/api/v1/finanzas/historial` | GET | 500 (genérico, sin manejo específico) |
 | `/api/v1/finanzas/historial/{usuarioId}` | GET | 500 (genérico, sin manejo específico) |
