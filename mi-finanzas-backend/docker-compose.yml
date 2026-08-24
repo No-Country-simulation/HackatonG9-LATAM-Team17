@@ -18,7 +18,7 @@ services:
 
   financeai-python:
     build:
-      context: ../HackatonG9-LATAM-Team17-feature-back-python-prueba
+      context: ../mi-finanzas-data                       # nombre de la carpeta
     container_name: financeai_python_api
     ports:
       - "8000:8000"
@@ -29,7 +29,7 @@ services:
 
   financeai-backend:
     build:
-      context: ./backend
+      context: ./backend                                 # nombre de la carpeta
     container_name: financeai_spring_backend
     ports:
       - "8008:8008"
@@ -48,7 +48,7 @@ services:
 
   financeai-frontend:
     build:
-      context: ../frontend-financeai
+      context: ../mi-finanzas-frontend                   # nombre de la carpeta
     container_name: financeai_frontend_app
     ports:
       - "8080:80"
