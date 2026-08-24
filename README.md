@@ -776,7 +776,7 @@ datos = {
         "Mercado Éxito",
         "Pago de energía",
         "Honorarios por consultoría",
-        "Netflix"
+        "Cine"
     ],
 
     "categoria": [
@@ -819,7 +819,7 @@ Por ejemplo:
 | Mercado Éxito | Alimentación | ✗ |
 | Pago de energía | Servicios | ✗ |
 | Honorarios por consultoría | Ingresos | ✓ |
-| Netflix | Ocio | ✗ |
+| Cine | Ocio | ✗ |
 
 Las transacciones clasificadas como `Ingresos` pasan al siguiente proceso.
 
@@ -1295,28 +1295,6 @@ Perfil financiero
 - **Scikit-learn**
 - **Joblib**
 - **Jupyter Notebook**
-
----
-
-# 📌 Resumen
-
-El proyecto realiza una transformación progresiva de los datos:
-
-```text
-Transacciones
-      ↓
-Clasificación de ingresos
-      ↓
-Tipo de ingreso
-      ↓
-Características financieras
-      ↓
-Modelo de Machine Learning
-      ↓
-Perfil financiero
-```
-
-El resultado permite pasar de información financiera individual, como una lista de transacciones, a una clasificación general del comportamiento financiero del usuario.
 
 ---
 
