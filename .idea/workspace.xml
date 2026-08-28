@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eb534b30-15b1-4907-b818-54c8da2eb2a2" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/FinanzasApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/FinanzasApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/config/CorsConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-backend/backend/src/main/java/saludfinanciera/finanzas/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-data/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-data/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-data/recomendaciones/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-data/recomendaciones/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mi-finanzas-frontend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/mi-finanzas-frontend/Dockerfile" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;toby959&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/No-Country-simulation/HackatonG9-LATAM-Team17.git&quot;,
+    &quot;accountId&quot;: &quot;059fb976-962d-4d8d-ac08-efb4ffbe6fbf&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3IKAaAvf0muve622mnLPCo6gKl3" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Team-17.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.finanzas [clean].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.FinanzasApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Desarrollo/HackatonG9-LATAM-Team17-REMOTO&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MTFeaturesSettingsConfigurable&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="FinanzasApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <envs>
+        <env name="DB_NAME" value="" />
+        <env name="DB_PASSWORD" value="1234" />
+        <env name="DB_USERNAME" value="postgres" />
+        <env name="PORT_USER" value="8008" />
+      </envs>
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="finanzas" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="saludfinanciera.finanzas.FinanzasApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.FinanzasApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eb534b30-15b1-4907-b818-54c8da2eb2a2" name="Changes" comment="" />
+      <created>1787502948117</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1787502948117</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
